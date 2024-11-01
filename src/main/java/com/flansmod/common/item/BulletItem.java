@@ -1,5 +1,6 @@
 package com.flansmod.common.item;
 
+import com.flansmod.api.IAmmoItem;
 import com.flansmod.client.render.bullets.BulletItemClientExtension;
 import com.flansmod.client.render.bullets.BulletItemRenderer;
 import com.flansmod.client.render.guns.GunItemRenderer;
@@ -16,6 +17,8 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -30,7 +33,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class BulletItem extends FlanItem implements IForgeItem
+public class BulletItem extends FlanItem implements IForgeItem, IAmmoItem
 {
 	@Override
 	public BulletDefinition Def() { return FlansMod.BULLETS.Get(DefinitionLocation); }
@@ -70,6 +73,46 @@ public class BulletItem extends FlanItem implements IForgeItem
 		else
 			return 1;
 	}
+
+
+	// IAmmoItem
+	@Nonnull @Override
+	public ItemStack provideAny(@Nonnull ItemStack fromStack)
+	{
+		return fromStack.split(1);
+	}
+	@Override
+	public boolean matchesTags(@Nonnull ItemStack fromStack, @Nonnull List<TagKey<Item>> matchTags)
+	{
+		for(TagKey<Item> tag : matchTags)
+			if(fromStack.is(tag))
+				return true;
+		return false;
+	}
+	@Nonnull @Override
+	public ItemStack provideForTags(@Nonnull ItemStack fromStack, @Nonnull List<TagKey<Item>> matchTags)
+	{
+		for(TagKey<Item> tag : matchTags)
+			if(fromStack.is(tag))
+				return fromStack.split(1);
+		return ItemStack.EMPTY;
+	}
+	@Override
+	public boolean matchesIDs(@Nonnull ItemStack fromStack, @Nonnull List<ResourceLocation> matchIDs)
+	{
+		return matchIDs.contains(DefinitionLocation);
+	}
+	@Nonnull @Override
+	public ItemStack provideForIDs(@Nonnull ItemStack fromStack, @Nonnull List<ResourceLocation> matchIDs)
+	{
+		if(matchIDs.contains(DefinitionLocation))
+			return fromStack.split(1);
+		return ItemStack.EMPTY;
+	}
+
+
+
+
 
 	// Random parameter overrides
 	public boolean isEnchantable(ItemStack i) { return false; }

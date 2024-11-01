@@ -43,20 +43,20 @@ public record Polygon(@Nonnull ImmutableList<Vec3> vertices) implements IPolygon
     public static IPolygon of(@Nonnull TransformedBB obb, @Nonnull Direction dir) { return obb.GetFace(dir); }
 
     @Override @Nonnull
-    public List<Vec3> GetVertices() { return vertices; }
+    public List<Vec3> getVertices() { return vertices; }
 
     @Override @Nonnull
-    public IPolygon Clip(@Nonnull IPlane clipPlane)
+    public IPolygon clip(@Nonnull IPlane clipPlane)
     {
         // https://alamot.github.io/sutherland_hodgman_algorithm/
         ImmutableList.Builder<Vec3> builder = ImmutableList.builder();
         for(int i = 0; i < vertices.size(); i++)
         {
             Vec3 vCurr = vertices.get(i);
-            Vec3 vNext = GetVertexLooped(i + 1);
+            Vec3 vNext = getVertexLooped(i + 1);
 
-            double dCurr = clipPlane.getPointHeightAbove(vCurr);
-            double dNext = clipPlane.getPointHeightAbove(vNext);
+            double dCurr = -clipPlane.getPointHeightAbove(vCurr);
+            double dNext = -clipPlane.getPointHeightAbove(vNext);
 
             if(dCurr <= 0d && dNext <= 0d)
             {
@@ -96,13 +96,13 @@ public record Polygon(@Nonnull ImmutableList<Vec3> vertices) implements IPolygon
     }
 
     @Override @Nonnull
-    public IPolygon CullClip(@Nonnull IPlane clipPlane)
+    public IPolygon cullClip(@Nonnull IPlane clipPlane)
     {
         ImmutableList.Builder<Vec3> builder = ImmutableList.builder();
         for(int i = 0; i < vertices.size(); i++)
         {
             Vec3 vCurr = vertices.get(i);
-            double dCurr = clipPlane.getPointHeightAbove(vCurr);
+            double dCurr = -clipPlane.getPointHeightAbove(vCurr);
             if(dCurr >= 0d)
                 builder.add(vCurr);
         }

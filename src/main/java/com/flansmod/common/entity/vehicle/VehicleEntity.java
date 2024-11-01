@@ -636,13 +636,13 @@ public class VehicleEntity extends PhysicsEntity implements
 			if(kvp.getKey().IsRoot())
 			{
 				Transform spawnedTransform = Transform.fromEntity(this);
-				ColliderHandle handle = physics.registerDynamic(kvp.getValue(), spawnedTransform);
+				ColliderHandle handle = physics.registerDynamic(kvp.getValue(), spawnedTransform, 1d);
 				PhysicsParts.put(VehicleComponentPath.coreArticulation, new PhysicsComponent(spawnedTransform, level().getGameTime(), handle));
 			}
 			else
 			{
 				Transform t = GetWorldToPartCurrent(kvp.getKey());
-				ColliderHandle handle = physics.registerDynamic(kvp.getValue(), t);
+				ColliderHandle handle = physics.registerDynamic(kvp.getValue(), t, 1d);
 				PhysicsParts.put(kvp.getKey().Articulation(), new PhysicsComponent(t, level().getGameTime(), handle));
 			}
 		}
@@ -653,7 +653,7 @@ public class VehicleEntity extends PhysicsEntity implements
 			//int wheelIndex = Wheels.Add(wheel, wheelPath, wheelDef.controlHints);
 			//wheel.SetLinkToVehicle(this, wheelPath);
 			Transform t = GetWorldToPartCurrent(wheelPath);
-			ColliderHandle handle = physics.registerDynamic(List.of(new AABB(-wheelDef.radius, -wheelDef.radius, -wheelDef.radius, wheelDef.radius, wheelDef.radius, wheelDef.radius)), t);
+			ColliderHandle handle = physics.registerDynamic(List.of(new AABB(-wheelDef.radius, -wheelDef.radius, -wheelDef.radius, wheelDef.radius, wheelDef.radius, wheelDef.radius)), t, 0.25d);
 			PhysicsParts.put(wheelPath, new PhysicsComponent(t, level().getGameTime(), handle));
 		});
 	}

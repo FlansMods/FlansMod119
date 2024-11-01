@@ -1,0 +1,9 @@
+{
+  "replace": "false",
+  "values": [
+    "flansbasicparts:pistol_bullet_ap",
+    "flansbasicparts:rifle_bullet_ap",
+    "flansbasicparts:shotgun_shell_ap",
+    "flansbasicparts:artillery_shell_ap"
+  ]
+}

@@ -1,0 +1,20 @@
+{
+    "itemSettings": {
+        "maxStackSize": 1,
+        "tags": [
+            "flansmod:bullet_bag"
+        ]
+    },
+	"slotCount": 16,
+	"maxStackSize": 64,
+    "bulletFilters": {
+		"itemTagFilters": [
+			{
+				"filterType": "Allow",
+				"matchResourceLocations": [
+					"flansmod:add_to_bullet_bag_reg"
+				]
+			}
+		]
+	}
+}

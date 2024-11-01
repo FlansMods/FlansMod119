@@ -13,6 +13,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
 import javax.annotation.Nonnull;
@@ -120,7 +121,7 @@ public abstract class PhysicsEntity extends Entity implements ITransformEntity
     protected void initPhysics()
     {
         // Default implementation. Override to do your own colliders
-        addPhysicsComponent(CORE_PHYSICS, getEntityRootAsTransform(), List.of(new AABB(-0.5d, -0.5d, -0.5d, 0.5d, 0.5d, 0.5d)));
+        addPhysicsComponent(CORE_PHYSICS, getEntityRootAsTransform(), List.of(new AABB(-0.5d, -0.5d, -0.5d, 0.5d, 0.5d, 0.5d)), 1d);
     }
     protected void stopPhysics()
     {
@@ -130,10 +131,15 @@ public abstract class PhysicsEntity extends Entity implements ITransformEntity
     {
         physicsComponents.put(id, component);
     }
-    protected void addPhysicsComponent(@Nonnull UUID id, @Nonnull Transform worldPos, @Nonnull List<AABB> aabbs)
+    protected void addPhysicsComponent(@Nonnull UUID id, @Nonnull Transform worldPos, @Nonnull List<AABB> aabbs, double mass)
     {
         OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
-        physicsComponents.put(id, new PhysicsComponent(worldPos, level().getGameTime(), physics.registerDynamic(aabbs, worldPos)));
+        physicsComponents.put(id, new PhysicsComponent(worldPos, level().getGameTime(), physics.registerDynamic(aabbs, worldPos, mass)));
+    }
+    protected void addPhysicsComponent(@Nonnull UUID id, @Nonnull Transform worldPos, @Nonnull List<AABB> aabbs, double mass, @Nonnull Vec3 momentOfInertia)
+    {
+        OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
+        physicsComponents.put(id, new PhysicsComponent(worldPos, level().getGameTime(), physics.registerDynamic(aabbs, worldPos, mass, momentOfInertia)));
     }
 
     @Override

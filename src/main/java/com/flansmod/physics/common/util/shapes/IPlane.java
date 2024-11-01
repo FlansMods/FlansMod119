@@ -113,15 +113,15 @@ public interface IPlane extends ISeparationAxis
 
         for(int i = 0; i < incident.GetNumVertices(); i++)
         {
-            Transform vCurrent = Transform.fromPos(incident.GetVertex(i));
-            Vec3 vEdge = incident.GetEdgeVector(i);
+            Transform vCurrent = Transform.fromPos(incident.getVertex(i));
+            Vec3 vEdge = incident.getEdgeVector(i);
             DebugRenderer.renderLine(vCurrent, 4, new Vector4f(1.0f, 0.0f, 0.0f, 1.0f), vEdge);
             DebugRenderer.renderPoint(vCurrent, 4, new Vector4f(1.0f, 0.0f, 0.0f, 1.0f));
         }
         for(int i = 0; i < reference.GetNumVertices(); i++)
         {
-            Transform vCurrent = Transform.fromPos(reference.GetVertex(i));
-            Vec3 vEdge = reference.GetEdgeVector(i);
+            Transform vCurrent = Transform.fromPos(reference.getVertex(i));
+            Vec3 vEdge = reference.getEdgeVector(i);
             DebugRenderer.renderLine(vCurrent, 4, new Vector4f(0.0f, 1.0f, 0.0f, 1.0f), vEdge);
             DebugRenderer.renderPoint(vCurrent, 4, new Vector4f(0.0f, 1.0f, 0.0f, 1.0f));
         }
@@ -130,13 +130,13 @@ public interface IPlane extends ISeparationAxis
         int refVertexCount = reference.GetNumVertices();
         for(int i = 0; i < refVertexCount; i++)
         {
-            IPlane clipPlane = reference.GetEdgeClipPlane(getNormal(), i);
+            IPlane clipPlane = reference.getEdgeClipPlane(getNormal(), i);
 
-            incident = incident.Clip(clipPlane);
+            incident = incident.clip(clipPlane);
         }
 
         // Final Clipping - simply remove points that are inside our clip plane
-        incident = incident.CullClip(reference.GetFaceClipPlane());
+        incident = incident.cullClip(reference.getFaceClipPlane());
 
         return incident;
     }

@@ -67,8 +67,12 @@ public record OffsetAcceleration(@Nonnull Vec3 Acceleration, @Nonnull Vec3 Origi
 	public AngularAcceleration getAngularComponent(@Nonnull Transform actingOn)
 	{
 		Vec3 relativeOffset = Origin.subtract(actingOn.positionVec3());
+		double radius = relativeOffset.length();
+		if(Maths.approx(radius, 0d))
+			return AngularAcceleration.Zero;
+
 		Vec3 axis = relativeOffset.cross(Acceleration).normalize();
-		double magnitude = Acceleration.length() * relativeOffset.length();
+		double magnitude = Acceleration.length() / radius;
 		return new AngularAcceleration(axis, magnitude);
 	}
 	@Override

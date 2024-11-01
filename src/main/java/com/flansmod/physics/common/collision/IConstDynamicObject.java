@@ -15,7 +15,10 @@ public interface IConstDynamicObject
 
     @Nonnull AABB getLocalBounds();
 
-
+    double getMass();
+    double getInverseMass();
+    @Nonnull Vec3 getMomentOfInertia();
+    @Nonnull Vec3 getInertiaTensor();
 
     @Nonnull Transform getCurrentLocation();
     @Nonnull TransformedBB getCurrentBB();

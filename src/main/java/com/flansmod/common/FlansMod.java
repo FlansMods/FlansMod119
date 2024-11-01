@@ -33,6 +33,7 @@ import com.flansmod.common.types.attachments.AttachmentDefinitions;
 import com.flansmod.common.types.attachments.EAttachmentType;
 import com.flansmod.common.types.blocks.TurretBlockDefinitions;
 import com.flansmod.common.blocks.TurretContainerMenu;
+import com.flansmod.common.types.bullets.BulletBagDefinitions;
 import com.flansmod.common.types.crafting.MaterialDefinitions;
 import com.flansmod.common.types.crafting.WorkbenchDefinitions;
 import com.flansmod.common.types.grenades.GrenadeDefinitions;
@@ -287,6 +288,7 @@ public class FlansMod
     // Definition Repositories
     public static final GunDefinitions GUNS = new GunDefinitions();
     public static final BulletDefinitions BULLETS = new BulletDefinitions();
+    public static final BulletBagDefinitions BULLET_BAGS = new BulletBagDefinitions();
     public static final GrenadeDefinitions GRENADES = new GrenadeDefinitions();
     public static final AttachmentDefinitions ATTACHMENTS = new AttachmentDefinitions();
     public static final PartDefinitions PARTS = new PartDefinitions();
@@ -336,6 +338,13 @@ public class FlansMod
         ResourceLocation loc = new ResourceLocation(modID, name);
         return itemRegister.register(name, () -> new PartItem(loc, new Item.Properties()));
     }
+
+    public static RegistryObject<Item> BulletBag(DeferredRegister<Item> itemRegister, String modID, String name)
+    {
+        ResourceLocation loc = new ResourceLocation(modID, name);
+        return itemRegister.register(name, () -> new BulletBagItem(loc, new Item.Properties()));
+    }
+
 
     @Nonnull
     public static RegistryObject<Block> Workbench_Block(@Nonnull DeferredRegister<Block> blockRegister, @Nonnull String modID, @Nonnull String name)
@@ -585,6 +594,7 @@ public class FlansMod
     {
         registerFunc.accept(GUNS);
         registerFunc.accept(BULLETS);
+        registerFunc.accept(BULLET_BAGS);
         registerFunc.accept(ATTACHMENTS);
         registerFunc.accept(PARTS);
         registerFunc.accept(WORKBENCHES);

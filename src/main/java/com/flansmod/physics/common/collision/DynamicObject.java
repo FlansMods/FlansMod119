@@ -21,6 +21,9 @@ public class DynamicObject implements IConstDynamicObject
 	public static final int KILL_VOLUME_NEGATIVE_Y = -256;
 	public static final int KILL_VOLUME_POSITIVE_Y = Short.MAX_VALUE;
 
+	public static final Vec3 DEFAULT_MOMENT_OF_INERTIA = new Vec3(1d, 1d, 1d);
+	public static final Vec3 DEFAULT_INERTIA_TENSOR = new Vec3(1d, 1d, 1d);
+
 	private record FrameData(@Nonnull Transform Location,
 							 @Nonnull LinearVelocity linearVelocity,
 							 @Nonnull AngularVelocity angularVelocity)
@@ -32,6 +35,13 @@ public class DynamicObject implements IConstDynamicObject
 	public final ImmutableList<AABB> Colliders;
 	@Nonnull
 	public final AABB LocalBounds;
+
+	public final double Mass;
+	public final double InverseMass;
+	public final Vec3 MomentOfInertia;
+	public final Vec3 InertiaTensor;
+
+
 	@Nonnull
 	private final Stack<FrameData> Frames = new Stack<>();
 	private FrameData PendingFrame = null;
@@ -44,7 +54,7 @@ public class DynamicObject implements IConstDynamicObject
 	@Nonnull
 	public AngularVelocity NextFrameAngularMotion;
 	@Nonnull
-	public CompoundAcceleration ReactionAcceleration;
+	public List<IAcceleration> Reactions;
 	@Nonnull
 	public Optional<Transform> NextFrameTeleport;
 	@Nonnull
@@ -53,8 +63,117 @@ public class DynamicObject implements IConstDynamicObject
 	public final List<StaticCollisionEvent> StaticCollisions;
 
 
+	public static class Builder
+	{
+		private ImmutableList.Builder<AABB> localColliders = new ImmutableList.Builder<>();
+		private double mass = 1.0d;
+		private double invMass = 1.0d;
+		private Vec3 momentOfInertia = null;
+		private Vec3 inertiaTensor = null;
+		private Transform initialLocation = null;
 
-	public DynamicObject(@Nonnull List<AABB> localColliders, @Nonnull Transform initialLocation)
+		public Builder(){}
+
+		@Nonnull
+		public Builder withMass(double kg)
+		{
+			if(Maths.approx(kg, 0d))
+				return massless();
+			mass = kg;
+			invMass = 1d / kg;
+			return this;
+		}
+		@Nonnull
+		public Builder withInverseMass(double oneOverKg)
+		{
+			if(Maths.approx(oneOverKg, 0d))
+				return immovable();
+			mass = 1d / oneOverKg;
+			invMass = oneOverKg;
+			return this;
+		}
+		@Nonnull
+		public Builder massless() {
+			mass = 0d;
+			invMass = Double.MAX_VALUE;
+			return this;
+		}
+		@Nonnull
+		public Builder immovable() {
+			mass = Double.MAX_VALUE;
+			invMass = 0d;
+			return this;
+		}
+		@Nonnull
+		public Builder withMomentOfInertia(@Nonnull Vec3 moment)
+		{
+			if(Maths.approx(moment, Vec3.ZERO))
+				return zeroInertia();
+			momentOfInertia = moment;
+			inertiaTensor = new Vec3(1d / moment.x, 1d / moment.y, 1d / moment.z);
+			return this;
+		}
+		@Nonnull
+		public Builder withInertiaTensor(@Nonnull Vec3 tensor)
+		{
+			if(Maths.approx(tensor, Vec3.ZERO))
+				return infiniteInertia();
+			momentOfInertia = new Vec3(1d / tensor.x, 1d / tensor.y, 1d / tensor.z);
+			inertiaTensor = tensor;
+			return this;
+		}
+		@Nonnull
+		public Builder infiniteInertia()
+		{
+			momentOfInertia = new Vec3(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+			inertiaTensor = Vec3.ZERO;
+			return this;
+		}
+		@Nonnull
+		public Builder zeroInertia()
+		{
+			momentOfInertia = Vec3.ZERO;
+			inertiaTensor = new Vec3(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+			return this;
+		}
+		@Nonnull
+		public Builder inLocation(@Nonnull Transform loc)
+		{
+			initialLocation = loc;
+			return this;
+		}
+		@Nonnull
+		public Builder withCollider(@Nonnull AABB collider)
+		{
+			localColliders.add(collider);
+			return this;
+		}
+		@Nonnull
+		public Builder withColliders(@Nonnull Iterable<AABB> colliders)
+		{
+			localColliders.addAll(colliders);
+			return this;
+		}
+
+		@Nonnull
+		public DynamicObject build()
+		{
+			return new DynamicObject(localColliders.build(),
+					initialLocation != null ? initialLocation : Transform.IDENTITY,
+					mass,
+					invMass,
+					momentOfInertia != null ? momentOfInertia : DEFAULT_MOMENT_OF_INERTIA,
+					inertiaTensor != null ? inertiaTensor : DEFAULT_INERTIA_TENSOR);
+		}
+	}
+
+
+	private DynamicObject(@Nonnull List<AABB> localColliders,
+						 @Nonnull Transform initialLocation,
+						 double mass,
+						 double invMass,
+						 @Nonnull Vec3 momentOfInertia,
+						 @Nonnull Vec3 inertiaTensor)
 	{
 		ImmutableList.Builder<AABB> builder = ImmutableList.builder();
 		Colliders = builder.addAll(localColliders).build();
@@ -62,12 +181,27 @@ public class DynamicObject implements IConstDynamicObject
 		Frames.add(new FrameData(Transform.copy(initialLocation), LinearVelocity.Zero, AngularVelocity.Zero));
 		NextFrameLinearMotion = LinearVelocity.Zero;
 		NextFrameAngularMotion = AngularVelocity.Zero;
-		ReactionAcceleration = CompoundAcceleration.Zero;
+		Reactions = List.of();
 		NextFrameTeleport = Optional.empty();
 		DynamicCollisions = new ArrayList<>();
 		StaticCollisions = new ArrayList<>();
+		Mass = mass;
+		InverseMass = 1d / mass;
+		MomentOfInertia = momentOfInertia;
+		InertiaTensor = inertiaTensor;
 	}
 
+	@Nonnull
+	public static Builder builder() { return new Builder(); }
+
+	@Override
+	public double getMass() { return Mass; }
+	@Override
+	public double getInverseMass() { return InverseMass; }
+	@Override @Nonnull
+	public Vec3 getMomentOfInertia() { return MomentOfInertia; }
+	@Override @Nonnull
+	public Vec3 getInertiaTensor() { return InertiaTensor; }
 	@Override @Nonnull
 	public Optional<Transform> getNextFrameTeleport() { return NextFrameTeleport; }
 	@Override @Nonnull
@@ -237,6 +371,8 @@ public class DynamicObject implements IConstDynamicObject
 			Frames.push(PendingFrame);
 		}
 
+		NextFrameLinearMotion = PendingFrame.linearVelocity;
+		NextFrameAngularMotion = PendingFrame.angularVelocity;
 		NextFrameTeleport = Optional.empty();
 	}
 	public void extrapolateNextFrame(boolean withReactionForce)
@@ -249,10 +385,13 @@ public class DynamicObject implements IConstDynamicObject
 		{
 			if(withReactionForce)
 			{
-				CompoundVelocity reaction = ReactionAcceleration.applyOneTick(getCurrentLocation());
-				LinearVelocity reactionaryLinearV = NextFrameLinearMotion.add(reaction.getLinearComponent(getCurrentLocation()));
-				AngularVelocity reactionaryAngularV = NextFrameAngularMotion.compose(reaction.getAngularComponent(getCurrentLocation()));
-
+				LinearVelocity reactionaryLinearV = NextFrameLinearMotion;
+				AngularVelocity reactionaryAngularV = NextFrameAngularMotion;
+				for(IAcceleration acceleration : Reactions)
+				{
+					reactionaryLinearV = reactionaryLinearV.add(acceleration.getLinearComponent(getPendingLocation()).applyOneTick());
+					reactionaryAngularV = reactionaryAngularV.compose(acceleration.getAngularComponent(getPendingLocation()).applyOneTick());
+				}
 				extrapolateNextFrame(reactionaryLinearV, reactionaryAngularV);
 			}
 			else

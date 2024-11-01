@@ -3,7 +3,8 @@
         "maxStackSize": 64,
         "tags": [
             "flansmod:bullet",
-            "flansmod:pistol_bullet"
+            "flansmod:pistol_bullet",
+			"flansmod:add_to_bullet_bag_reg"
         ]
     },
     "roundsPerItem": 1,

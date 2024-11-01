@@ -38,7 +38,7 @@ public class PhysicsComponent
 		public long gameTick;
 		public Transform location;
 		public final List<IAcceleration> accelerations;
-		public IAcceleration reactionAcceleration;
+		public final List<IAcceleration> reactions;
 		public LinearVelocity linearVelocity;
 		public AngularVelocity angularVelocity;
 
@@ -47,7 +47,7 @@ public class PhysicsComponent
 			gameTick = tick;
 			location = loc;
 			accelerations = new ArrayList<>(3);
-			reactionAcceleration = CompoundAcceleration.Zero;
+			reactions = new ArrayList<>(3);
 			linearVelocity = LinearVelocity.Zero;
 			angularVelocity = AngularVelocity.Zero;
 		}
@@ -131,7 +131,7 @@ public class PhysicsComponent
 
 		public static boolean isSameForces(@Nonnull Frame a, @Nonnull Frame b)
 		{
-			return a.accelerations.equals(b.accelerations) && a.reactionAcceleration.equals(b.reactionAcceleration);
+			return a.accelerations.equals(b.accelerations) && a.reactions.equals(b.reactions);
 		}
 		public static boolean isSameLinearVelocity(@Nonnull Frame a, @Nonnull Frame b)
 		{
@@ -164,7 +164,11 @@ public class PhysicsComponent
 		@Override
 		public void updateAngularVelocity(@Nonnull AngularVelocity angularV) { angularVelocity = angularV; }
 		@Override
-		public void updateReactionForce(@Nonnull CompoundAcceleration reactionA) { reactionAcceleration = reactionA; }
+		public void updateReactionForce(@Nonnull List<IAcceleration> reactionAccelerations)
+		{
+			reactions.clear();
+			reactions.addAll(reactionAccelerations);
+		}
 
 	}
 	private static class FrameBuilder
@@ -279,13 +283,13 @@ public class PhysicsComponent
 	@Nonnull public ForcesOnPart getPendingForces() { return pendingForces; }
 
 	@Nonnull public List<IAcceleration> getCurrentForces() { return getMostRecentFrame().accelerations; }
-	@Nonnull public IAcceleration getCurrentReactionForce() { return getMostRecentFrame().reactionAcceleration; }
+	@Nonnull public List<IAcceleration> getCurrentReactionForces() { return getMostRecentFrame().reactions; }
 	@Nonnull public Transform getCurrentTransform() { return getMostRecentFrame().location; }
 	@Nonnull public LinearVelocity getCurrentLinearVelocity() { return getMostRecentFrame().linearVelocity; }
 	@Nonnull public AngularVelocity getCurrentAngularVelocity() { return getMostRecentFrame().angularVelocity; }
 
 	@Nonnull public List<IAcceleration> getPreviousForces() { return getPreviousRecentFrame().accelerations; }
-	@Nonnull public IAcceleration getPreviousReactionForce() { return getPreviousRecentFrame().reactionAcceleration; }
+	@Nonnull public List<IAcceleration> getPreviousReactionForce() { return getPreviousRecentFrame().reactions; }
 	@Nonnull public Transform getPreviousTransform() { return getPreviousRecentFrame().location; }
 	@Nonnull public LinearVelocity getPreviousLinearVelocity() { return getPreviousRecentFrame().linearVelocity; }
 	@Nonnull public AngularVelocity getPreviousAngularVelocity() { return getPreviousRecentFrame().angularVelocity; }

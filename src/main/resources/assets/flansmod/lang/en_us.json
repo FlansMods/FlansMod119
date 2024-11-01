@@ -279,5 +279,7 @@
   "trigger.expanded.bulletconsumed": "Bullet Consumed",
   "trigger.expanded.firstbulletconsumed": "First Bullet Consumed",
   "trigger.expanded.lastbulletconsumed": "Last Bullet Consumed",
-  "trigger.expanded.raycastaction": "Ray Casted"
+  "trigger.expanded.raycastaction": "Ray Casted",
+  "flansmod.bullet_bag.fullness": "Slots Filled (%d/%d)",
+  "flansmod.bullet_bag.substack": "%s (%d/%d)"
 }

@@ -1,0 +1,10 @@
+{
+  "replace": "false",
+  "values": [
+    "flansbasicparts:pistol_bullet_incendiary",
+    "flansbasicparts:rifle_bullet_incendiary",
+    "flansbasicparts:shotgun_shell_incendiary",
+    "flansbasicparts:projectile_grenade_incendiary",
+    "flansbasicparts:artillery_shell_incendiary"
+  ]
+}

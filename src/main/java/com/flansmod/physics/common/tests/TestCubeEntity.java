@@ -1,16 +1,24 @@
 package com.flansmod.physics.common.tests;
 
+import com.flansmod.physics.client.DebugRenderer;
+import com.flansmod.physics.common.collision.TransformedBB;
 import com.flansmod.physics.common.entity.CenteredEntityDimensions;
 import com.flansmod.physics.common.entity.PhysicsEntity;
 import com.flansmod.physics.common.entity.PhysicsComponent;
 import com.flansmod.physics.common.units.LinearForce;
+import com.flansmod.physics.common.util.Transform;
+import com.flansmod.physics.common.util.shapes.IPolygon;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
+import org.joml.Vector4f;
 
 import javax.annotation.Nonnull;
 

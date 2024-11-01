@@ -58,6 +58,12 @@ public record AngularVelocity(@Nonnull Vec3 Axis, double Magnitude) implements I
 	}
 
 	@Nonnull
+	public Vec3 asVec3()
+	{
+		return Axis.scale(Magnitude);
+	}
+
+	@Nonnull
 	public AngularVelocity compose(@Nonnull AngularVelocity other)
 	{
 		Quaternionf angularA = new Quaternionf().setAngleAxis(Magnitude, Axis.x, Axis.y, Axis.z);
@@ -81,6 +87,16 @@ public record AngularVelocity(@Nonnull Vec3 Axis, double Magnitude) implements I
 		return new AngularVelocity(Axis, Magnitude * scale);
 	}
 
+	@Nonnull
+	public LinearVelocity atOffset(@Nonnull Vec3 v)
+	{
+		if(Maths.approx(v, Vec3.ZERO))
+			return LinearVelocity.Zero;
+
+		Vec3 dir = Axis.cross(v.normalize());
+		double mag = Magnitude * v.length();
+		return new LinearVelocity(dir.scale(mag));
+	}
 
 	//
 	//@Nonnull

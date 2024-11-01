@@ -1,7 +1,6 @@
 package com.flansmod.physics.client;
 
 import com.flansmod.physics.common.collision.*;
-import com.flansmod.physics.common.deprecated.ForcesOnPart;
 import com.flansmod.physics.common.entity.PhysicsEntity;
 import com.flansmod.physics.common.units.*;
 import com.flansmod.physics.common.util.Transform;
@@ -170,20 +169,20 @@ public class PhysicsDebugRenderer
             int numVerts = collisionSurface.GetNumVertices();
             for(int i = 0; i < numVerts; i++)
             {
-                Vec3 vCurrent = collisionSurface.GetVertexLooped(i);
-                Vec3 vNext = collisionSurface.GetVertexLooped(i + 1);
+                Vec3 vCurrent = collisionSurface.getVertexLooped(i);
+                Vec3 vNext = collisionSurface.getVertexLooped(i + 1);
                 DebugRenderer.renderPoint(Transform.fromPos(vCurrent), 2, palette.CollisionStatic);
                 DebugRenderer.renderLine(Transform.fromPos(vCurrent), 2, palette.CollisionStatic, vNext.subtract(vCurrent));
                 avgPos = avgPos.add(vCurrent);
             }
             if(numVerts > 0) {
                 Transform collisionFrame = Transform.fromPositionAndLookDirection(avgPos.scale(1d / numVerts), normal, up);
-                DebugRenderer.renderArrow(collisionFrame, 2, palette.CollisionStatic, new Vec3(0d, 0d, -1d));
+                DebugRenderer.renderArrow(collisionFrame, 2, palette.CollisionStatic, new Vec3(0d, 0d, 1d));
                 //staticCollisionPoints.add(collisionFrame.PositionVec3());
             }
             else {
                 Transform collisionFrame = Transform.fromPositionAndLookDirection(dynamic.getCurrentWorldBounds().getCenter(), normal, up);
-                DebugRenderer.renderArrow(collisionFrame, 2, palette.CollisionStatic.mul(1.0f, 0.5f, 0.5f, 1.0f, new Vector4f()), new Vec3(0d, 0d, -1d));
+                DebugRenderer.renderArrow(collisionFrame, 2, palette.CollisionStatic.mul(1.0f, 0.5f, 0.5f, 1.0f, new Vector4f()), new Vec3(0d, 0d, 1d));
                 //staticCollisionPoints.add(collisionFrame.PositionVec3());
             }
             //Transform collisionFrame = Transform.FromPositionAndLookDirection(collisionSurface.GetVertexLooped(0), normal, up);
@@ -223,13 +222,12 @@ public class PhysicsDebugRenderer
                             palette,
                             (float) component.mass);
                     DebugRenderForces(
-                            List.of(component.getCurrentReactionForce()),
+                            component.getCurrentReactionForces(),
                             vehicle.getDeltaMovement(),
                             componentPos,
                             palette,
                             (float) component.mass);
                     Transform componentPosNext = Transform.compose(componentPos, Transform.fromPos(coreMotionNextFrame.scale(1f/20f)));
-
 
                 });
             }

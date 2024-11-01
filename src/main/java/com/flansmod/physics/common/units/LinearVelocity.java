@@ -2,6 +2,7 @@ package com.flansmod.physics.common.units;
 
 import com.flansmod.physics.common.util.Maths;
 import com.flansmod.physics.common.util.Transform;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
@@ -25,6 +26,8 @@ public record LinearVelocity(@Nonnull Vec3 Velocity) implements IVelocity
 
 	@Nonnull
 	public LinearVelocity add(@Nonnull LinearVelocity other) { return new LinearVelocity(Velocity.add(other.Velocity)); }
+	@Nonnull
+	public LinearVelocity subtract(@Nonnull LinearVelocity other) { return new LinearVelocity(Velocity.subtract(other.Velocity)); }
 	@Nonnull
 	public LinearVelocity scale(double scale) { return new LinearVelocity(Velocity.scale(scale)); }
 	@Nonnull

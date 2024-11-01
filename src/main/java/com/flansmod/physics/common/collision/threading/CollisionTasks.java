@@ -2,12 +2,16 @@ package com.flansmod.physics.common.collision.threading;
 
 import com.flansmod.physics.common.FlansPhysicsMod;
 import com.flansmod.physics.common.collision.SeparationResult;
+import com.flansmod.physics.common.units.AngularVelocity;
+import com.flansmod.physics.common.units.CompoundVelocity;
+import com.flansmod.physics.common.units.LinearVelocity;
 import com.flansmod.physics.common.util.Maths;
 import com.flansmod.physics.common.collision.TransformedBB;
 import com.flansmod.physics.common.util.ProjectedRange;
 import com.flansmod.physics.common.util.ProjectionUtil;
 import com.flansmod.physics.common.util.shapes.Plane;
 
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -378,4 +382,62 @@ public class CollisionTasks
 						Plane.of(normal, aProjection.max()), sepDist);
 		}
 	}
+
+	public static double calculateLinearImpulse(@Nonnull LinearVelocity vA, double inverseMassA,
+										  @Nonnull LinearVelocity vB, double inverseMassB,
+										  @Nonnull Vec3 normal,
+										  double coefficientOfRestitution)
+	{
+		LinearVelocity deltaV = vB.subtract(vA);
+		double collisionSpeed = -(1 + coefficientOfRestitution) * deltaV.Velocity().dot(normal);
+		return collisionSpeed / (inverseMassA + inverseMassB);
+	}
+	@Nonnull
+	public static Pair<LinearVelocity, LinearVelocity> linearCollision(@Nonnull LinearVelocity vA, double inverseMassA,
+																 @Nonnull LinearVelocity vB, double inverseMassB,
+																 @Nonnull Vec3 normal,
+																 double coefficientOfRestitution)
+	{
+		double j = calculateLinearImpulse(vA, inverseMassA, vB, inverseMassB, normal, coefficientOfRestitution);
+		return Pair.of(
+				new LinearVelocity(vA.Velocity().add(normal.scale(inverseMassA*j))),
+				new LinearVelocity(vB.Velocity().add(normal.scale(inverseMassB*j))));
+	}
+
+	@Nonnull
+	public static Vec3 vectorTripleProduct(@Nonnull Vec3 a, @Nonnull Vec3 b, @Nonnull Vec3 c)
+	{
+		//return a.cross(b).cross(c);
+		// Lagrange's Formula (a x b) x c = -(c.b)a + (c.a)b
+		return a.scale(-c.dot(b)).add(b.scale(c.dot(a)));
+	}
+
+	public static double calculateImpulse(@Nonnull CompoundVelocity vA, double inverseMassA, @Nonnull Vec3 inertiaTensorA, @Nonnull Vec3 collisionRelA,
+										  @Nonnull CompoundVelocity vB, double inverseMassB, @Nonnull Vec3 inertiaTensorB, @Nonnull Vec3 collisionRelB,
+										  @Nonnull Vec3 normal,
+										  double coefficientOfRestitution)
+	{
+		LinearVelocity deltaV = vB.linear().subtract(vA.linear());
+		double collisionSpeedLinear = -(1 + coefficientOfRestitution) * deltaV.Velocity().dot(normal);
+
+		Vec3 tangentA = vectorTripleProduct(collisionRelA, normal, collisionRelA);
+		Vec3 thetaA = inertiaTensorA.multiply(tangentA);
+		Vec3 tangentB = vectorTripleProduct(collisionRelB, normal, collisionRelB);
+		Vec3 thetaB = inertiaTensorB.multiply(tangentB);
+
+		return collisionSpeedLinear / (inverseMassA + inverseMassB + thetaA.add(thetaB).dot(normal));
+	}
+	@Nonnull
+	public static Pair<CompoundVelocity, CompoundVelocity> collision(@Nonnull CompoundVelocity vA, double inverseMassA, @Nonnull Vec3 inertiaTensorA, @Nonnull Vec3 collisionRelA,
+																	 @Nonnull CompoundVelocity vB, double inverseMassB, @Nonnull Vec3 inertiaTensorB, @Nonnull Vec3 collisionRelB,
+																	 @Nonnull Vec3 normal,
+																	 double coefficientOfRestitution)
+	{
+		double j = calculateImpulse(vA, inverseMassA, inertiaTensorA, collisionRelA, vB, inverseMassB, inertiaTensorB, collisionRelB, normal, coefficientOfRestitution);
+		return Pair.of(
+				CompoundVelocity.of(new LinearVelocity(vA.Velocity.add(normal.scale(inverseMassA*j))),
+						new AngularVelocity(),
+				new LinearVelocity(vB.Velocity.add(normal.scale(inverseMassB*j))));
+	}
+
 }

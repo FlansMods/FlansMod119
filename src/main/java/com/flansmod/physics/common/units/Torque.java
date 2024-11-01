@@ -5,8 +5,7 @@ import com.flansmod.physics.common.util.Transform;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
 import org.apache.commons.lang3.NotImplementedException;
-import org.joml.AxisAngle4f;
-import org.joml.Quaternionf;
+import org.joml.*;
 
 import javax.annotation.Nonnull;
 
@@ -59,12 +58,40 @@ public record Torque(@Nonnull Vec3 Axis, double Magnitude) implements IForce
 	public Units.Torque getDefaultUnits() { return Units.Torque.KgBlocksSqPerTickSq; }
 	public double convertToUnits(@Nonnull Units.Torque toUnits) { return Units.Torque.Convert(Magnitude, Units.Torque.KgBlocksSqPerTickSq, toUnits); }
 	@Nonnull
-	public AngularAcceleration sumTorqueActingOn(double mass) { return new AngularAcceleration(Axis, Magnitude / mass); }
+	public AngularAcceleration sumTorqueActingOnMass(double mass) { return new AngularAcceleration(Axis, Magnitude / mass); }
 	@Nonnull
-	public AngularAcceleration actingOn(Vec3 momentOfInertia)
+	public AngularAcceleration sumTorqueActingOnInverseMass(double invMass) { return new AngularAcceleration(Axis, Magnitude * invMass); }
+	@Nonnull
+	public AngularAcceleration actingOnMomentOfInertia(@Nonnull Vec3 momentOfInertia)
 	{
-		// TODO: Moment of inertia
-	 	return new AngularAcceleration(Axis, Magnitude / momentOfInertia.x);
+		AxisAngle4d axisAngle = new AxisAngle4d();
+		Quaterniond quat = new Quaterniond();
+		Vector3d euler = new Vector3d();
+
+		quat.setAngleAxis(Magnitude, Axis.x, Axis.y, Axis.z);
+		quat.getEulerAnglesXYZ(euler);
+		euler.div(momentOfInertia.x, momentOfInertia.y, momentOfInertia.z);
+		quat.identity();
+		quat.rotateXYZ(euler.x, euler.y, euler.z);
+		axisAngle.set(quat);
+
+	 	return new AngularAcceleration(new Vec3(axisAngle.x, axisAngle.y, axisAngle.z), axisAngle.angle);
+	}
+	@Nonnull
+	public AngularAcceleration actingOnInertiaTensor(@Nonnull Vec3 inertiaTensor)
+	{
+		AxisAngle4d axisAngle = new AxisAngle4d();
+		Quaterniond quat = new Quaterniond();
+		Vector3d euler = new Vector3d();
+
+		quat.setAngleAxis(Magnitude, Axis.x, Axis.y, Axis.z);
+		quat.getEulerAnglesXYZ(euler);
+		euler.mul(inertiaTensor.x, inertiaTensor.y, inertiaTensor.z);
+		quat.identity();
+		quat.rotateXYZ(euler.x, euler.y, euler.z);
+		axisAngle.set(quat);
+
+		return new AngularAcceleration(new Vec3(axisAngle.x, axisAngle.y, axisAngle.z), axisAngle.angle);
 	}
 
 	@Override

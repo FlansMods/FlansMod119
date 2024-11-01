@@ -199,12 +199,26 @@ public class OBBCollisionSystem
 		else
 			func.run();
 	}
-
 	@Nonnull
-	public ColliderHandle registerDynamic(@Nonnull List<AABB> localColliders, @Nonnull Transform initialTransform)
+	public ColliderHandle registerDynamic(@Nonnull List<AABB> localColliders,
+										  @Nonnull Transform initialTransform,
+										  double mass)
+	{
+		return registerDynamic(localColliders, initialTransform, mass, new Vec3(mass, mass, mass));
+	}
+	@Nonnull
+	public ColliderHandle registerDynamic(@Nonnull List<AABB> localColliders,
+										  @Nonnull Transform initialTransform,
+										  double mass,
+										  @Nonnull Vec3 momentOfInertia)
 	{
 		ColliderHandle handle = new ColliderHandle(NextID);
-		DynamicObject dynObj = new DynamicObject(localColliders, initialTransform);
+		DynamicObject dynObj = DynamicObject.builder()
+				.withColliders(localColliders)
+				.inLocation(initialTransform)
+				.withMass(mass)
+				.withMomentOfInertia(momentOfInertia)
+				.build();
 		NextID++;
 		doAfterPhysics(() -> {
 			AllHandles.add(handle);
@@ -332,7 +346,7 @@ public class OBBCollisionSystem
 				receiver.updateLocation(obj.getPendingLocation());
 				receiver.updateLinearVelocity(obj.getNextFrameLinearVelocity());
 				receiver.updateAngularVelocity(obj.getNextFrameAngularVelocity());
-				receiver.updateReactionForce(obj.ReactionAcceleration);
+				receiver.updateReactionForce(obj.Reactions);
 			}
 		}
 	}
@@ -644,10 +658,11 @@ public class OBBCollisionSystem
 			DynamicObject dyn = Dynamics.get(task.Handle);
 			if(dyn != null && task.getResult() != null)
 			{
-				dyn.ReactionAcceleration = task.getResult().ReactionAcceleration();
+				dyn.Reactions = task.getResult().ReactionImpulses();
 				dyn.extrapolateNextFrameWithReaction();
 			}
 		}
+		ResolverTasks.clear();
 	}
 
 	private void physicsStep_commitFrame()

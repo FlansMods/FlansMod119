@@ -3,7 +3,8 @@
         "maxStackSize": 64,
         "tags": [
             "flansmod:bullet",
-            "flansmod:launchable_grenade"
+            "flansmod:launchable_grenade",
+			"flansmod:add_to_bullet_bag_incendiary"
         ]
     },
     "roundsPerItem": 1,

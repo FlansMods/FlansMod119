@@ -66,18 +66,18 @@ public record CollisionManifold(@Nonnull Vec3 Normal, double Distance, @Nonnull 
 	// =================================================================
 	// IPolygon
 	@Override @Nonnull
-	public IPlane GetFaceClipPlane() { return this; }
+	public IPlane getFaceClipPlane() { return this; }
 	@Override @Nonnull
-	public List<Vec3> GetVertices() { return BoundingVertices; }
+	public List<Vec3> getVertices() { return BoundingVertices; }
 	@Override @Nonnull
-	public IPolygon Clip(@Nonnull IPlane clipPlane)
+	public IPolygon clip(@Nonnull IPlane clipPlane)
 	{
 		// https://alamot.github.io/sutherland_hodgman_algorithm/
 		ImmutableList.Builder<Vec3> builder = ImmutableList.builder();
 		for(int i = 0; i < BoundingVertices.size(); i++)
 		{
 			Vec3 vCurr = BoundingVertices.get(i);
-			Vec3 vNext = GetVertexLooped(i + 1);
+			Vec3 vNext = getVertexLooped(i + 1);
 
 			double dCurr = clipPlane.project(vCurr);
 			double dNext = clipPlane.project(vNext);
@@ -120,7 +120,7 @@ public record CollisionManifold(@Nonnull Vec3 Normal, double Distance, @Nonnull 
 	}
 
 	@Override @Nonnull
-	public IPolygon CullClip(@Nonnull IPlane clipPlane)
+	public IPolygon cullClip(@Nonnull IPlane clipPlane)
 	{
 		ImmutableList.Builder<Vec3> builder = ImmutableList.builder();
 		for(int i = 0; i < BoundingVertices.size(); i++)

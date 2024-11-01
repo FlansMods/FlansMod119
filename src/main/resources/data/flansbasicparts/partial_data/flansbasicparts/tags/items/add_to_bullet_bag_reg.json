@@ -1,0 +1,11 @@
+{
+  "replace": "false",
+  "values": [
+    "flansbasicparts:pistol_bullet",
+    "flansbasicparts:rifle_bullet",
+    "flansbasicparts:shotgun_shell_birdshot",
+    "flansbasicparts:shotgun_shell_buckshot",
+    "flansbasicparts:projectile_grenade_impact",
+    "flansbasicparts:artillery_shell"
+  ]
+}
