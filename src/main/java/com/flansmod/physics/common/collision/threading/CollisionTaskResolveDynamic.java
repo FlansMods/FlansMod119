@@ -136,7 +136,7 @@ public class CollisionTaskResolveDynamic
             else
                 numCollisionsWithZeroArea++;
         }
-        double totalWeightScalar = 1d * (numCollisionsWithZeroArea + 1);
+        double totalWeightScalar = 1d / (numCollisionsWithZeroArea + 1);
 
 
 
