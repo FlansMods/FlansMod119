@@ -658,8 +658,9 @@ public class OBBCollisionSystem
 			DynamicObject dyn = Dynamics.get(task.Handle);
 			if(dyn != null && task.getResult() != null)
 			{
-				dyn.Reactions = task.getResult().ReactionImpulses();
-				dyn.extrapolateNextFrameWithReaction();
+				dyn.extrapolateNextFrame(task.getResult().ResolvedLocation(), task.getResult().ResolvedVelocity());
+				//dyn.Reactions = task.getResult().ResolvedLocation();
+				//dyn.extrapolateNextFrameWithReaction();
 			}
 		}
 		ResolverTasks.clear();

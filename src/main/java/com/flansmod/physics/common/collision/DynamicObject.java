@@ -400,6 +400,10 @@ public class DynamicObject implements IConstDynamicObject
 			}
 		}
 	}
+	public void extrapolateNextFrame(@Nonnull CompoundVelocity motion)
+	{
+		extrapolateNextFrame(motion.linear(), motion.angular());
+	}
 	public void extrapolateNextFrame(@Nonnull LinearVelocity linearMotion, @Nonnull AngularVelocity angularMotion)
 	{
 		Vec3 deltaPos = linearMotion.applyOneTick();
@@ -409,7 +413,15 @@ public class DynamicObject implements IConstDynamicObject
 		Transform newLoc = Transform.fromPosAndQuat(
 				currentFrame.Location.positionVec3().add(deltaPos),
 				currentFrame.Location.Orientation.mul(deltaRot, new Quaternionf()));
-		PendingFrame = new FrameData(newLoc, linearMotion, angularMotion);
+		extrapolateNextFrame(newLoc, linearMotion, angularMotion);
+	}
+	public void extrapolateNextFrame(@Nonnull Transform location, @Nonnull CompoundVelocity motion)
+	{
+		PendingFrame = new FrameData(location, motion.linear(), motion.angular());
+	}
+	public void extrapolateNextFrame(@Nonnull Transform location, @Nonnull LinearVelocity linearMotion, @Nonnull AngularVelocity angularMotion)
+	{
+		PendingFrame = new FrameData(location, linearMotion, angularMotion);
 	}
 	public void extrapolateNextFrame() { extrapolateNextFrame(false); }
 	public void extrapolateNextFrameWithReaction() { extrapolateNextFrame(true); }

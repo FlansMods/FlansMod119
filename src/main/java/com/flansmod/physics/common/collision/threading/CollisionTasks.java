@@ -1,16 +1,20 @@
 package com.flansmod.physics.common.collision.threading;
 
 import com.flansmod.physics.common.FlansPhysicsMod;
+import com.flansmod.physics.common.collision.FullSeparationResult;
 import com.flansmod.physics.common.collision.SeparationResult;
 import com.flansmod.physics.common.units.AngularVelocity;
 import com.flansmod.physics.common.units.CompoundVelocity;
+import com.flansmod.physics.common.units.Impulse;
 import com.flansmod.physics.common.units.LinearVelocity;
 import com.flansmod.physics.common.util.Maths;
 import com.flansmod.physics.common.collision.TransformedBB;
 import com.flansmod.physics.common.util.ProjectedRange;
 import com.flansmod.physics.common.util.ProjectionUtil;
+import com.flansmod.physics.common.util.Transform;
 import com.flansmod.physics.common.util.shapes.Plane;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
@@ -97,7 +101,49 @@ public class CollisionTasks
 
 	}
 
+	@Nonnull
+	public static FullSeparationResult separateGetAllOptions(@Nonnull TransformedBB aCollider, @Nonnull TransformedBB bCollider)
+	{
+		return separateGetAllOptions(
+				new AxisPermutationIterator3D() {
+					@Override
+					public Vec3 getAxisA(int index) { return aCollider.GetAxis(DIRECTIONS[index]); }
+					@Override
+					public Vec3 getAxisB(int index) { return bCollider.GetAxis(DIRECTIONS[index]); }
+				},
+				(normal) -> ProjectionUtil.ProjectOBBMinMax(normal, aCollider),
+				(normal) -> ProjectionUtil.ProjectOBBMinMax(normal, bCollider));
+	}
 
+	@Nonnull
+	public static FullSeparationResult separateGetAllOptions(@Nonnull TransformedBB aCollider, @Nonnull AABB bCollider)
+	{
+		return separateGetAllOptions(
+				new AxisPermutationIterator3D()
+				{
+					@Override
+					public Vec3 getAxisA(int index) { return aCollider.GetAxis(DIRECTIONS[index]); }
+					@Override
+					public Vec3 getAxisB(int index) { return GLOBAL_AXES[index]; }
+				},
+				(normal) -> ProjectionUtil.ProjectOBBMinMax(normal, aCollider),
+				(normal) -> ProjectionUtil.ProjectAABBMinMax(normal, bCollider));
+	}
+
+	@Nonnull
+	public static FullSeparationResult separateGetAllOptions(@Nonnull AABB aCollider, @Nonnull AABB bCollider)
+	{
+		return separateGetAllOptions(
+				new AxisPermutationIterator3D()
+				{
+					@Override
+					public Vec3 getAxisA(int index) { return GLOBAL_AXES[index]; }
+					@Override
+					public Vec3 getAxisB(int index) { return GLOBAL_AXES[index]; }
+				},
+				(normal) -> ProjectionUtil.ProjectAABBMinMax(normal, aCollider),
+				(normal) -> ProjectionUtil.ProjectAABBMinMax(normal, bCollider));
+	}
 
 	@Nonnull
 	public static SeparationResult separate(@Nonnull TransformedBB aCollider, @Nonnull TransformedBB bCollider)
@@ -306,6 +352,34 @@ public class CollisionTasks
 	}
  */
 
+	@Nonnull
+	private static FullSeparationResult separateGetAllOptions(@Nonnull AxisPermutationIterator testAxes,
+															  @Nonnull Function<Vec3, ProjectedRange> projectFuncA,
+															  @Nonnull Function<Vec3, ProjectedRange> projectFuncB)
+	{
+		List<Vec3> testedNormals = new ArrayList<>(6);
+		//SeparationResult.Builder failingTests = new SeparationResult.Builder();
+		ImmutableList.Builder<SeparationResult> failedTests = new ImmutableList.Builder<>();
+
+		while (testAxes.hasNext())
+		{
+			Vec3 axis = testAxes.next();
+			if(Maths.approx(axis.lengthSqr(), 0d))
+				continue;
+
+			axis = axis.normalize();
+			SeparationResult axisResult = test(projectFuncA, projectFuncB, axis, testedNormals, null);
+			if(axisResult != null)
+			{
+				if (axisResult.success())
+					return FullSeparationResult.of(axisResult);
+				else
+					failedTests.add(axisResult);
+			}
+		}
+
+		return FullSeparationResult.of(failedTests.build());
+	}
 
 	@Nonnull
 	private static SeparationResult separate(@Nonnull AxisPermutationIterator testAxes,
@@ -383,61 +457,81 @@ public class CollisionTasks
 		}
 	}
 
-	public static double calculateLinearImpulse(@Nonnull LinearVelocity vA, double inverseMassA,
-										  @Nonnull LinearVelocity vB, double inverseMassB,
-										  @Nonnull Vec3 normal,
-										  double coefficientOfRestitution)
-	{
-		LinearVelocity deltaV = vB.subtract(vA);
-		double collisionSpeed = -(1 + coefficientOfRestitution) * deltaV.Velocity().dot(normal);
-		return collisionSpeed / (inverseMassA + inverseMassB);
-	}
-	@Nonnull
-	public static Pair<LinearVelocity, LinearVelocity> linearCollision(@Nonnull LinearVelocity vA, double inverseMassA,
-																 @Nonnull LinearVelocity vB, double inverseMassB,
-																 @Nonnull Vec3 normal,
-																 double coefficientOfRestitution)
-	{
-		double j = calculateLinearImpulse(vA, inverseMassA, vB, inverseMassB, normal, coefficientOfRestitution);
-		return Pair.of(
-				new LinearVelocity(vA.Velocity().add(normal.scale(inverseMassA*j))),
-				new LinearVelocity(vB.Velocity().add(normal.scale(inverseMassB*j))));
-	}
 
 	@Nonnull
-	public static Vec3 vectorTripleProduct(@Nonnull Vec3 a, @Nonnull Vec3 b, @Nonnull Vec3 c)
+	public static Pair<Transform, Transform> resolveByProjection(
+			@Nonnull Transform posA, double inverseMassA,
+			@Nonnull Transform posB, double inverseMassB,
+			@Nonnull Vec3 collisionNormal,
+			double penetrationDepth)
 	{
-		//return a.cross(b).cross(c);
-		// Lagrange's Formula (a x b) x c = -(c.b)a + (c.a)b
-		return a.scale(-c.dot(b)).add(b.scale(c.dot(a)));
+		double totalInverseMass = inverseMassA + inverseMassB;
+
+		if(Maths.approx(totalInverseMass, 0d))
+			return Pair.of(posA, posB);
+
+		double depthA = penetrationDepth * (inverseMassA / totalInverseMass);
+		double depthB = penetrationDepth * (inverseMassB / totalInverseMass);
+
+		Transform projectedA = posA.translated(collisionNormal.scale(-depthA));
+		Transform projectedB = posB.translated(collisionNormal.scale(depthB));
+		return Pair.of(projectedA, projectedB);
 	}
 
-	public static double calculateImpulse(@Nonnull CompoundVelocity vA, double inverseMassA, @Nonnull Vec3 inertiaTensorA, @Nonnull Vec3 collisionRelA,
-										  @Nonnull CompoundVelocity vB, double inverseMassB, @Nonnull Vec3 inertiaTensorB, @Nonnull Vec3 collisionRelB,
-										  @Nonnull Vec3 normal,
-										  double coefficientOfRestitution)
+	@Nonnull
+	public static Transform resolveByProjectionAgainstStatic(
+			@Nonnull Transform posA,
+			@Nonnull Vec3 collisionNormal,
+			double penetrationDepth)
 	{
-		LinearVelocity deltaV = vB.linear().subtract(vA.linear());
-		double collisionSpeedLinear = -(1 + coefficientOfRestitution) * deltaV.Velocity().dot(normal);
+		return posA.translated(collisionNormal.scale(-penetrationDepth));
+	}
 
-		Vec3 tangentA = vectorTripleProduct(collisionRelA, normal, collisionRelA);
-		Vec3 thetaA = inertiaTensorA.multiply(tangentA);
-		Vec3 tangentB = vectorTripleProduct(collisionRelB, normal, collisionRelB);
-		Vec3 thetaB = inertiaTensorB.multiply(tangentB);
 
-		return collisionSpeedLinear / (inverseMassA + inverseMassB + thetaA.add(thetaB).dot(normal));
+	@Nonnull
+	public static Pair<LinearVelocity, LinearVelocity> resolveByLinearImpulse(@Nonnull LinearVelocity vA, double inverseMassA,
+																			  @Nonnull LinearVelocity vB, double inverseMassB,
+																			  @Nonnull Vec3 normal,
+																			  double coefficientOfRestitution)
+	{
+		Impulse j = Impulse.calculateLinear(vA, inverseMassA, vB, inverseMassB, normal, coefficientOfRestitution);
+		return Pair.of(j.applyTo(vA, inverseMassA), j.applyTo(vB, inverseMassB));
 	}
 	@Nonnull
-	public static Pair<CompoundVelocity, CompoundVelocity> collision(@Nonnull CompoundVelocity vA, double inverseMassA, @Nonnull Vec3 inertiaTensorA, @Nonnull Vec3 collisionRelA,
-																	 @Nonnull CompoundVelocity vB, double inverseMassB, @Nonnull Vec3 inertiaTensorB, @Nonnull Vec3 collisionRelB,
-																	 @Nonnull Vec3 normal,
-																	 double coefficientOfRestitution)
+	public static Pair<CompoundVelocity, CompoundVelocity> resolveByImpulse(
+			@Nonnull CompoundVelocity vA, @Nonnull Vec3 centerA, double inverseMassA, @Nonnull Vec3 inertiaTensorA,
+			@Nonnull CompoundVelocity vB, @Nonnull Vec3 centerB, double inverseMassB, @Nonnull Vec3 inertiaTensorB,
+			@Nonnull Vec3 collisionPoint, @Nonnull Vec3 collisionNormal,
+			double coefficientOfRestitution)
 	{
-		double j = calculateImpulse(vA, inverseMassA, inertiaTensorA, collisionRelA, vB, inverseMassB, inertiaTensorB, collisionRelB, normal, coefficientOfRestitution);
-		return Pair.of(
-				CompoundVelocity.of(new LinearVelocity(vA.Velocity.add(normal.scale(inverseMassA*j))),
-						new AngularVelocity(),
-				new LinearVelocity(vB.Velocity.add(normal.scale(inverseMassB*j))));
+		Impulse impulse = Impulse.calculateAtPoint(
+				vA, centerA, inverseMassA, inertiaTensorA,
+				vB, centerB, inverseMassB, inertiaTensorB,
+				collisionPoint, collisionNormal, coefficientOfRestitution);
+
+		LinearVelocity linearA = impulse.applyTo(vA.linear(), inverseMassA);
+		AngularVelocity angularA = impulse.applyTo(vA.angular(), centerA, inertiaTensorA, collisionPoint);
+		LinearVelocity linearB = impulse.applyTo(vB.linear(), inverseMassB);
+		AngularVelocity angularB = impulse.applyTo(vB.angular(), centerB, inertiaTensorB, collisionPoint);
+
+		return Pair.of(CompoundVelocity.of(linearA, angularA), CompoundVelocity.of(linearB, angularB));
 	}
+
+	@Nonnull
+	public static CompoundVelocity resolveByImpulseAgainstStatic(
+			@Nonnull CompoundVelocity vA, @Nonnull Vec3 centerA, double inverseMassA, @Nonnull Vec3 inertiaTensorA,
+			@Nonnull Vec3 collisionPoint, @Nonnull Vec3 collisionNormal,
+			double coefficientOfRestitution)
+	{
+		Impulse impulse = Impulse.calculateAtPoint(
+				vA, centerA, inverseMassA, inertiaTensorA,
+				collisionPoint, collisionNormal, coefficientOfRestitution);
+
+		LinearVelocity linearA = impulse.applyTo(vA.linear(), inverseMassA);
+		AngularVelocity angularA = impulse.applyTo(vA.angular(), centerA, inertiaTensorA, collisionPoint);
+
+		return CompoundVelocity.of(linearA, angularA);
+	}
+
 
 }

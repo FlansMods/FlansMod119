@@ -8,6 +8,7 @@ import com.flansmod.physics.common.util.ProjectedRange;
 import com.flansmod.physics.common.util.Transform;
 import com.flansmod.physics.common.util.TransformStack;
 import com.google.common.collect.ImmutableList;
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector4f;
@@ -28,7 +29,8 @@ public class CollisionTaskResolveDynamic
     {
 
     }
-    public record Output(@Nonnull List<IAcceleration> ReactionImpulses)
+    public record Output(@Nonnull Transform ResolvedLocation,
+                         @Nonnull CompoundVelocity ResolvedVelocity)
     {
 
     }
@@ -69,63 +71,30 @@ public class CollisionTaskResolveDynamic
     {
         if(Input == null)
         {
-            Output = new Output(ImmutableList.of());
+            Output = new Output(Transform.IDENTITY, CompoundVelocity.Zero);
             return;
         }
 
         LinearVelocity linearV = Input.Dynamic.getNextFrameLinearVelocity();
         AngularVelocity angularV = Input.Dynamic.getNextFrameAngularVelocity();
 
-        Vec3 v = linearV.applyOneTick();
-        Quaternionf q = angularV.applyOneTick();
+        Transform currentLocation = Input.Dynamic().getCurrentLocation();
+        Transform pendingLocation = extrapolate(currentLocation, linearV, angularV);
 
-        ProjectedRange xMoveReq = null, yMoveReq = null, zMoveReq = null;
-        List<StaticCollisionEvent> relevantX = new ArrayList<>(), relevantY = new ArrayList<>(), relevantZ = new ArrayList<>();
-
-        Map<StaticCollisionEvent, Ray> responseVectors = new HashMap<>();
-        List<Ray> appliedResponses = new ArrayList<>();
-        Transform pendingLocation = Input.Dynamic().getPendingLocation();
         DebugRenderer.renderCube(pendingLocation, 4, new Vector4f(1.0f, 0.0f, 0.0f, 1.0f), Input.Dynamic.getPendingBB().HalfExtents());
 
-        TransformStack locationAfterResponse = TransformStack.of(pendingLocation);
-
-        for (StaticCollisionEvent collision : Input.StaticCollisions)
-        {
-            Vec3 pushOutVec = collision.separationPlane().getNormal().scale(-collision.depth());
-            pushOutVec = v.subtract(pushOutVec);
-
-            if(collision.contactSurface().GetNumVertices() > 0)
-                responseVectors.put(collision, new Ray(collision.contactSurface().getAveragePos(), pushOutVec));
-            else
-                responseVectors.put(collision, new Ray(pendingLocation.positionVec3(), pushOutVec));
-
-            //if(!Maths.approx(pushOutVec.x, 0d))
-            //{
-            //    xMoveReq = ProjectedRange.add(xMoveReq, pushOutVec.x);
-            //    relevantX.add(collision);
-            //}
-            //if(!Maths.approx(pushOutVec.y, 0d))
-            //{
-            //    yMoveReq = ProjectedRange.add(yMoveReq, pushOutVec.y);
-            //    relevantY.add(collision);
-            //}
-            //if(!Maths.approx(pushOutVec.z, 0d))
-            //{
-            //    zMoveReq = ProjectedRange.add(zMoveReq, pushOutVec.z);
-            //    relevantZ.add(collision);
-            //}
-        }
-
-        while(!responseVectors.isEmpty())
+        List<StaticCollisionEvent> toProcess = new ArrayList<>(Input.StaticCollisions);
+        while(!toProcess.isEmpty())
         {
             // Find the deepest collision to process next
-            Map.Entry<StaticCollisionEvent, Ray> deepestCollision = null;
+            StaticCollisionEvent deepestCollision = null;
             double deepestCollisionDepth = 0d;
-            TransformedBBCollection bbs = new TransformedBBCollection(locationAfterResponse.top(), Input.Dynamic.getCurrentColliders().Colliders());
-            for(var kvp : responseVectors.entrySet())
+
+            TransformedBBCollection bbs = new TransformedBBCollection(pendingLocation, Input.Dynamic.getCurrentColliders().Colliders());
+            for(StaticCollisionEvent event : toProcess)
             {
                 // We re-test using the response vectors we have chosen so far.
-                double updatedDepth = kvp.getKey().separationPlane().getOBBsHeightAbove(bbs);
+                double updatedDepth = event.separationPlane().getOBBsHeightAbove(bbs);
                 // If this has been resolved by an earlier choice, skip it
                 if(updatedDepth >= 0.0d)
                 {
@@ -133,7 +102,7 @@ public class CollisionTaskResolveDynamic
                 }
                 if(deepestCollision == null || updatedDepth < deepestCollisionDepth)
                 {
-                    deepestCollision = kvp;
+                    deepestCollision = event;
                     deepestCollisionDepth = updatedDepth;
                 }
             }
@@ -142,72 +111,95 @@ public class CollisionTaskResolveDynamic
             if(deepestCollision == null)
                 break;
 
-            // Static object = infinite mass = 0 inverse mass
-            double totalInverseMass = 1d + 0d;
-
-            Vec3 pNormal = deepestCollision.getKey().separationPlane().getNormal();
-
-            Vec3 collisionCenter = deepestCollision.getKey().contactSurface().getAveragePos();
-            Vec3 collisionRelativeToA = collisionCenter.subtract(bbs.Location().positionVec3());
-            //Vec3 relativeB = collisionCenter.subtract(deepestCollision.getKey())
-
-            LinearVelocity effectiveAngularVelocityAtContact = angularV.atOffset(collisionRelativeToA);
-            LinearVelocity totalLinearVelocityA = linearV.add(effectiveAngularVelocityAtContact);
-            LinearVelocity staticVelocityB = LinearVelocity.Zero;
-            LinearVelocity contactVelocity = staticVelocityB.subtract(totalLinearVelocityA);
-
-            double impusleForce = contactVelocity.Velocity().dot(pNormal);
-
-            Vec3 collisionTangentA = collisionRelativeToA.cross(pNormal);
-            Vec3 cA = Input.Dynamic.getInertiaTensor().multiply(collisionTangentA);
-            Vec3 inertiaA = cA.cross(collisionRelativeToA);
-            // Static impact
-            Vec3 inertiaB = Vec3.ZERO;
-
-
-
-            // Rotate our temporary transform stack
-
-
-
-            locationAfterResponse.add(Transform.fromPosAndQuat(
-                    deepestCollision.getValue().Vector(),
-                    deepestCollision.getValue().getAngularComponent(pendingLocation).get(new Quaternionf())));
+            Transform projectedLocation =
+                    CollisionTasks.resolveByProjectionAgainstStatic(
+                            pendingLocation,
+                            deepestCollision.separationPlane().getNormal(),
+                            deepestCollisionDepth);
+            pendingLocation = projectedLocation;
 
             // And move it to our chosen list
-            appliedResponses.add(deepestCollision.getValue());
-            responseVectors.remove(deepestCollision.getKey());
+            toProcess.remove(deepestCollision);
         }
 
 
+
+        // Here we want to work out how to weight each collision
+        double totalArea = 0d;
+        int numCollisionsWithZeroArea = 0;
+        for (StaticCollisionEvent collision : Input.StaticCollisions)
+        {
+            double collisionSurfaceArea = collision.contactSurface().getArea();
+
+            if(collisionSurfaceArea > 0d)
+                totalArea += collisionSurfaceArea;
+            else
+                numCollisionsWithZeroArea++;
+        }
+        double totalWeightScalar = 1d * (numCollisionsWithZeroArea + 1);
+
+
+
+        CompoundVelocity impulseAppliedVelocity = CompoundVelocity.of(linearV, angularV);
+        for (StaticCollisionEvent collision : Input.StaticCollisions)
+        {
+            CompoundVelocity correctedForImpulse =
+                    CollisionTasks.resolveByImpulseAgainstStatic(
+                            CompoundVelocity.of(linearV, angularV), pendingLocation.positionVec3(), Input.Dynamic.getInverseMass(), Input.Dynamic.getInertiaTensor(),
+                            collision.contactSurface().getAveragePos(), collision.separationPlane().getNormal(),
+                            0.6d);
+
+            double surfaceArea = collision.contactSurface().getArea();
+            double contribution = 1d;
+            if(surfaceArea > 0d)
+                contribution = (surfaceArea / totalArea) * totalWeightScalar;
+            else
+                contribution = totalWeightScalar;
+
+            LinearVelocity linearComponent = correctedForImpulse.linear().subtract(linearV).scale(contribution);
+            AngularVelocity angularComponent = correctedForImpulse.angular().compose(angularV.inverse()).scale(contribution);
+
+            impulseAppliedVelocity = CompoundVelocity.of(
+                    impulseAppliedVelocity.linear().add(linearComponent),
+                    impulseAppliedVelocity.angular().compose(angularComponent));
+        }
+
+
+		// Update our velocities from the resolution
+		LinearVelocity linearVDelta = impulseAppliedVelocity.linear().subtract(linearV);
+		AngularVelocity angularVDelta = impulseAppliedVelocity.angular().compose(angularV.inverse());
+		pendingLocation = extrapolate(pendingLocation, linearVDelta, angularVDelta);
+
+        Output = new Output(pendingLocation, impulseAppliedVelocity);
+
         //Vec3 linearSum = Vec3.ZERO;
-       // Quaternionf angularSum = new Quaternionf();
+        // Quaternionf angularSum = new Quaternionf();
 
 
         //CompoundAcceleration responseTotal = CompoundAcceleration.of(
         //        LinearAcceleration.fromUtoVinTicks(linearV, LinearVelocity.Zero, 1),
         //        AngularAcceleration.Zero);
 
-        ImmutableList.Builder<IAcceleration> reactionImpulses = ImmutableList.builder();
-        for(int i = 0; i < appliedResponses.size(); i++)
-        {
-            LinearVelocity linearResponseV = LinearVelocity.blocksPerTick(appliedResponses.get(i).Vector());
+        //ImmutableList.Builder<IAcceleration> reactionImpulses = ImmutableList.builder();
+        //for(int i = 0; i < appliedResponses.size(); i++)
+        //{
+        //    LinearVelocity linearResponseV = LinearVelocity.blocksPerTick(appliedResponses.get(i).Vector());
+//
+        //    // TODO: What if two accelerations resolve each other? I think we already covered it?
+        //    // LinearAcceleration.fromUtoVinTicks(linearV, linearResponseV, 1);
+        //    LinearAcceleration linearResponseA = LinearAcceleration.fromUtoVinTicks(linearV, linearResponseV, 1);
+        //    OffsetAcceleration offsetResponseA = OffsetAcceleration.offset(linearResponseA, appliedResponses.get(i).Origin());
+//
+        //    reactionImpulses.add(offsetResponseA);
 
-            // TODO: What if two accelerations resolve each other? I think we already covered it?
-            // LinearAcceleration.fromUtoVinTicks(linearV, linearResponseV, 1);
-            LinearAcceleration linearResponseA = LinearAcceleration.fromUtoVinTicks(linearV, linearResponseV, 1);
-            OffsetAcceleration offsetResponseA = OffsetAcceleration.offset(linearResponseA, appliedResponses.get(i).Origin());
+        //responseTotal = CompoundAcceleration.of(
+        //        responseTotal.linear().add(offsetResponseA.getLinearComponent(pendingLocation)),
+        //        responseTotal.angular().compose(offsetResponseA.getAngularComponent(pendingLocation))
+        //);
 
-            reactionImpulses.add(offsetResponseA);
-
-           //responseTotal = CompoundAcceleration.of(
-           //        responseTotal.linear().add(offsetResponseA.getLinearComponent(pendingLocation)),
-           //        responseTotal.angular().compose(offsetResponseA.getAngularComponent(pendingLocation))
-           //);
-
-            //Quaternionf rot = appliedResponses.get(i).getAngularComponent(pendingLocation).get(new Quaternionf());
-            //angularSum.mul(rot);
-        }
+        //Quaternionf rot = appliedResponses.get(i).getAngularComponent(pendingLocation).get(new Quaternionf());
+        //angularSum.mul(rot);
+        //}
         //AxisAngle4f radsPerTick = new AxisAngle4f().set(angularSum);
         //if(Maths.approx(Maths.lengthSqr(radsPerTick.x, radsPerTick.y, radsPerTick.z), 0d))
         //    radsPerTick.set(radsPerTick.angle, 0f, 1f, 0f);
@@ -217,7 +209,7 @@ public class CollisionTaskResolveDynamic
         //LinearAcceleration linearImpulse = LinearAcceleration.fromUtoVinTicks(linearV, linearTarget, 1);
         //AngularAcceleration angularImpulse = AngularAcceleration.fromUtoVinTicks(angularV, angularTarget, 1);
 
-        Output = new Output(reactionImpulses.build());
+        //Output = new Output(reactionImpulses.build());
 
 
 
@@ -279,6 +271,14 @@ public class CollisionTaskResolveDynamic
         // dyn.ExtrapolateNextFrame(v, q);
 
 
+    }
+
+    @Nonnull
+    private Transform extrapolate(@Nonnull Transform t, @Nonnull LinearVelocity linearV, @Nonnull AngularVelocity angularV)
+    {
+        return Transform.fromPosAndQuat(
+                t.positionVec3().add(linearV.applyOneTick()),
+                t.Orientation.mul(angularV.applyOneTick(), new Quaternionf()));
     }
 
     @Override

@@ -1,11 +1,13 @@
 package com.flansmod.physics.common.units;
 
+import com.flansmod.physics.common.FlansPhysicsMod;
 import com.flansmod.physics.common.util.Maths;
 import com.flansmod.physics.common.util.Transform;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
 import org.joml.AxisAngle4f;
+import org.joml.Math;
 import org.joml.Quaternionf;
 
 import javax.annotation.Nonnull;
@@ -21,40 +23,82 @@ public record AngularVelocity(@Nonnull Vec3 Axis, double Magnitude) implements I
 		{
 			return AngularVelocity.Zero;
 		}
-		AxisAngle4f axisAngle = new AxisAngle4f().set(quaternionPerTick);
-		return new AngularVelocity(new Vec3(axisAngle.x, axisAngle.y, axisAngle.z), axisAngle.angle);
+
+		// From AxisAngle4f.set, but it has isInfinite but does not check isNaN
+		float acos = Math.safeAcos(quaternionPerTick.w);
+		float invSqrt = Math.invsqrt(1.0f - quaternionPerTick.w*quaternionPerTick.w);
+		if(Float.isInfinite(invSqrt) || Float.isNaN(invSqrt))
+			return AngularVelocity.Zero;
+
+		return new AngularVelocity(new Vec3(
+				quaternionPerTick.x * invSqrt,
+				quaternionPerTick.y * invSqrt,
+				quaternionPerTick.z * invSqrt),
+				acos + acos).checkNaN();
 	}
 	@Nonnull
 	public static AngularVelocity fromQuatPerSecond(@Nonnull Quaternionf quaternionPerSecond)
 	{
-		return fromQuatPerTick(quaternionPerSecond).scale(Units.AngularSpeed.RadiansPerSecond_To_RadiansPerTick);
+		return fromQuatPerTick(quaternionPerSecond).scale(Units.AngularSpeed.RadiansPerSecond_To_RadiansPerTick).checkNaN();
 	}
 
 	@Nonnull
 	public static AngularVelocity radiansPerSecond(@Nonnull Vec3 axis, double radiansPerSecond)
 	{
-		return new AngularVelocity(axis, Units.AngularSpeed.RadiansPerSecond_To_RadiansPerTick(radiansPerSecond));
+		return new AngularVelocity(axis, Units.AngularSpeed.RadiansPerSecond_To_RadiansPerTick(radiansPerSecond)).checkNaN();
+	}
+	@Nonnull
+	public static AngularVelocity radiansPerSecond(@Nonnull Vec3 axisAngle)
+	{
+		double mag = axisAngle.length();
+		if(mag < Maths.Epsilon)
+			return AngularVelocity.Zero;
+
+		Vec3 axis = axisAngle.scale(1d / mag);
+		return new AngularVelocity(axis,  Units.AngularSpeed.RadiansPerSecond_To_RadiansPerTick(mag)).checkNaN();
 	}
 	@Nonnull
 	public static AngularVelocity radiansPerSecond(@Nonnull AxisAngle4f radiansPerSecond)
 	{
 		return new AngularVelocity(new Vec3(radiansPerSecond.x, radiansPerSecond.y, radiansPerSecond.z),
-				Units.AngularSpeed.RadiansPerSecond_To_RadiansPerTick(radiansPerSecond.angle));
+				Units.AngularSpeed.RadiansPerSecond_To_RadiansPerTick(radiansPerSecond.angle)).checkNaN();
 	}
+
 	@Nonnull
 	public static AngularVelocity radiansPerTick(@Nonnull Vec3 axis, double radiansPerTick)
 	{
-		return new AngularVelocity(axis, radiansPerTick);
+		return new AngularVelocity(axis, radiansPerTick).checkNaN();
+	}
+	@Nonnull
+	public static AngularVelocity radiansPerTick(@Nonnull Vec3 axisAngle)
+	{
+		double mag = axisAngle.length();
+		if(mag < Maths.Epsilon)
+			return AngularVelocity.Zero;
+
+		Vec3 axis = axisAngle.scale(1d / mag);
+		return new AngularVelocity(axis, mag).checkNaN();
 	}
 	@Nonnull
 	public static AngularVelocity radiansPerTick(@Nonnull AxisAngle4f radiansPerTick)
 	{
-		return new AngularVelocity(new Vec3(radiansPerTick.x, radiansPerTick.y, radiansPerTick.z), radiansPerTick.angle);
+		return new AngularVelocity(new Vec3(radiansPerTick.x, radiansPerTick.y, radiansPerTick.z), radiansPerTick.angle).checkNaN();
 	}
+
 	@Nonnull
 	public static AngularVelocity degreesPerSecond(@Nonnull Vec3 axis, double degressPerSecond)
 	{
-		return new AngularVelocity(axis, Units.AngularSpeed.DegreesPerSecond_To_RadiansPerTick(degressPerSecond));
+		return new AngularVelocity(axis, Units.AngularSpeed.DegreesPerSecond_To_RadiansPerTick(degressPerSecond)).checkNaN();
+	}
+	@Nonnull
+	public static AngularVelocity degreesPerSecond(@Nonnull Vec3 axisAngle)
+	{
+		double mag = axisAngle.length();
+		if(mag < Maths.Epsilon)
+			return AngularVelocity.Zero;
+
+		Vec3 axis = axisAngle.scale(1d / mag);
+		return new AngularVelocity(axis, Units.AngularSpeed.DegreesPerSecond_To_RadiansPerTick(mag)).checkNaN();
 	}
 
 	@Nonnull
@@ -66,10 +110,14 @@ public record AngularVelocity(@Nonnull Vec3 Axis, double Magnitude) implements I
 	@Nonnull
 	public AngularVelocity compose(@Nonnull AngularVelocity other)
 	{
-		Quaternionf angularA = new Quaternionf().setAngleAxis(Magnitude, Axis.x, Axis.y, Axis.z);
-		Quaternionf angularB = new Quaternionf().setAngleAxis(other.Magnitude, other.Axis.x, other.Axis.y, other.Axis.z);
-		Quaternionf composed = angularA.mul(angularB);
-		return fromQuatPerTick(composed);
+		Vec3 scaledA = asVec3();
+		Vec3 scaledB = other.asVec3();
+		return radiansPerTick(scaledA.add(scaledB));
+
+		//Quaternionf angularA = new Quaternionf().setAngleAxis(Magnitude, Axis.x, Axis.y, Axis.z);
+		//Quaternionf angularB = new Quaternionf().setAngleAxis(other.Magnitude, other.Axis.x, other.Axis.y, other.Axis.z);
+		//Quaternionf composed = angularA.mul(angularB);
+		//return fromQuatPerTick(composed);
 	}
 	@Nonnull
 	public AngularVelocity lerp(@Nonnull AngularVelocity other, float t)
@@ -84,7 +132,7 @@ public record AngularVelocity(@Nonnull Vec3 Axis, double Magnitude) implements I
 	@Nonnull
 	public AngularVelocity scale(double scale)
 	{
-		return new AngularVelocity(Axis, Magnitude * scale);
+		return new AngularVelocity(Axis, Magnitude * scale).checkNaN();
 	}
 
 	@Nonnull
@@ -107,9 +155,21 @@ public record AngularVelocity(@Nonnull Vec3 Axis, double Magnitude) implements I
 	public double convertToUnits(@Nonnull Units.AngularSpeed toUnits) { return Units.AngularSpeed.Convert(Magnitude, Units.AngularSpeed.RadiansPerTick, toUnits); }
 
 	@Nonnull
-	public Quaternionf applyOverTicks(double ticks) { return new Quaternionf().setAngleAxis(Magnitude * ticks, Axis.x, Axis.y, Axis.z); }
+	public Quaternionf applyOverTicks(double ticks)
+	{
+		Quaternionf result = new Quaternionf().setAngleAxis(Magnitude * ticks, Axis.x, Axis.y, Axis.z);
+		if(!Maths.approx(result.lengthSquared(), 1f))
+			return Transform.IDENTITY.Orientation;
+		return result;
+	}
 	@Nonnull
-	public Quaternionf applyOneTick() { return new Quaternionf().setAngleAxis(Magnitude, Axis.x, Axis.y, Axis.z); }
+	public Quaternionf applyOneTick()
+	{
+		Quaternionf result = new Quaternionf().setAngleAxis(Magnitude, Axis.x, Axis.y, Axis.z);
+		if(!Maths.approx(result.lengthSquared(), 1f))
+			return Transform.IDENTITY.Orientation;
+		return result;
+	}
 
 	@Override @Nonnull
 	public AngularVelocity inverse() { return new AngularVelocity(Axis, -Magnitude); }
@@ -136,6 +196,14 @@ public record AngularVelocity(@Nonnull Vec3 Axis, double Magnitude) implements I
 	}
 	public boolean isApprox(@Nonnull AngularVelocity other) { return Maths.approx(other.Axis, Axis) && Maths.approx(other.Magnitude, Magnitude); }
 	public boolean isApprox(@Nonnull AngularVelocity other, double epsilon) { return Maths.approx(other.Axis, Axis, epsilon) && Maths.approx(other.Magnitude, Magnitude, epsilon); }
+	@Nonnull
+	private AngularVelocity checkNaN()
+	{
+		if(isNaN())
+			FlansPhysicsMod.LOGGER.error("AngularVelocity is NaN");
+		return this;
+	}
+	public boolean isNaN() { return Double.isNaN(Magnitude) || Double.isNaN(Axis.x) || Double.isNaN(Axis.y) || Double.isNaN(Axis.z); }
 	public void toBuf(@Nonnull FriendlyByteBuf buf)
 	{
 		buf.writeVector3f(Axis.toVector3f());

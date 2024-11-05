@@ -82,7 +82,7 @@ public class ForcesOnPart
 	@Nonnull
 	public AngularAcceleration sumAngularAcceleration(@Nonnull Transform partTransform, @Nonnull Vec3 momentOfInertia, boolean includeReactions)
 	{
-		return sumTorque(partTransform, includeReactions).actingOn(momentOfInertia);
+		return sumTorque(partTransform, includeReactions).actingOnMomentOfInertia(momentOfInertia);
 	}
 
 	@Nonnull

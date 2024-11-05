@@ -22,7 +22,7 @@ public record CompoundForce(@Nonnull LinearForce linear, @Nonnull Torque angular
     @Nonnull
     public CompoundAcceleration applyTo(double mass, @Nonnull Vec3 momentOfInertia, @Nonnull Transform actingOn)
     {
-        return CompoundAcceleration.of(getLinearComponent(actingOn).actingOn(mass), getTorqueComponent(actingOn).actingOn(momentOfInertia));
+        return CompoundAcceleration.of(getLinearComponent(actingOn).actingOn(mass), getTorqueComponent(actingOn).actingOnMomentOfInertia(momentOfInertia));
     }
 
     @Override @Nonnull

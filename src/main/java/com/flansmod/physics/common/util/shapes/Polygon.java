@@ -55,8 +55,8 @@ public record Polygon(@Nonnull ImmutableList<Vec3> vertices) implements IPolygon
             Vec3 vCurr = vertices.get(i);
             Vec3 vNext = getVertexLooped(i + 1);
 
-            double dCurr = -clipPlane.getPointHeightAbove(vCurr);
-            double dNext = -clipPlane.getPointHeightAbove(vNext);
+            double dCurr = clipPlane.getPointHeightAbove(vCurr);
+            double dNext = clipPlane.getPointHeightAbove(vNext);
 
             if(dCurr <= 0d && dNext <= 0d)
             {

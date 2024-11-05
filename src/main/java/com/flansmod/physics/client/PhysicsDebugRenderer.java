@@ -177,12 +177,12 @@ public class PhysicsDebugRenderer
             }
             if(numVerts > 0) {
                 Transform collisionFrame = Transform.fromPositionAndLookDirection(avgPos.scale(1d / numVerts), normal, up);
-                DebugRenderer.renderArrow(collisionFrame, 2, palette.CollisionStatic, new Vec3(0d, 0d, 1d));
+                DebugRenderer.renderArrow(collisionFrame, 2, palette.CollisionStatic, new Vec3(0d, 0d, -1d));
                 //staticCollisionPoints.add(collisionFrame.PositionVec3());
             }
             else {
                 Transform collisionFrame = Transform.fromPositionAndLookDirection(dynamic.getCurrentWorldBounds().getCenter(), normal, up);
-                DebugRenderer.renderArrow(collisionFrame, 2, palette.CollisionStatic.mul(1.0f, 0.5f, 0.5f, 1.0f, new Vector4f()), new Vec3(0d, 0d, 1d));
+                DebugRenderer.renderArrow(collisionFrame, 2, palette.CollisionStatic.mul(1.0f, 0.5f, 0.5f, 1.0f, new Vector4f()), new Vec3(0d, 0d, -1d));
                 //staticCollisionPoints.add(collisionFrame.PositionVec3());
             }
             //Transform collisionFrame = Transform.FromPositionAndLookDirection(collisionSurface.GetVertexLooped(0), normal, up);

@@ -19,6 +19,12 @@ public record CompoundVelocity(@Nonnull LinearVelocity linear, @Nonnull AngularV
     }
 
 
+    @Nonnull
+    public LinearVelocity linearAtPoint(@Nonnull Vec3 offset)
+    {
+        return angular.atOffset(offset).add(linear);
+    }
+
     @Override @Nonnull
     public CompoundVelocity inverse() { return new CompoundVelocity(linear.inverse(), angular.inverse()); }
     @Override

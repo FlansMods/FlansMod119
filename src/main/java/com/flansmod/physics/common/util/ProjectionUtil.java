@@ -193,8 +193,8 @@ public class ProjectionUtil
             return Pair.of(b.min() - a.max(), ProjectionComparison.Separate_A_Then_B);
 
         // Intersection, distance is negative
-        double clipDepthAthenB = a.min() - b.max();
-        double clipDepthBthenA = b.min() - a.max();
+        double clipDepthAthenB = b.min() - a.max();
+        double clipDepthBthenA = a.min() - b.max();
         if(clipDepthAthenB > clipDepthBthenA)
             return Pair.of(clipDepthAthenB, ProjectionComparison.Colliding_A_Then_B);
         else

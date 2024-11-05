@@ -50,6 +50,22 @@ public interface IPolygon
             pos = pos.add(getVertices().get(i));
         return pos.scale(1d / numVerts);
     }
+    default double getArea()
+    {
+        int numVerts = getVertices().size();
+        if(numVerts <= 2)
+            return 0d;
+
+        double totalArea = 0d;
+        Vec3 v0 = getVertex(0);
+        for(int i = 2; i < numVerts; i++)
+        {
+            Vec3 v1 = getVertex(i-1).subtract(v0);
+            Vec3 v2 = getVertex(i).subtract(v0);
+            totalArea += Maths.abs(v1.dot(v2)) * 0.5d;
+        }
+        return totalArea;
+    }
 
     @Nonnull
     default IPolygon clip(@Nonnull List<IPlane> clipPlanes)
@@ -63,7 +79,8 @@ public interface IPolygon
     default IPlane getEdgeClipPlane(@Nonnull Vec3 refNormal, int edgeIndex)
     {
         Vec3 edge = getEdgeVector(edgeIndex);
-        Vec3 clipNormal = refNormal.cross(edge.normalize());
+        refNormal = getEdgeVector(edgeIndex + 1).normalize();
+        Vec3 clipNormal = refNormal.cross(refNormal.cross(edge.normalize()));
         double dist = getVertexLooped(edgeIndex).dot(clipNormal);
         return Plane.of(clipNormal, dist);
     }
@@ -78,7 +95,7 @@ public interface IPolygon
         Vec3 v1 = getVertexLooped(0);
         Vec3 v2 = getVertexLooped(1);
         Vec3 v3 = getVertexLooped(2);
-        Vec3 normal = v3.subtract(v1).cross(v2.subtract(v1)).normalize();
+        Vec3 normal = v2.subtract(v1).cross(v3.subtract(v1)).normalize();
         double dist = v1.dot(normal);
         return Plane.of(normal, dist);
     }

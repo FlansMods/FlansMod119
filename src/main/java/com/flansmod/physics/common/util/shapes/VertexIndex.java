@@ -41,12 +41,12 @@ public enum VertexIndex
     }
 
 
-    public static final VertexIndex[] UP = new VertexIndex[] { NegX_PosY_NegZ, PosX_PosY_NegZ, PosX_PosY_PosZ, NegX_PosY_PosZ };
+    public static final VertexIndex[] UP = new VertexIndex[] { PosX_PosY_NegZ, NegX_PosY_NegZ, NegX_PosY_PosZ, PosX_PosY_PosZ };
     public static final VertexIndex[] DOWN = new VertexIndex[] { NegX_NegY_NegZ, PosX_NegY_NegZ, PosX_NegY_PosZ, NegX_NegY_PosZ };
     public static final VertexIndex[] NORTH = new VertexIndex[] { NegX_PosY_NegZ, PosX_PosY_NegZ, PosX_NegY_NegZ, NegX_NegY_NegZ };
     public static final VertexIndex[] EAST = new VertexIndex[] { PosX_PosY_NegZ, PosX_PosY_PosZ, PosX_NegY_PosZ, PosX_NegY_NegZ };
-    public static final VertexIndex[] SOUTH = new VertexIndex[] { NegX_PosY_PosZ, PosX_PosY_PosZ, PosX_NegY_PosZ, NegX_NegY_PosZ };
-    public static final VertexIndex[] WEST = new VertexIndex[] { NegX_PosY_NegZ, NegX_PosY_PosZ, NegX_NegY_PosZ, NegX_NegY_NegZ };
+    public static final VertexIndex[] SOUTH = new VertexIndex[] { PosX_PosY_PosZ, NegX_PosY_PosZ, NegX_NegY_PosZ, PosX_NegY_PosZ };
+    public static final VertexIndex[] WEST = new VertexIndex[] { NegX_PosY_PosZ, NegX_PosY_NegZ, NegX_NegY_NegZ, NegX_NegY_PosZ };
     @Nonnull
     public static VertexIndex[] getVertexOrder(@Nonnull Direction dir)
     {

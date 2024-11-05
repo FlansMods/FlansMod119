@@ -1,6 +1,7 @@
 package com.flansmod.physics.common.collision.threading;
 
 import com.flansmod.physics.client.DebugRenderer;
+import com.flansmod.physics.client.PhysicsDebugRenderer;
 import com.flansmod.physics.common.FlansPhysicsMod;
 import com.flansmod.physics.common.collision.*;
 import com.flansmod.physics.common.util.ProjectedRange;
@@ -10,8 +11,8 @@ import com.google.common.collect.ImmutableList;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import javax.annotation.Nonnull;
@@ -143,7 +144,7 @@ public class CollisionTaskSeparateDynamicFromStatic
 
 	private void SeparateStaticAABBs()
 	{
-		SeparationResult[] results = new SeparationResult[Input.StaticShapes.size()];
+		FullSeparationResult[] results = new FullSeparationResult[Input.StaticShapes.size()];
 		TransformedBB boundsA = Input.ObjectA.getPendingBB();
 
 		List<ISeparationAxis> newSeparatorList = new ArrayList<>();
@@ -184,7 +185,7 @@ public class CollisionTaskSeparateDynamicFromStatic
 			// Let's process it
 			VoxelShape shape = Input.StaticShapes.get(indexToProcess);
 			AABB voxelBB = shape.bounds();
-			SeparationResult separationResult = CollisionTasks.separate(boundsA, voxelBB);
+			FullSeparationResult separationResult = CollisionTasks.separateGetAllOptions(boundsA, voxelBB);
 
 			// Directly place it in the array, so we don't test it again
 			results[indexToProcess] = separationResult;
@@ -193,27 +194,75 @@ public class CollisionTaskSeparateDynamicFromStatic
 			if(separationResult.success())
 			{
 				// Now check to see if we can quickly split any of the other outstanding pieces
-				totalSeparated += ApplySeparation(separationResult.separator(), results);
-				newSeparatorList.add(separationResult.separator());
+				SeparationResult successfulResult = separationResult.getSuccessfulResult();
+				if(successfulResult != null)
+				{
+					totalSeparated += ApplySeparation(successfulResult.separator(), results);
+					newSeparatorList.add(successfulResult.separator());
+				}
 			}
 			else
 			{
+				//collidingResults.add(separationResult);
+			}
+		}
+
+
+		// Now resolve all the failures collectively, picking the most common normal
+		Vec3 strongestNormalDir = Vec3.ZERO;
+		for(FullSeparationResult fullResult : results)
+		{
+			if(fullResult.success())
+				continue;
+
+			for(SeparationResult option : fullResult.options())
+				strongestNormalDir = strongestNormalDir.add(option.separator().getNormal());//.scale(1d / -option.depth()));
+		}
+		strongestNormalDir = strongestNormalDir.normalize();
+
+		DebugRenderer.renderArrow(Input.ObjectA.getCurrentLocation(), 3, new Vector4f(1f, 1f, 0.5f, 1f), strongestNormalDir);
+
+		for(int i = 0; i < results.length; i++)
+		{
+			FullSeparationResult fullResult = results[i];
+
+			if(fullResult.success())
+				continue;
+
+			SeparationResult bestOption = null;
+			double bestDotProduct = -Double.MAX_VALUE;
+			for(SeparationResult option : fullResult.options())
+			{
+				double dot = option.separator().getNormal().dot(strongestNormalDir) * -1d/option.depth();
+				if(dot > bestDotProduct)
+				{
+					bestDotProduct = dot;
+					bestOption = option;
+				}
+			}
+
+			if(bestOption != null)
+			{
+				VoxelShape shape = Input.StaticShapes.get(i);
+				AABB voxelBB = shape.bounds();
+
 				// In a fail case, we have been given our shallowest colliding faces
 				// i.e. the ones that would be easiest to push back on
 				// The separating axis theorem tells us that this means our cubes collide, BUT not where.
 
 				// Step 1. Identify the incident and reference faces
-				Direction referenceSide = separationResult.separator().selectFaceAABBMin(voxelBB);
-				Direction incidentSide = separationResult.separator().selectFaceOBBMax(boundsA);
+				Direction referenceSide = bestOption.separator().selectFaceAABBMax(voxelBB);
+				Direction incidentSide = bestOption.separator().selectFaceOBBMin(boundsA);
 
 				IPolygon referencePoly = Polygon.of(voxelBB, referenceSide);
 				IPolygon incidentPoly = boundsA.GetFace(incidentSide);
 
-				IPolygon collisionPoly = separationResult.separator().collisionClip(incidentPoly, referencePoly);
+				IPolygon collisionPoly = bestOption.separator().collisionClip(incidentPoly, referencePoly);
 
-				collisions.add(new StaticCollisionEvent(collisionPoly, separationResult.separator(), separationResult.depth()));
+				collisions.add(new StaticCollisionEvent(collisionPoly, bestOption.separator(), bestOption.depth()));
 			}
 		}
+
 
 		NewSeparators = newSeparatorList;
 		Output = new Output(collisions.build(),
@@ -221,7 +270,7 @@ public class CollisionTaskSeparateDynamicFromStatic
 	}
 
 	private int ApplySeparation(@Nonnull IPlane separator,
-								@Nonnull SeparationResult[] results)
+								@Nonnull FullSeparationResult[] results)
 	{
 		int numSeparated = 0;
 
@@ -234,7 +283,7 @@ public class CollisionTaskSeparateDynamicFromStatic
 			VoxelShape shape = Input.StaticShapes.get(i);
 			double heightAbove = separator.getAABBHeightAbove(shape.bounds());
 			if(heightAbove >= 0.0f) {
-				results[i] = SeparationResult.successful(separator);
+				results[i] = FullSeparationResult.of(SeparationResult.successful(separator));
 				numSeparated++;
 			}
 		}
