@@ -150,11 +150,15 @@ public class CollisionTaskResolveDynamic
                             0.6d);
 
             double surfaceArea = collision.contactSurface().getArea();
-            double contribution = 1d;
+            double contribution;
             if(surfaceArea > 0d)
+            {
                 contribution = (surfaceArea / totalArea) * totalWeightScalar;
+            }
             else
+            {
                 contribution = totalWeightScalar;
+            }
 
             LinearVelocity linearComponent = correctedForImpulse.linear().subtract(linearV).scale(contribution);
             AngularVelocity angularComponent = correctedForImpulse.angular().compose(angularV.inverse()).scale(contribution);
@@ -166,9 +170,9 @@ public class CollisionTaskResolveDynamic
 
 
 		// Update our velocities from the resolution
-		LinearVelocity linearVDelta = impulseAppliedVelocity.linear().subtract(linearV);
-		AngularVelocity angularVDelta = impulseAppliedVelocity.angular().compose(angularV.inverse());
-		pendingLocation = extrapolate(pendingLocation, linearVDelta, angularVDelta);
+		//LinearVelocity linearVDelta = impulseAppliedVelocity.linear().subtract(linearV);
+		//AngularVelocity angularVDelta = impulseAppliedVelocity.angular().compose(angularV.inverse());
+		//pendingLocation = extrapolate(pendingLocation, linearVDelta, angularVDelta);
 
         Output = new Output(pendingLocation, impulseAppliedVelocity);
 

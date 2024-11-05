@@ -212,13 +212,20 @@ public class OBBCollisionSystem
 										  double mass,
 										  @Nonnull Vec3 momentOfInertia)
 	{
+		return registerDynamic((builder) -> {
+			 builder.withColliders(localColliders)
+					.inLocation(initialTransform)
+					.withMass(mass)
+					.withMomentOfInertia(momentOfInertia);
+		});
+	}
+	@Nonnull
+	public ColliderHandle registerDynamic(@Nonnull Consumer<DynamicObject.Builder> buildFunc)
+	{
 		ColliderHandle handle = new ColliderHandle(NextID);
-		DynamicObject dynObj = DynamicObject.builder()
-				.withColliders(localColliders)
-				.inLocation(initialTransform)
-				.withMass(mass)
-				.withMomentOfInertia(momentOfInertia)
-				.build();
+		DynamicObject.Builder dynObjBuilder = DynamicObject.builder();
+		buildFunc.accept(dynObjBuilder);
+		DynamicObject dynObj = dynObjBuilder.build();
 		NextID++;
 		doAfterPhysics(() -> {
 			AllHandles.add(handle);

@@ -20,6 +20,10 @@ public interface IConstDynamicObject
     @Nonnull Vec3 getMomentOfInertia();
     @Nonnull Vec3 getInertiaTensor();
 
+    double getLinearDrag();
+
+    double getAngularDrag();
+
     @Nonnull Transform getCurrentLocation();
     @Nonnull TransformedBB getCurrentBB();
     @Nonnull TransformedBBCollection getCurrentColliders();

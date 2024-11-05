@@ -2,6 +2,7 @@ package com.flansmod.physics.common.entity;
 
 import com.flansmod.physics.common.FlansPhysicsMod;
 import com.flansmod.physics.common.collision.ColliderHandle;
+import com.flansmod.physics.common.collision.DynamicObject;
 import com.flansmod.physics.common.collision.OBBCollisionSystem;
 import com.flansmod.physics.common.util.ITransformEntity;
 import com.flansmod.physics.common.util.ITransformPair;
@@ -140,6 +141,15 @@ public abstract class PhysicsEntity extends Entity implements ITransformEntity
     {
         OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
         physicsComponents.put(id, new PhysicsComponent(worldPos, level().getGameTime(), physics.registerDynamic(aabbs, worldPos, mass, momentOfInertia)));
+    }
+    protected void addPhysicsComponent(@Nonnull UUID id, @Nonnull Transform worldPos, @Nonnull List<AABB> aabbs, @Nonnull Consumer<DynamicObject.Builder> buildFunc)
+    {
+        OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
+        physicsComponents.put(id, new PhysicsComponent(worldPos, level().getGameTime(), physics.registerDynamic((builder) -> {
+            builder.withColliders(aabbs);
+            builder.inLocation(worldPos);
+            buildFunc.accept(builder);
+        })));
     }
 
     @Override

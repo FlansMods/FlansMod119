@@ -40,6 +40,8 @@ public class DynamicObject implements IConstDynamicObject
 	public final double InverseMass;
 	public final Vec3 MomentOfInertia;
 	public final Vec3 InertiaTensor;
+	public final double LinearDrag;
+	public final double AngularDrag;
 
 
 	@Nonnull
@@ -70,6 +72,8 @@ public class DynamicObject implements IConstDynamicObject
 		private double invMass = 1.0d;
 		private Vec3 momentOfInertia = null;
 		private Vec3 inertiaTensor = null;
+		private double linearDrag = 0.0d;
+		private double angularDrag = 0.0d;
 		private Transform initialLocation = null;
 
 		public Builder(){}
@@ -102,6 +106,25 @@ public class DynamicObject implements IConstDynamicObject
 		public Builder immovable() {
 			mass = Double.MAX_VALUE;
 			invMass = 0d;
+			return this;
+		}
+		@Nonnull
+		public Builder withDrag(double decayPerTick)
+		{
+			linearDrag = decayPerTick;
+			angularDrag = decayPerTick;
+			return this;
+		}
+		@Nonnull
+		public Builder withLinearDrag(double decayPerTick)
+		{
+			linearDrag = decayPerTick;
+			return this;
+		}
+		@Nonnull
+		public Builder withAngularDrag(double decayPerTick)
+		{
+			angularDrag = decayPerTick;
 			return this;
 		}
 		@Nonnull
@@ -162,6 +185,8 @@ public class DynamicObject implements IConstDynamicObject
 					initialLocation != null ? initialLocation : Transform.IDENTITY,
 					mass,
 					invMass,
+					linearDrag,
+					angularDrag,
 					momentOfInertia != null ? momentOfInertia : DEFAULT_MOMENT_OF_INERTIA,
 					inertiaTensor != null ? inertiaTensor : DEFAULT_INERTIA_TENSOR);
 		}
@@ -172,6 +197,8 @@ public class DynamicObject implements IConstDynamicObject
 						 @Nonnull Transform initialLocation,
 						 double mass,
 						 double invMass,
+						 double linearDrag,
+						 double angularDrag,
 						 @Nonnull Vec3 momentOfInertia,
 						 @Nonnull Vec3 inertiaTensor)
 	{
@@ -186,9 +213,11 @@ public class DynamicObject implements IConstDynamicObject
 		DynamicCollisions = new ArrayList<>();
 		StaticCollisions = new ArrayList<>();
 		Mass = mass;
-		InverseMass = 1d / mass;
+		InverseMass = invMass;
 		MomentOfInertia = momentOfInertia;
 		InertiaTensor = inertiaTensor;
+		LinearDrag = linearDrag;
+		AngularDrag = angularDrag;
 	}
 
 	@Nonnull
@@ -202,6 +231,12 @@ public class DynamicObject implements IConstDynamicObject
 	public Vec3 getMomentOfInertia() { return MomentOfInertia; }
 	@Override @Nonnull
 	public Vec3 getInertiaTensor() { return InertiaTensor; }
+	@Override
+	public double getLinearDrag() { return LinearDrag; }
+	@Override
+	public double getAngularDrag() { return AngularDrag; }
+	public double getLinearDecayPerTick() { return 1.0d - LinearDrag; }
+	public double getAngularDecayPerTick() { return 1.0d - AngularDrag; }
 	@Override @Nonnull
 	public Optional<Transform> getNextFrameTeleport() { return NextFrameTeleport; }
 	@Override @Nonnull
@@ -385,8 +420,8 @@ public class DynamicObject implements IConstDynamicObject
 		{
 			if(withReactionForce)
 			{
-				LinearVelocity reactionaryLinearV = NextFrameLinearMotion;
-				AngularVelocity reactionaryAngularV = NextFrameAngularMotion;
+				LinearVelocity reactionaryLinearV = NextFrameLinearMotion.scale(getLinearDecayPerTick());
+				AngularVelocity reactionaryAngularV = NextFrameAngularMotion.scale(getAngularDecayPerTick());
 				for(IAcceleration acceleration : Reactions)
 				{
 					reactionaryLinearV = reactionaryLinearV.add(acceleration.getLinearComponent(getPendingLocation()).applyOneTick());
@@ -396,7 +431,9 @@ public class DynamicObject implements IConstDynamicObject
 			}
 			else
 			{
-				extrapolateNextFrame(NextFrameLinearMotion, NextFrameAngularMotion);
+				extrapolateNextFrame(
+						NextFrameLinearMotion.scale(getLinearDecayPerTick()),
+						NextFrameAngularMotion.scale(getAngularDecayPerTick()));
 			}
 		}
 	}

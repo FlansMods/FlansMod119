@@ -21,6 +21,7 @@ import org.joml.Vector3f;
 import org.joml.Vector4f;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 
 public class TestCubeEntity extends PhysicsEntity // implements ITransformEntity
 {
@@ -39,6 +40,18 @@ public class TestCubeEntity extends PhysicsEntity // implements ITransformEntity
         return CenteredEntityDimensions.fixed(1.0f, 1.0f);
     }
 
+    @Override
+    protected void initPhysics()
+    {
+        // Default implementation. Override to do your own colliders
+        addPhysicsComponent(
+                CORE_PHYSICS,
+                getEntityRootAsTransform(),
+                List.of(new AABB(-0.5d, -0.5d, -0.5d, 0.5d, 0.5d, 0.5d)),
+                (builder) -> {
+                    builder.withMass(1d).withDrag(0.05d);
+                });
+    }
     @Override
     protected void tickPhysics()
     {
