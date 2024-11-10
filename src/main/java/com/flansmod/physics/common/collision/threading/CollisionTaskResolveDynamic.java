@@ -3,6 +3,7 @@ package com.flansmod.physics.common.collision.threading;
 import com.flansmod.physics.client.DebugRenderer;
 import com.flansmod.physics.common.collision.*;
 import com.flansmod.physics.common.units.*;
+import com.flansmod.physics.common.util.Maths;
 import com.flansmod.physics.common.util.ProjectedRange;
 
 import com.flansmod.physics.common.util.Transform;
@@ -127,18 +128,31 @@ public class CollisionTaskResolveDynamic
         // Here we want to work out how to weight each collision
         double totalArea = 0d;
         int numCollisionsWithZeroArea = 0;
+        int numCollisionsWithNonZeroArea = 0;
         for (StaticCollisionEvent collision : Input.StaticCollisions)
         {
             double collisionSurfaceArea = collision.contactSurface().getArea();
 
             if(collisionSurfaceArea > 0d)
+            {
                 totalArea += collisionSurfaceArea;
+                numCollisionsWithNonZeroArea++;
+            }
             else
                 numCollisionsWithZeroArea++;
         }
-        double totalWeightScalar = 1d / (numCollisionsWithZeroArea + 1);
 
-
+        double zeroContactSize = 1d;
+        if(numCollisionsWithNonZeroArea > 0)
+        {
+            double averageArea = totalArea / numCollisionsWithNonZeroArea;
+            zeroContactSize = averageArea;
+            totalArea += numCollisionsWithZeroArea * zeroContactSize;
+        }
+        else
+        {
+            totalArea = numCollisionsWithZeroArea;
+        }
 
         CompoundVelocity impulseAppliedVelocity = CompoundVelocity.of(linearV, angularV);
         for (StaticCollisionEvent collision : Input.StaticCollisions)
@@ -150,22 +164,36 @@ public class CollisionTaskResolveDynamic
                             0.6d);
 
             double surfaceArea = collision.contactSurface().getArea();
-            double contribution;
-            if(surfaceArea > 0d)
-            {
-                contribution = (surfaceArea / totalArea) * totalWeightScalar;
-            }
-            else
-            {
-                contribution = totalWeightScalar;
-            }
+            if(surfaceArea <= 0d)
+                surfaceArea = zeroContactSize;
+
+            double contribution = (surfaceArea / totalArea);
 
             LinearVelocity linearComponent = correctedForImpulse.linear().subtract(linearV).scale(contribution);
             AngularVelocity angularComponent = correctedForImpulse.angular().compose(angularV.inverse()).scale(contribution);
 
+
+            double angularCap = 1d;
+            for(Vec3 collisionSurfaceVertex : collision.contactSurface().getVertices())
+            {
+                Vec3 relative = collisionSurfaceVertex.subtract(pendingLocation.positionVec3());
+                LinearVelocity vAtVertex = angularComponent.atOffset(relative).add(linearComponent);
+                Vec3 deltaVertex = vAtVertex.applyOneTick();
+
+                double depthPre = collision.separationPlane().getPointHeightAbove(collisionSurfaceVertex);
+                double depthPost = collision.separationPlane().getPointHeightAbove(collisionSurfaceVertex.add(deltaVertex));
+
+                if(depthPost < depthPre && depthPost <= 0d)
+                {
+                    double newAngularCap = Maths.clamp(depthPre / (depthPre - depthPost), 0d, 1d);
+                    if(newAngularCap < angularCap)
+                        angularCap = newAngularCap;
+                }
+            }
+
             impulseAppliedVelocity = CompoundVelocity.of(
                     impulseAppliedVelocity.linear().add(linearComponent),
-                    impulseAppliedVelocity.angular().compose(angularComponent));
+                    impulseAppliedVelocity.angular().compose(angularComponent.scale(angularCap)));
         }
 
 

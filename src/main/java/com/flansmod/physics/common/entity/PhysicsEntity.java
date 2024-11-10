@@ -116,6 +116,14 @@ public abstract class PhysicsEntity extends Entity implements ITransformEntity
         return Transform.fromEntity(this);
     }
 
+    @Override
+    public void remove(@Nonnull RemovalReason reason)
+    {
+        stopPhysics();
+        unregisterAllPhysics();
+        super.remove(reason);
+    }
+
     protected abstract void tickPhysics();
     protected abstract void tickOutsidePhysicsRange();
 
@@ -150,6 +158,14 @@ public abstract class PhysicsEntity extends Entity implements ITransformEntity
             builder.inLocation(worldPos);
             buildFunc.accept(builder);
         })));
+    }
+    protected void unregisterAllPhysics()
+    {
+        OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
+        for(PhysicsComponent component : physicsComponents.values())
+        {
+            physics.unregisterDynamic(component.getPhysicsHandle());
+        }
     }
 
     @Override
