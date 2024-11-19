@@ -7,6 +7,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.gson.*;
 import net.minecraft.core.Direction;
 import net.minecraft.util.GsonHelper;
+import org.joml.Quaternionf;
 import org.joml.Vector2f;
 import org.joml.Vector2i;
 import org.joml.Vector3f;
@@ -56,9 +57,9 @@ public class TurboBox extends TurboElement
 		{
 			case NORTH -> new BakedTurboGeometry.Polygon(ImmutableList.of(
 					new BakedTurboGeometry.VertexRef(0, new Vector2f(tX * (uMin + x * 2 + z * 2), tY * (vMin + y + z))),
-					new BakedTurboGeometry.VertexRef(1, new Vector2f(tX * (uMin + x * 2 + z * 2), tY * (vMin + z))),
-					new BakedTurboGeometry.VertexRef(2, new Vector2f(tX * (uMin + x + z * 2), tY * (vMin + z))),
-					new BakedTurboGeometry.VertexRef(3, new Vector2f(tX * (uMin + x + z * 2), tY * (vMin + y + z)))
+					new BakedTurboGeometry.VertexRef(2, new Vector2f(tX * (uMin + x * 2 + z * 2), tY * (vMin + z))),
+					new BakedTurboGeometry.VertexRef(3, new Vector2f(tX * (uMin + x + z * 2), tY * (vMin + z))),
+					new BakedTurboGeometry.VertexRef(1, new Vector2f(tX * (uMin + x + z * 2), tY * (vMin + y + z)))
 			), new Vector3f(dir.getNormal().getX(), dir.getNormal().getY(), dir.getNormal().getZ()));
 			case SOUTH -> new BakedTurboGeometry.Polygon(ImmutableList.of(
 					new BakedTurboGeometry.VertexRef(5, new Vector2f(tX * (uMin + x + z), tY * (vMin + y + z))),
@@ -99,14 +100,22 @@ public class TurboBox extends TurboElement
 	{
 		ImmutableList.Builder<BakedTurboGeometry.Vertex> vertexBuilder = new ImmutableList.Builder<>();
 		ImmutableList.Builder<BakedTurboGeometry.Polygon> polygonBuilder = new ImmutableList.Builder<>();
-		for (int x = 0; x < 2; x++)
+		Quaternionf rotation = new Quaternionf()
+				.rotateY(eulerRotations.y * Maths.DegToRadF)
+				.rotateX(eulerRotations.x * Maths.DegToRadF)
+				.rotateZ(eulerRotations.z * Maths.DegToRadF);
+		for (int z = 0; z < 2; z++)
 		{
 			for (int y = 0; y < 2; y++)
 			{
-				for (int z = 0; z < 2; z++)
+				for (int x = 0; x < 2; x++)
 				{
 					int index = x + y * 2 + z * 4;
-					vertexBuilder.add(new BakedTurboGeometry.Vertex(getVertex(index)));
+					Vector3f vertex = new Vector3f(getVertex(index));
+					vertex.rotate(rotation);
+					vertex.add(rotationOrigin);
+					vertexBuilder.add(new BakedTurboGeometry.Vertex(vertex));
+
 				}
 			}
 		}
