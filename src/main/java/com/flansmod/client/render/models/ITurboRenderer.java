@@ -10,5 +10,5 @@ import javax.annotation.Nullable;
 
 public interface ITurboRenderer
 {
-	void RenderDirect(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext);
+	void renderDirect(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext);
 }

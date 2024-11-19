@@ -18,12 +18,12 @@ public class VehicleItemRenderer extends FlanItemModelRenderer
 	}
 
 	@Override
-	protected void DoRender(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
+	protected void doRender(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
 	{
 		// Find our skin
-		ResourceLocation skin = GetSkin(stack);
+		ResourceLocation skin = getSkin(stack);
 
-		RenderPartIteratively(
+		renderSectionIteratively(
 			renderContext,
 			"body",
 			(partName) -> { return skin; }, // Texture-Func

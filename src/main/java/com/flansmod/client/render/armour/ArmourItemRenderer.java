@@ -2,6 +2,7 @@ package com.flansmod.client.render.armour;
 
 import com.flansmod.client.render.FlanItemModelRenderer;
 import com.flansmod.client.render.RenderContext;
+import com.flansmod.client.render.models.baked.BakedTurboRig;
 import com.flansmod.common.item.ArmourItem;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -18,18 +19,18 @@ public class ArmourItemRenderer extends FlanItemModelRenderer
 	}
 
 	@Override
-	protected void DoRender(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
+	protected void doRender(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
 	{
 		// Find our skin
-		ResourceLocation skin = GetSkin(stack);
+		ResourceLocation skin = getSkin(stack);
 
-		if(HasPart("body"))
+		if(hasSection(BakedTurboRig.AP_CORE))
 		{
-			RenderPartIteratively(
+			renderSectionIteratively(
 				renderContext,
-				"body",
-				(partName) -> { return skin; }, // Texture-Func
-				(partName, innerRenderContext) -> { return true; }, // Pre-Func
+				BakedTurboRig.AP_CORE,
+				(partName) -> skin, // Texture-Func
+				(partName, innerRenderContext) -> true, // Pre-Func
 				(partName, innerRenderContext) -> {} // Post-Func
 			);
 		}

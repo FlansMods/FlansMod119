@@ -173,7 +173,7 @@ public class FlashEffectRenderer
 
 
 			renderContext.Transforms.add(Transform.fromPos(0d, 0d, -1d/16d));
-			renderer.RenderDirect(null, null, renderContext);
+			renderer.renderDirect(null, null, renderContext);
 			renderContext.Transforms.pop();
 		}
 	}

@@ -98,7 +98,7 @@ public class PoseCache
 	{
 		for (PoseDefinition pose : keyframe.poses)
 			if (!poseCache.containsKey(pose.applyTo))
-				poseCache.put(pose.applyTo, pose.Resolve(renderer.GetParameters()));
+				poseCache.put(pose.applyTo, pose.Resolve(renderer.getParameters()));
 
 		for(String parent : keyframe.parents)
 			if(parent != null && !parent.isEmpty())

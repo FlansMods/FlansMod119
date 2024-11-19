@@ -34,7 +34,7 @@ public class GunItemRenderer extends FlanItemModelRenderer
     }
 
     @Override
-    protected void DoRender(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
+    protected void doRender(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
     {
         if(stack == null)
             return;
@@ -59,9 +59,9 @@ public class GunItemRenderer extends FlanItemModelRenderer
             FlanimationDefinition animationSet = FlansModClient.ANIMATIONS.Get(new ResourceLocation(gunContext.CacheGunDefinition().animationSet));
 
             // Find our skin
-            ResourceLocation skin = GetSkin(stack);
+            ResourceLocation skin = getSkin(stack);
 
-            RenderPartIteratively(
+            renderSectionIteratively(
                 renderContext,
                 "body",
                 // Texture Func
@@ -71,7 +71,7 @@ public class GunItemRenderer extends FlanItemModelRenderer
                 // Pre-Func
                 (partName, innerRenderContext) -> {
                     innerRenderContext.Transforms.push();
-                    ApplyAnimations(innerRenderContext, animationSet, actionStack, partName);
+                    applyAnimations(innerRenderContext, animationSet, actionStack, partName);
 
                     if(partName.startsWith("grip") || partName.startsWith("barrel") || partName.startsWith("stock") || partName.startsWith("sights"))
                     {

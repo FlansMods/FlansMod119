@@ -54,7 +54,7 @@ public class TurretBlockEntityRenderer implements BlockEntityRenderer<TurretBloc
                             poseStack,
                             i, i1);
 
-                    gunRenderer.RenderDirect(null, gunContext.Stack, renderContext);
+                    gunRenderer.renderDirect(null, gunContext.Stack, renderContext);
                     poseStack.popPose();
                 }
             }

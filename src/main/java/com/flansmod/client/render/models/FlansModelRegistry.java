@@ -1,9 +1,8 @@
 package com.flansmod.client.render.models;
 
-import com.flansmod.client.render.FlanItemModelRenderer;
 import com.flansmod.client.render.IClientFlanItemExtensions;
-import com.flansmod.common.item.FlanItem;
-import com.flansmod.common.types.JsonDefinition;
+import com.flansmod.client.render.models.baked.BakedTurboRig;
+import com.flansmod.client.render.models.unbaked.TurboRig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.model.BlockModel;
 import net.minecraft.client.renderer.texture.TextureManager;
@@ -48,7 +47,7 @@ public class FlansModelRegistry implements PreparableReloadListener
     }
     private static final List<ModelLoadOp> ModelLoadOps = new ArrayList<>();
     private static final Map<ResourceLocation, TurboRig> UnbakedRigs = new HashMap<>();
-    private static final Map<ResourceLocation, TurboRig.Baked> BakedRigs = new HashMap<>();
+    private static final Map<ResourceLocation, BakedTurboRig> BakedRigs = new HashMap<>();
     private static final Map<ResourceLocation, ITurboRenderer> RendererLookup = new HashMap<>();
 
     public static void PreRegisterModel(@Nonnull ResourceLocation loc)
@@ -99,12 +98,6 @@ public class FlansModelRegistry implements PreparableReloadListener
         ITurboRenderer renderer = item != null ? GetItemRenderer(item) : null;
         RendererLookup.put(modelLoc, renderer);
         return renderer;
-    }
-
-    @Nonnull
-    public static TurboRenderUtility GetRigWrapperFor(@Nonnull ResourceLocation loc)
-    {
-        return TurboRenderUtility.of(UnbakedRigs.get(loc), BakedRigs.get(loc));
     }
 
     //public static void PreRegisterRenderer(@Nonnull ResourceLocation location, @Nonnull FlanItemModelRenderer renderer)
@@ -219,7 +212,7 @@ public class FlansModelRegistry implements PreparableReloadListener
             ResourceLocation resLoc = op.locationProvider.get();
             ModelResourceLocation modelID = new ModelResourceLocation(resLoc, "inventory");
             BakedModel bakedModel = modelRegistry.get(modelID);
-            if(bakedModel instanceof TurboRig.Baked turboBaked)
+            if(bakedModel instanceof BakedTurboRig turboBaked)
                 BakedRigs.put(resLoc, turboBaked);
         }
 
@@ -247,6 +240,11 @@ public class FlansModelRegistry implements PreparableReloadListener
 
         // We actually don't need to do anything with the "fire and forget" registrations
         // OTHER_MODEL_LOCATIONS
+    }
+    @Nullable
+    public BakedTurboRig getBakedRig(@Nonnull ResourceLocation modelLocation)
+    {
+        return BakedRigs.get(modelLocation);
     }
 
     @Override

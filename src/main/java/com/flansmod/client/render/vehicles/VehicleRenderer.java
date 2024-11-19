@@ -24,23 +24,14 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> implements IT
 {
 	@Nonnull
 	private final LazyDefinition<VehicleDefinition> Def;
-	@Nullable
-	private TurboRenderUtility TurboRenderHelper;
-	@Nonnull
-	public TurboRenderUtility GetTurboRigWrapper()
-	{
-		if(TurboRenderHelper == null)
-		{
-			TurboRenderHelper = FlansModelRegistry.GetRigWrapperFor(Def.Loc());
-		}
-		return TurboRenderHelper;
-	}
+	protected final TurboRigWrapper rigWrapper;
 
 	public VehicleRenderer(@Nonnull ResourceLocation defLoc,
 						   @Nonnull EntityRendererProvider.Context context)
 	{
 		super(context);
 		Def = LazyDefinition.of(defLoc, FlansMod.VEHICLES);
+		rigWrapper = new TurboRigWrapper(() -> defLoc);
 	}
 
 	@Override
@@ -59,7 +50,7 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> implements IT
 		{
 			renderContext.Transforms.add(Transform.extractOrientation(vehicle.RootTransform(deltaTick), false));
 		}
-		GetTurboRigWrapper().RenderPartIteratively(renderContext,
+		rigWrapper.ifRigFound(rig -> rig.renderSectionIteratively(renderContext,
 			"body",
 			(partName) -> skin,
 			(partName, preRenderContext) -> {
@@ -67,10 +58,10 @@ public class VehicleRenderer extends EntityRenderer<VehicleEntity> implements IT
 			},
 			(partName, postRenderContext) -> {
 
-			});
+			}));
 	}
 
-	public void RenderDirect(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
+	public void renderDirect(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
 	{
 		DoRender(heldByEntity instanceof VehicleEntity veh ? veh : null, renderContext, 0);
 	}

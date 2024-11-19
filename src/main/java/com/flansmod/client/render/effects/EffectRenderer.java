@@ -17,11 +17,11 @@ public class EffectRenderer extends FlanItemModelRenderer
 	}
 
 	@Override
-	protected void DoRender(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
+	protected void doRender(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
 	{
-		ResourceLocation skin = GetSkin(stack);
+		ResourceLocation skin = getSkin(stack);
 		renderContext.Transforms.push();
-		RenderPartIteratively(renderContext,
+		renderSectionIteratively(renderContext,
 			"body",
 			(partName) -> skin, 						// Texture func
 			(partName, innerRenderContext) -> true, 	// Pre-func

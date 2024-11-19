@@ -320,6 +320,11 @@ public class FlansMod
         return Gun(itemRegister, modID, name);
     }
 
+    public static RegistryObject<Item> Armour(DeferredRegister<Item> itemRegister, String modID, String name)
+    {
+        ResourceLocation loc = new ResourceLocation(modID, name);
+        return itemRegister.register(name, () -> new ArmourItem(loc, new Item.Properties().stacksTo(1)));
+    }
 
     public static RegistryObject<Item> Bullet(DeferredRegister<Item> itemRegister, String modID, String name)
     {

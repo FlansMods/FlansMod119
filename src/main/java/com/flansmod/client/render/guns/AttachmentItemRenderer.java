@@ -20,13 +20,13 @@ public class AttachmentItemRenderer extends FlanItemModelRenderer
 	}
 
 	@Override
-	protected void DoRender(Entity heldByEntity, ItemStack stack, @Nonnull RenderContext renderContext)
+	protected void doRender(Entity heldByEntity, ItemStack stack, @Nonnull RenderContext renderContext)
 	{
 		// Find our skin
-		ResourceLocation skin = GetSkin(stack);
+		ResourceLocation skin = getSkin(stack);
 
 		renderContext.Transforms.push();
-		RenderPartIteratively(renderContext,
+		renderSectionIteratively(renderContext,
 			"body",
 			// Texture func
 			(partName) -> { return skin; },
@@ -48,7 +48,7 @@ public class AttachmentItemRenderer extends FlanItemModelRenderer
 	public void RenderAsAttachment(RenderContext gunRendererContext, GunContext context, EAttachmentType attachmentType, int attachmentSlot)
 	{
 		// The main difference here is that we do not apply transforms. They should have been applied for us already
-		RenderDirect(context.GetShooter().Entity(),
+		renderDirect(context.GetShooter().Entity(),
 			context.GetAttachmentStack(attachmentType, attachmentSlot),
 			new RenderContext(
 				gunRendererContext.Buffers,

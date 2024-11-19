@@ -232,7 +232,7 @@ public abstract class WorkbenchScreenTab<T extends WorkbenchMenu> extends FMScre
 				graphics.pose().mulPose(new Quaternionf().rotateLocalX(Maths.PiF));
 				graphics.pose().mulPose(new Quaternionf().rotateLocalY(Maths.PiF));
 				graphics.pose().translate(-0.5f, -0.5f, -0.5f);
-				gunRenderer.RenderDirect(null, stack, new RenderContext(
+				gunRenderer.renderDirect(null, stack, new RenderContext(
 					buffers,
 					ItemDisplayContext.GROUND,
 					graphics.pose(),

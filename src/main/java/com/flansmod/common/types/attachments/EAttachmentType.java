@@ -1,5 +1,7 @@
 package com.flansmod.common.types.attachments;
 
+import javax.annotation.Nonnull;
+
 public enum EAttachmentType
 {
 	// Gun types
@@ -39,4 +41,8 @@ public enum EAttachmentType
 		};
 	}
 
+	@Nonnull
+	public String indexedName(int index) { return name().toLowerCase() + "_" + index; }
+	@Nonnull
+	public String unindexedName(int index) { return index == 0 ? name().toLowerCase() : indexedName(index); }
 }

@@ -238,7 +238,7 @@ public class ShotRenderer
 				pose.translate(centerPos.x - cameraPos.x, centerPos.y - cameraPos.y, centerPos.z - cameraPos.z);
 				//pose.translate(-0.5f, -0.5f, -0.5f);
 				pose.mulPose(new Quaternionf().lookAlong((float)bulletDirection.z, (float)bulletDirection.y, (float)bulletDirection.x, 0f, 1f, 0f));
-				bulletModel.RenderDirect(
+				bulletModel.renderDirect(
 					null,
 					null,
 					new RenderContext(buffers,

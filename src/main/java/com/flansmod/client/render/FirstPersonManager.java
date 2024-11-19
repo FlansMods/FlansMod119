@@ -300,7 +300,7 @@ public class FirstPersonManager
 		ITurboRenderer turboRenderer = FlansModelRegistry.GetItemRenderer(gunContext.Stack);
 		if(turboRenderer instanceof GunItemRenderer gunRenderer)
 		{
-			Transform defaultPose = gunRenderer.GetTurboRigWrapper().GetTransform(transformType);
+			Transform defaultPose = gunRenderer.getOrDefault(rig -> rig.getTransform(transformType), Transform.IDENTITY);
 			switch(transformType)
 			{
 				case FIRST_PERSON_RIGHT_HAND, FIRST_PERSON_LEFT_HAND -> {
@@ -351,7 +351,7 @@ public class FirstPersonManager
 
 			EAttachmentType attachmentType = ActionGroupContext.GetAttachmentType(apName);
 			int attachmentIndex = ActionGroupContext.GetAttachmentIndex(apName);
-			String gunAPName = gunRenderer.GetAPKey(attachmentType, attachmentIndex);
+			String gunAPName = gunRenderer.getAPKey(attachmentType, attachmentIndex);
 			String childAPName = ActionGroupContext.GetActionGroupKey(apName);
 
 			if(attachmentIndex == -1)

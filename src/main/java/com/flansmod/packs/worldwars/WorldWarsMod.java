@@ -88,6 +88,10 @@ public class WorldWarsMod
 	public static final RegistryObject<Item> GUN_BINOCULARS = 						FlansMod.Gun(ITEMS, MODID, "binoculars");
 	public static final RegistryObject<Item> GUN_KNIFE = 							FlansMod.Gun(ITEMS, MODID, "knife");
 
+
+
+	public static final RegistryObject<Item> ARMOUR_BRITISH_HAT =					FlansMod.Armour(ITEMS, MODID, "british_hat");
+
 	public static final RegistryObject<Item> VEHICLE_ITEM_JEEP = 					FlansMod.Vehicle_Item(ITEMS, MODID, "jeep");
 	public static final RegistryObject<EntityType<VehicleEntity>> VEHICLE_ENTITY_JEEP = FlansMod.Vehicle_Entity(ENTITY_TYPES, MODID, "jeep", true);
 

@@ -19,14 +19,14 @@ public class BulletItemRenderer extends FlanItemModelRenderer
 	}
 
 	@Override
-	protected void DoRender(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
+	protected void doRender(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
 	{
 		// Find our skin
-		ResourceLocation skin = GetSkin(stack);
+		ResourceLocation skin = getSkin(stack);
 		renderContext.Buffers.getBuffer(RenderType.entityCutout(skin)).color(1,1,1,1);
 		renderContext.Buffers.getBuffer(RenderType.cutout()).color(1,1,1,1);
 		renderContext.Transforms.push();
-		RenderPartIteratively(
+		renderSectionIteratively(
 			renderContext,
 			"body",
 			(partName) -> { return skin; }, // Texture-Func

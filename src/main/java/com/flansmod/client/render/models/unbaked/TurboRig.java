@@ -1,9 +1,14 @@
-package com.flansmod.client.render.models;
+package com.flansmod.client.render.models.unbaked;
 
+import com.flansmod.client.render.models.ITurboDeserializer;
+import com.flansmod.client.render.models.baked.BakedAttachPoint;
+import com.flansmod.client.render.models.baked.BakedModelProxy;
+import com.flansmod.client.render.models.baked.BakedTurboRig;
+import com.flansmod.client.render.models.baked.BakedTurboSection;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.types.attachments.EAttachmentType;
 import com.flansmod.physics.common.util.Transform;
-import com.flansmod.physics.common.util.TransformStack;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.gson.*;
 import com.mojang.datafixers.util.Either;
@@ -11,17 +16,14 @@ import net.minecraft.client.renderer.block.model.*;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.client.resources.model.*;
-import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.GsonHelper;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.model.geometry.IGeometryBakingContext;
 import net.minecraftforge.client.model.geometry.IGeometryLoader;
 import net.minecraftforge.client.model.geometry.IUnbakedGeometry;
-import net.minecraftforge.client.textures.UnitTextureAtlasSprite;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
 
 import javax.annotation.Nonnull;
@@ -35,59 +37,21 @@ public class TurboRig implements IUnbakedGeometry<TurboRig>, UnbakedModel
 	public static final ResourceLocation ICON_KEY_3D = new ResourceLocation("flansmod", "3d_icon");
 	static final ItemModelGenerator ITEM_MODEL_GENERATOR = new ItemModelGenerator();
 
-	public static final class AttachPoint
-	{
-		public static class Baked
-		{
-			@Nonnull
-			public final String PartName;
-			@Nullable
-			public final Baked Parent;
-			@Nonnull
-			public final Transform Offset;
-
-			public Baked(@Nonnull String partName)
-			{
-				PartName = partName;
-				Parent = null;
-				Offset = Transform.IDENTITY;
-			}
-
-			public Baked(@Nonnull String partName, @Nonnull Baked parent, @Nonnull Transform offset)
-			{
-				PartName = partName;
-				Parent = parent;
-				Offset = offset;
-			}
-		}
-
-		public final String AttachTo;
-		public final Vector3f Offset;
-		public final Vector3f Euler;
-		public AttachPoint(String attachTo, Vector3f offset, Vector3f euler)
-		{
-			AttachTo = attachTo;
-			Offset = offset;
-			Euler = euler;
-		}
-		public boolean IsValid() { return AttachTo.length() > 0; }
-		public static final AttachPoint Invalid = new AttachPoint("", new Vector3f(), new Vector3f());
-	}
-
-
-	private final Map<String, TurboModel> Parts;
+	private final Map<String, TurboSection> Parts;
 	private final Map<String, ResourceLocation> Textures;
 	private final Map<String, ResourceLocation> Icons;
 	private final ItemTransforms Transforms;
 	private final Map<String, Float> FloatParams;
 	private final Map<String, AttachPoint> AttachPoints;
+	private final Vector2i TextureSize;
 
-	public TurboRig(Map<String, TurboModel> parts,
-					Map<String, ResourceLocation> textures,
-					Map<String, ResourceLocation> icons,
-					ItemTransforms transforms,
-					Map<String, Float> floatParams,
-					Map<String, AttachPoint> attachPoints)
+	public TurboRig(@Nonnull Map<String, TurboSection> parts,
+					@Nonnull Map<String, ResourceLocation> textures,
+					@Nonnull Map<String, ResourceLocation> icons,
+					@Nonnull ItemTransforms transforms,
+					@Nonnull Map<String, Float> floatParams,
+					@Nonnull Map<String, AttachPoint> attachPoints,
+					@Nonnull Vector2i textureSize)
 	{
 		Parts = parts;
 		Textures = textures;
@@ -95,6 +59,7 @@ public class TurboRig implements IUnbakedGeometry<TurboRig>, UnbakedModel
 		Transforms = transforms;
 		FloatParams = floatParams;
 		AttachPoints = attachPoints;
+		TextureSize = textureSize;
 	}
 
 	public Set<Map.Entry<String, AttachPoint>> GetAttachmentPoints() { return AttachPoints.entrySet(); }
@@ -112,7 +77,7 @@ public class TurboRig implements IUnbakedGeometry<TurboRig>, UnbakedModel
 
 	public Map<String, Float> GetFloatParams() { return FloatParams; }
 
-	public TurboModel GetPart(String partName) { return Parts.get(partName); }
+	public TurboSection GetPart(String partName) { return Parts.get(partName); }
 
 	public ItemTransform GetTransforms(ItemDisplayContext transformType) { return Transforms.getTransform(transformType); }
 	@Override
@@ -127,15 +92,18 @@ public class TurboRig implements IUnbakedGeometry<TurboRig>, UnbakedModel
 		return new BakedModelProxy();
 	}
 
-	@Override
-	public BakedModel bake(IGeometryBakingContext context,
-						   ModelBaker baker,
-						   Function<Material, TextureAtlasSprite> spriteGetter,
-						   ModelState modelState,
-						   ItemOverrides overrides,
-						   ResourceLocation modelLocation)
+	@Override @Nonnull
+	public BakedTurboRig bake(@Nullable IGeometryBakingContext context,
+							  @Nonnull ModelBaker baker,
+							  @Nonnull Function<Material, TextureAtlasSprite> spriteGetter,
+							  @Nonnull ModelState modelState,
+							  @Nullable ItemOverrides overrides,
+							  @Nonnull ResourceLocation modelLocation)
 	{
-		Map<String, BakedModel> iconModels = new HashMap<>();
+		ImmutableMap.Builder<String, BakedModel> iconModels = new ImmutableMap.Builder<>();
+		ImmutableMap.Builder<String, BakedTurboSection> sections = new ImmutableMap.Builder<>();
+		ImmutableMap.Builder<String, BakedAttachPoint> attachPoints = new ImmutableMap.Builder<>();
+
 		for(var kvp : Icons.entrySet())
 		{
 			Map<String, Either<Material, String>> textureMap = Maps.newHashMap();
@@ -148,137 +116,31 @@ public class TurboRig implements IUnbakedGeometry<TurboRig>, UnbakedModel
 			iconModels.put(kvp.getKey(), itemModel.bake(baker, spriteGetter, modelState, modelLocation));
 		}
 
-		Map<String, TurboModel.Baked> bakedModels = new HashMap<>();
 		for(var kvp : Parts.entrySet())
 		{
-			bakedModels.put(kvp.getKey(), (TurboModel.Baked)kvp.getValue().bake(context, baker, spriteGetter, modelState, overrides, modelLocation));
+			sections.put(kvp.getKey(), kvp.getValue().bake(context, baker, spriteGetter, modelState, overrides, modelLocation, TextureSize));
 		}
 
-		Map<String, AttachPoint.Baked> bakedAPs = new HashMap<>();
-		bakedAPs.put("body", new AttachPoint.Baked("body"));
+		attachPoints.put("body", new BakedAttachPoint(null, Transform.identity()));
 		for(var kvp : AttachPoints.entrySet())
 		{
-			BakeAP(kvp.getKey(), kvp.getValue(), bakedAPs);
+			attachPoints.put(kvp.getKey(), kvp.getValue().bake());
 		}
 
-		return new Baked(iconModels, bakedModels, bakedAPs, Textures, Transforms);
-	}
-
-	private void BakeAP(@Nonnull String apName, @Nonnull AttachPoint ap, @Nonnull Map<String, AttachPoint.Baked> bakedAPs)
-	{
-		if(!bakedAPs.containsKey(ap.AttachTo) && !ap.AttachTo.equals(apName))
-		{
-			AttachPoint parentAP = AttachPoints.get(ap.AttachTo);
-			if(parentAP != null)
-			{
-				BakeAP(ap.AttachTo, parentAP, bakedAPs);
-			}
-		}
-
-		if(!bakedAPs.containsKey(apName) && bakedAPs.containsKey(ap.AttachTo))
-		{
-			bakedAPs.put(apName, new AttachPoint.Baked(
-				apName,
-				bakedAPs.get(ap.AttachTo),
-				Transform.fromPosAndEuler(ap.Offset.mul(1f/16f, new Vector3f()), ap.Euler)));
-		}
-	}
-
-
-	public static class Baked implements BakedModel
-	{
-		private final Map<String, BakedModel> IconModels;
-		private final Map<String, TurboModel.Baked> BakedModels;
-		private final Map<String, AttachPoint.Baked> BakedAPs;
-		private final Map<String, ResourceLocation> Textures;
-
-		private final ItemTransforms Transforms;
-
-		public Baked(Map<String, BakedModel> bakedIcons,
-					 Map<String, TurboModel.Baked> bakedParts,
-					 Map<String, AttachPoint.Baked> bakedAPs,
-					 Map<String, ResourceLocation> textures,
-					 ItemTransforms transforms)
-		{
-			IconModels = bakedIcons;
-			BakedModels = bakedParts;
-			BakedAPs = bakedAPs;
-			Textures = textures;
-			Transforms = transforms;
-		}
-
-		@Nonnull
-		public Set<Map.Entry<String, AttachPoint.Baked>> GetAttachPoints() { return BakedAPs.entrySet(); }
-		@Nullable
-		public AttachPoint.Baked GetAttachPoint(String apName)
-		{
-			return BakedAPs.get(apName);
-		}
-
-		@Nullable
-		public BakedModel GetIconModel(String skin)
-		{
-			if(IconModels.containsKey(skin))
-			{
-				return IconModels.get(skin);
-			}
-			return null;
-		}
-
-		@Nonnull
-		public Transform GetTransform(@Nonnull ItemDisplayContext transformType)
-		{
-			return Transform.fromItem(Transforms.getTransform(transformType));
-		}
-
-		public void ApplyTransform(@Nonnull TransformStack transformStack, @Nonnull ItemDisplayContext transformType, boolean bFlip)
-		{
-			ItemTransform transform = Transforms.getTransform(transformType);
-		}
-
-		public TurboModel.Baked GetPart(String part)
-		{
-			return BakedModels.get(part);
-		}
-
-		public ResourceLocation GetTexture(String skin)
-		{
-			return Textures.get(skin);
-		}
-
-		@Override
-		@Nonnull
-		public List<BakedQuad> getQuads(@org.jetbrains.annotations.Nullable BlockState p_235039_, @org.jetbrains.annotations.Nullable Direction p_235040_, RandomSource p_235041_)
-		{
-			return Collections.emptyList();
-		}
-		@Override
-		public boolean useAmbientOcclusion() { return false; }
-		@Override
-		public boolean isGui3d() { return true; }
-		@Override
-		public boolean usesBlockLight() { return false; }
-		@Override
-		public boolean isCustomRenderer() { return true; }
-		@Override
-		@Nonnull
-		public TextureAtlasSprite getParticleIcon() { return UnitTextureAtlasSprite.INSTANCE; }
-		@Override
-		@Nonnull
-		public ItemOverrides getOverrides() { return ItemOverrides.EMPTY; }
-		@Override
-		@Nonnull
-		public ItemTransforms getTransforms()
-		{
-			return ItemTransforms.NO_TRANSFORMS;
-		}
+		return new BakedTurboRig(
+				iconModels.build(),
+				sections.build(),
+				attachPoints.build(),
+				Textures,
+				FloatParams,
+				Transforms);
 	}
 
 	public static class Loader implements IGeometryLoader<TurboRig>
 	{
 		private static final Gson GSON = (new GsonBuilder())
 			.registerTypeAdapter(TurboRig.class, new TurboRig.Deserializer())
-			.registerTypeAdapter(TurboModel.class, new TurboModel.Deserializer())
+			.registerTypeAdapter(TurboSection.class, new TurboSection.Deserializer())
 			.registerTypeAdapter(TurboElement.class, new TurboElement.Deserializer())
 			.registerTypeAdapter(TurboFace.class, new TurboFace.Deserializer())
 			.registerTypeAdapter(BlockFaceUV.class, new BlockFaceUV.Deserializer())
@@ -294,7 +156,7 @@ public class TurboRig implements IUnbakedGeometry<TurboRig>, UnbakedModel
 		}
 	}
 
-	public static class Deserializer implements JsonDeserializer<TurboRig>
+	public static class Deserializer implements JsonDeserializer<TurboRig>, ITurboDeserializer
 	{
 		@Override
 		public TurboRig deserialize(JsonElement jElement,
@@ -303,14 +165,14 @@ public class TurboRig implements IUnbakedGeometry<TurboRig>, UnbakedModel
 		{
 			JsonObject jObject = jElement.getAsJsonObject();
 
-			Map<String, TurboModel> parts = new HashMap<>();
+			Map<String, TurboSection> parts = new HashMap<>();
 			if(jObject.has("parts"))
 			{
 				JsonObject jParts = jObject.getAsJsonObject("parts");
 				for(var kvp : jParts.entrySet())
 				{
 					String key = kvp.getKey();
-					TurboModel model = context.deserialize(kvp.getValue(), TurboModel.class);
+					TurboSection model = context.deserialize(kvp.getValue(), TurboSection.class);
 					if(model != null)
 					{
 						parts.put(key, model);
@@ -385,6 +247,11 @@ public class TurboRig implements IUnbakedGeometry<TurboRig>, UnbakedModel
 				}
 			}
 
+			Vector2i textureSize = new Vector2i(16, 16);
+			if(jObject.get("textureSize") instanceof JsonArray jTextureSize)
+			{
+				textureSize = getVector2i(jTextureSize);
+			}
 
 			ItemTransforms itemTransforms = ItemTransforms.NO_TRANSFORMS;
 			if (jObject.has("display"))
@@ -403,20 +270,7 @@ public class TurboRig implements IUnbakedGeometry<TurboRig>, UnbakedModel
 				}
 			}
 
-			return new TurboRig(parts, textures, iconMap, itemTransforms, floatParams, attachPoints);
-		}
-
-		private Vector3f getVector3f(JsonElement jObject)
-		{
-			if(jObject != null)
-			{
-				JsonArray jArray = jObject.getAsJsonArray();
-				return new Vector3f(
-					jArray.get(0).getAsFloat(),
-					jArray.get(1).getAsFloat(),
-					jArray.get(2).getAsFloat());
-			}
-			return new Vector3f();
+			return new TurboRig(parts, textures, iconMap, itemTransforms, floatParams, attachPoints, textureSize);
 		}
 	}
 }

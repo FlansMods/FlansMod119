@@ -1,4 +1,4 @@
-package com.flansmod.client.render.models;
+package com.flansmod.client.render.models.baked;
 
 import net.minecraft.client.renderer.block.model.BakedQuad;
 import net.minecraft.client.renderer.block.model.ItemOverrides;

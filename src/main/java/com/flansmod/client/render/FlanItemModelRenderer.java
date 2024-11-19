@@ -1,12 +1,12 @@
 package com.flansmod.client.render;
 
 import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import java.util.function.*;
 
 import com.flansmod.client.render.animation.FlanimationDefinition;
 import com.flansmod.client.render.models.*;
+import com.flansmod.client.render.models.baked.BakedAttachPoint;
+import com.flansmod.client.render.models.baked.BakedTurboRig;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.actions.*;
 import com.flansmod.physics.common.util.EContextSide;
@@ -32,33 +32,26 @@ import javax.annotation.Nullable;
 
 public abstract class FlanItemModelRenderer extends BlockEntityWithoutLevelRenderer implements ITurboRenderer
 {
-
+    public static final ResourceLocation invalidModelLoc = new ResourceLocation(FlansMod.MODID, "models/unknown");
+    public static final Supplier<ResourceLocation> invalidModelLocGetter = () -> invalidModelLoc;
     public final boolean ShouldRenderWhenHeld;
     @Nullable
     public final FlanItem Item;
-    @Nullable
-    private TurboRenderUtility TurboRenderHelper;
-    @Nonnull
-    public TurboRenderUtility GetTurboRigWrapper()
-    {
-        if(TurboRenderHelper == null)
-        {
-            if(Item == null)
-                TurboRenderHelper = TurboRenderUtility.of();
-            else
-                TurboRenderHelper = FlansModelRegistry.GetRigWrapperFor(Item.DefinitionLocation);
-        }
-        return TurboRenderHelper;
-    }
-
+    protected final TurboRigWrapper rigWrapper;
 
     public FlanItemModelRenderer(@Nullable FlanItem flanItem, boolean shouldRenderWhenHeld)
     {
         super(null, null);
         Item = flanItem;
         ShouldRenderWhenHeld = shouldRenderWhenHeld;
-        TurboRenderHelper = null;
+        rigWrapper = new TurboRigWrapper(Item != null ? Item::getDefinitionLocation : invalidModelLocGetter);
     }
+
+    protected void ifRigFound(@Nonnull Consumer<BakedTurboRig> func) { rigWrapper.ifRigFound(func); }
+    protected void ifAnyModelFound(@Nonnull Consumer<BakedModel> func) { rigWrapper.ifAnyModelFound(func); }
+    protected void ifRigOrOtherwise(@Nonnull Consumer<BakedTurboRig> rigFunc, @Nonnull Consumer<BakedModel> backupFunc) { rigWrapper.ifRigOrOtherwise(rigFunc, backupFunc); }
+    @Nullable protected <T> T getOrDefault(@Nonnull Function<BakedTurboRig, T> getFunc, @Nullable T defaultValue) { return rigWrapper.getOrDefault(getFunc, defaultValue); }
+    @Nullable protected <T> T getRigOrOtherwise(@Nonnull Function<BakedTurboRig, T> rigGetFunc, @Nonnull Function<BakedModel, T> backupGetFunc, @Nullable T defaultValue) { return rigWrapper.getRigOrOtherwise(rigGetFunc, backupGetFunc, defaultValue); }
 
     // Entry point for vanilla render calls
     @Override
@@ -76,7 +69,10 @@ public abstract class FlanItemModelRenderer extends BlockEntityWithoutLevelRende
         if(shouldRenderIcon)
         {
             String skin = FlanItem.GetPaintjobName(stack);
-            BakedModel iconModel = GetTurboRigWrapper().GetIconModel(skin);
+            BakedModel iconModel = getRigOrOtherwise(
+                    (rig) -> rig.getIconModel(skin),
+                    (other) -> other,
+                    null);
             if(iconModel != null)
             {
                 PoseStack poseStack = null;
@@ -121,11 +117,11 @@ public abstract class FlanItemModelRenderer extends BlockEntityWithoutLevelRende
 
             // Render item
             Entity heldBy = transformType.firstPerson() ? Minecraft.getInstance().player : null;
-            DoRender(heldBy, stack, new RenderContext(buffers, transformType, transformStack, light, overlay));
+            doRender(heldBy, stack, new RenderContext(buffers, transformType, transformStack, light, overlay));
         }
     }
     // Not sure why you need to do this but another way in
-    public void RenderDirect(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
+    public void renderDirect(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
     {
         renderContext.Transforms.push();
         {
@@ -133,58 +129,45 @@ public abstract class FlanItemModelRenderer extends BlockEntityWithoutLevelRende
             //if(renderContext.TransformType != null)
             //   BakedRig.ApplyTransform(renderContext.TransformType, renderContext.Transforms, false);
 
-            DoRender(heldByEntity, stack, renderContext);
+            doRender(heldByEntity, stack, renderContext);
         }
         renderContext.Transforms.pop();
     }
 
     // The specifics handled by each render type, gun etc.
-    protected abstract void DoRender(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext);
+    protected abstract void doRender(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext);
 
     // Then a bunch of functions you can call while in the render func
-    protected void ApplyAnimations(@Nonnull RenderContext renderContext,
+    protected void applyAnimations(@Nonnull RenderContext renderContext,
                                    @Nonnull FlanimationDefinition animationSet,
                                    @Nullable ActionStack actionStack,
                                    @Nonnull String partName)
     {
-        renderContext.Transforms.add(GetPose(animationSet, actionStack, partName));
+        renderContext.Transforms.add(getPose(animationSet, actionStack, partName));
     }
-
-    public boolean HasPart(@Nonnull String partName)
-    {
-        return GetTurboRigWrapper().HasPart(partName);
-    }
-
     @Nonnull
-    protected Transform GetPose(@Nonnull FlanimationDefinition animationSet, @Nullable ActionStack actionStack, @Nonnull String partName)
+    protected Transform getPose(@Nonnull FlanimationDefinition animationSet, @Nullable ActionStack actionStack, @Nonnull String sectionName)
     {
-        return GetTurboRigWrapper().GetPose(partName,
-            GetDefLoc(),
-            animationSet,
-            actionStack);
+        return getOrDefault(rig -> rig.getPose(sectionName, getDefLoc(), animationSet, actionStack), Transform.IDENTITY);
     }
-
-    private void ApplyItemArmTransform(PoseStack poseStack, HumanoidArm arm, float equipProgress)
+    public boolean hasSection(@Nonnull String sectionName) { return getOrDefault(rig -> rig.hasSection(sectionName), false); }
+    private void applyItemArmTransform(PoseStack poseStack, HumanoidArm arm, float equipProgress)
     {
         int i = arm == HumanoidArm.RIGHT ? 1 : -1;
         poseStack.translate((float)i * 0.56F, -0.52F + equipProgress * -0.6F, -0.72F);
     }
     @Nonnull
-    public ResourceLocation GetSkin(@Nullable ItemStack stack)
+    public ResourceLocation getSkin(@Nullable ItemStack stack)
     {
         String skin = stack != null ? FlanItem.GetPaintjobName(stack) : "default";
-        return GetTurboRigWrapper().GetSkinLocation(skin);
+        return getOrDefault(rig -> rig.getSkin(skin), invalidModelLoc);
     }
     @Nonnull
-    public Map<String, Float> GetParameters()
-    {
-        return GetTurboRigWrapper().GetParameters();
-    }
-    private static final ResourceLocation UnknownModelLocation = new ResourceLocation(FlansMod.MODID, "models/unknown");
+    public Map<String, Float> getParameters() { return getOrDefault(BakedTurboRig::floatParameters, Map.of()); }
     @Nonnull
-    public ResourceLocation GetDefLoc()
+    public ResourceLocation getDefLoc()
     {
-        return Item != null ? Item.DefinitionLocation : UnknownModelLocation;
+        return Item != null ? Item.DefinitionLocation : invalidModelLoc;
     }
 
 
@@ -197,13 +180,13 @@ public abstract class FlanItemModelRenderer extends BlockEntityWithoutLevelRende
         //}
     }
 
-    protected void RenderPartIteratively(@Nonnull RenderContext renderContext,
-                                         @Nonnull String partName,
-                                         @Nonnull Function<String, ResourceLocation> textureFunc,
-                                         @Nonnull BiFunction<String, RenderContext, Boolean> preRenderFunc,
-                                         @Nonnull BiConsumer<String, RenderContext> postRenderFunc)
+    protected void renderSectionIteratively(@Nonnull RenderContext renderContext,
+                                            @Nonnull String sectionName,
+                                            @Nonnull Function<String, ResourceLocation> textureFunc,
+                                            @Nonnull BiFunction<String, RenderContext, Boolean> preRenderFunc,
+                                            @Nonnull BiConsumer<String, RenderContext> postRenderFunc)
     {
-        GetTurboRigWrapper().RenderPartIteratively(renderContext, partName, textureFunc, preRenderFunc, postRenderFunc);
+        ifRigFound((rig) -> rig.renderSectionIteratively(renderContext, sectionName, textureFunc, preRenderFunc, postRenderFunc));
     }
 
     protected void RenderAttachedEffect(String attachPointName, ResourceLocation texture, ResourceLocation model, RenderContext renderContext)
@@ -212,38 +195,31 @@ public abstract class FlanItemModelRenderer extends BlockEntityWithoutLevelRende
     }
 
     public void ApplyAPOffsetInternal(@Nonnull TransformStack transformStack,
-                                       @Nonnull String apName,
-                                       @Nullable FlanimationDefinition animationSet,
-                                       @Nullable ActionStack actionStack)
+                                      @Nonnull String apName,
+                                      @Nullable FlanimationDefinition animationSet,
+                                      @Nullable ActionStack actionStack)
     {
-        TurboRig.AttachPoint.Baked ap = GetTurboRigWrapper().GetAP(apName);
-        if(ap != null)
+        ifRigFound((rig) ->
         {
+            BakedAttachPoint ap = rig.getAP(apName);
             // Resolve the AP that we are attached to first
-            if (ap.Parent != null)
+            if (ap.parent() != null)
             {
-                ApplyAPOffsetInternal(transformStack, ap.Parent.PartName, animationSet, actionStack);
+                ApplyAPOffsetInternal(transformStack, ap.parent(), animationSet, actionStack);
             }
 
             // Then offset by our AP
-            transformStack.add(ap.Offset);
+            transformStack.add(ap.offset());
             // Then offset by our animation
             if(animationSet != null && actionStack != null)
             {
-                transformStack.add(GetPose(animationSet, actionStack, apName));
+                transformStack.add(getPose(animationSet, actionStack, apName));
             }
-        }
-        else
-        {
-            transformStack.add(Transform.error("Could not find AP '" + apName + "'"));
-        }
+        });
     }
 
     @Nonnull
-    public String GetAPKey(@Nonnull EAttachmentType attachmentType, int attachmentIndex)
-    {
-        return GetTurboRigWrapper().GetAPKey(attachmentType, attachmentIndex);
-    }
-
-
+    public String getAPKey(@Nonnull EAttachmentType attachmentType, int attachmentIndex) { return getOrDefault((rig) -> rig.getAPKey(attachmentType, attachmentIndex), getDefaultAPKey(attachmentType, attachmentIndex)); }
+    @Nonnull
+    public String getDefaultAPKey(@Nonnull EAttachmentType attachmentType, int attachmentIndex) { return attachmentType.unindexedName(attachmentIndex); }
 }
