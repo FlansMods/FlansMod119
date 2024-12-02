@@ -74,9 +74,12 @@ public abstract class TurboElement
 				if(jVertArray.size() == 8)
 				{
 					for(int i = 0; i < 8; i++)
-					{
 						vertices[i] = getVector3f(jVertArray.get(i));
-					}
+				}
+				else
+				{
+					for (int i = 0; i < 8; i++)
+						vertices[i] = new Vector3f();
 				}
 				Map<Direction, TurboFace> faceMap = Maps.newEnumMap(Direction.class);
 				getFaces(context, jObject, faceMap);
@@ -97,15 +100,15 @@ public abstract class TurboElement
 				Vector3f dimensions = getOrDefaultVector3f(jShapeBox, "dimensions", new Vector3f());
 				Vector2f uvCoords = getOrDefaultVector2f(jShapeBox, "uv", new Vector2f());
 				Vector3f[] offsets = new Vector3f[8];
-				if(jShapeBox.get("offsets") instanceof JsonArray jOffsetArray)
+				if(jShapeBox.get("offsets") instanceof JsonArray jOffsetArray && jOffsetArray.size() == 8)
 				{
-					if (jOffsetArray.size() == 8)
-					{
-						for (int i = 0; i < 8; i++)
-						{
-							offsets[i] = getVector3f(jOffsetArray.get(i));
-						}
-					}
+					for (int i = 0; i < 8; i++)
+						offsets[i] = getVector3f(jOffsetArray.get(i));
+				}
+				else
+				{
+					for (int i = 0; i < 8; i++)
+						offsets[i] = new Vector3f();
 				}
 				return new TurboShapeBox(eulerRotations, rotationOrigin, shade, origin, dimensions, uvCoords, offsets);
 			}
