@@ -18,4 +18,5 @@ public interface ISettings
 
 	@Nonnull
 	OpResult trySetParameter(@Nonnull String parameterName, @Nonnull String parse);
+
 }

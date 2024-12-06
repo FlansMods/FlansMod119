@@ -8,12 +8,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-public interface IMap
+public interface IMapInstance
 {
-	@Nonnull String getName();
-	@Nonnull ResourceKey<Level> getPrimaryDimension(@Nonnull String mapName);
+	@Nonnull MapInfo getInfo();
+	@Nonnull ResourceKey<Level> getPrimaryDimension();
 	@Nonnull List<ChunkPos> getChunkLoadTickets();
-
-	boolean hasSettingsOverride();
-	@Nullable ISettings getSettingsOverride();
 }
