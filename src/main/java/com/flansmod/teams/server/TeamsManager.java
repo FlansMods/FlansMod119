@@ -85,9 +85,9 @@ public class TeamsManager implements
 	}
 	private void createPreparingPhase()
 	{
-		final int timeoutTicks = (int)Math.floor(TeamsModConfig.preparingPhaseTimeout.get() * 20d);
 
 		phaseImpl.put(ERoundPhase.Preparing, new Phase(){
+			private int timeoutTicks() { return (int)Math.floor(TeamsModConfig.preparingPhaseTimeout.get() * 20d); }
 			@Override
 			public void enter(){
 				OpResult prepResult = prepareNewRound();
@@ -118,7 +118,7 @@ public class TeamsManager implements
 			@Override
 			public void tick()
 			{
-				if(ticksInCurrentPhase >= timeoutTicks)
+				if(ticksInCurrentPhase >= timeoutTicks())
 				{
 					TeamsMod.LOGGER.error("Preparing phase timed out!");
 					targetPhase = ERoundPhase.Inactive;
@@ -167,10 +167,11 @@ public class TeamsManager implements
 	}
 	private void createDisplayScoresPhase()
 	{
-		final int durationTicks = (int)Math.floor(TeamsModConfig.displayScoresPhaseDuration.get() * 20d);
-		final boolean isVotingPhaseEnabled = TeamsModConfig.mapVoteEnabled.get();
 
 		phaseImpl.put(ERoundPhase.DisplayScores, new Phase(){
+			private int durationTicks() { return (int)Math.floor(TeamsModConfig.displayScoresPhaseDuration.get() * 20d); }
+			private boolean isVotingPhaseEnabled() { return TeamsModConfig.mapVoteEnabled.get(); }
+
 			@Override
 			public void enter()
 			{
@@ -179,8 +180,8 @@ public class TeamsManager implements
 			@Override
 			public void tick()
 			{
-				if(ticksInCurrentPhase >= durationTicks)
-					targetPhase = isVotingPhaseEnabled ? ERoundPhase.MapVote : ERoundPhase.Cleanup;
+				if(ticksInCurrentPhase >= durationTicks())
+					targetPhase = isVotingPhaseEnabled() ? ERoundPhase.MapVote : ERoundPhase.Cleanup;
 			}
 			@Override
 			public void onPlayerJoined(@Nonnull ServerPlayer player)
@@ -197,9 +198,10 @@ public class TeamsManager implements
 	}
 	private void createMapVotingPhase()
 	{
-		final int durationTicks = (int)Math.floor(TeamsModConfig.mapVotePhaseDuration.get() * 20d);
 
 		phaseImpl.put(ERoundPhase.MapVote, new Phase(){
+			private int durationTicks() { return (int)Math.floor(TeamsModConfig.mapVotePhaseDuration.get() * 20d); }
+
 			@Override
 			public void enter()
 			{
@@ -209,7 +211,7 @@ public class TeamsManager implements
 			@Override
 			public void tick()
 			{
-				if(ticksInCurrentPhase >= durationTicks)
+				if(ticksInCurrentPhase >= durationTicks())
 					targetPhase = ERoundPhase.Cleanup;
 			}
 			@Override
@@ -231,13 +233,13 @@ public class TeamsManager implements
 	}
 	private void createCleanupPhase()
 	{
-		final int timeoutTicks = (int)Math.floor(TeamsModConfig.cleanupPhaseTimeout.get() * 20d);
-
 		phaseImpl.put(ERoundPhase.Cleanup, new Phase(){
+			private int timeoutTicks() { return (int)Math.floor(TeamsModConfig.cleanupPhaseTimeout.get() * 20d); }
+
 			@Override
 			public void tick()
 			{
-				if(ticksInCurrentPhase >= timeoutTicks)
+				if(ticksInCurrentPhase >= timeoutTicks())
 				{
 					TeamsMod.LOGGER.error("Cleanup phase timed out!");
 					targetPhase = ERoundPhase.Inactive;

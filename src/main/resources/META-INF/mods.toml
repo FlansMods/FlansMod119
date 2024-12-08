@@ -61,6 +61,17 @@ license="All rights reserved"
         '''
 
 [[mods]] #mandatory
+    modId="flansteams"
+    version="${file.jarVersion}"
+    displayName="Flan's Teams Mod"
+    logoFile="flansmod.png"
+    credits="jamioflan"
+    authors="jamioflan"
+    description='''
+            Teams Mod
+            '''
+
+[[mods]] #mandatory
     modId="flansmodernweapons"
     version="${file.jarVersion}"
     displayName="Flan's Modern Weapons Pack"
