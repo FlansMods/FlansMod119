@@ -1,9 +1,9 @@
 package com.flansmod.teams.server;
 
-import com.flansmod.teams.api.IControlPoint;
-import com.flansmod.teams.api.IMapInstance;
-import com.flansmod.teams.api.ISpawnPoint;
-import com.flansmod.teams.api.MapInfo;
+import com.flansmod.teams.api.admin.IControlPointRef;
+import com.flansmod.teams.api.runtime.IMapInstance;
+import com.flansmod.teams.api.admin.ISpawnPoint;
+import com.flansmod.teams.api.admin.MapInfo;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -18,7 +18,7 @@ public class SingleDimensionMapInstance implements IMapInstance
 	private final ResourceKey<Level> dimension;
 	private final List<ChunkPos> chunks = new ArrayList<>();
 	private final List<ISpawnPoint> spawnPoints = new ArrayList<>();
-	private final List<IControlPoint> controlPoints = new ArrayList<>();
+	private final List<IControlPointRef> controlPoints = new ArrayList<>();
 
 	public SingleDimensionMapInstance(@Nonnull MapInfo mapDef,
 									  @Nonnull ResourceKey<Level> dim)
@@ -42,5 +42,5 @@ public class SingleDimensionMapInstance implements IMapInstance
 	@Override @Nonnull
 	public List<ISpawnPoint> getSpawnPoints() { return spawnPoints; }
 	@Override @Nonnull
-	public List<IControlPoint> getControlPoints() { return controlPoints; }
+	public List<IControlPointRef> getControlPoints() { return controlPoints; }
 }

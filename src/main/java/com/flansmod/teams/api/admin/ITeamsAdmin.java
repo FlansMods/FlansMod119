@@ -1,10 +1,11 @@
-package com.flansmod.teams.api;
+package com.flansmod.teams.api.admin;
+
+import com.flansmod.teams.api.OpResult;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 public interface ITeamsAdmin
 {
@@ -13,7 +14,8 @@ public interface ITeamsAdmin
 	@Nonnull ISettings getDefaultSettings();
 
 	@Nonnull Collection<RoundInfo> getMapRotation();
-	@Nonnull OpResult createNewSettings(@Nonnull String settingsName);
+	@Nonnull
+	OpResult createNewSettings(@Nonnull String settingsName);
 	@Nullable MapInfo getMapData(@Nonnull String mapName);
 	default boolean hasMap(@Nonnull String mapName) { return getMapData(mapName) != null; }
 	@Nullable GamemodeInfo getGamemode(@Nonnull String gamemode);

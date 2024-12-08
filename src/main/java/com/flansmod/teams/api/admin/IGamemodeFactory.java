@@ -1,4 +1,7 @@
-package com.flansmod.teams.api;
+package com.flansmod.teams.api.admin;
+
+import com.flansmod.teams.api.runtime.IGamemodeInstance;
+import com.flansmod.teams.api.runtime.IRoundInstance;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

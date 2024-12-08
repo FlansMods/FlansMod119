@@ -1,6 +1,6 @@
 package com.flansmod.teams.common.network.toclient;
 
-import com.flansmod.teams.api.MapInfo;
+import com.flansmod.teams.api.admin.MapInfo;
 import com.flansmod.teams.common.info.MapVotingOption;
 import com.flansmod.teams.common.network.TeamsModMessage;
 import net.minecraft.network.FriendlyByteBuf;

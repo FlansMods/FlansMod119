@@ -1,6 +1,8 @@
 package com.flansmod.teams.server;
 
 import com.flansmod.teams.api.*;
+import com.flansmod.teams.api.admin.*;
+import com.flansmod.teams.api.runtime.*;
 import com.flansmod.teams.common.TeamsMod;
 import com.flansmod.teams.common.TeamsModConfig;
 import com.flansmod.teams.common.dimension.DimensionInstancingManager;
@@ -12,19 +14,17 @@ import com.flansmod.teams.common.network.toserver.PlaceVoteMessage;
 import com.flansmod.teams.common.network.toserver.SelectTeamMessage;
 import com.flansmod.teams.common.network.TeamsModPacketHandler;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
 public class TeamsManager implements
-		ITeamsAdmin,
-		ITeamsRuntime
+	ITeamsAdmin,
+	ITeamsRuntime
 {
 	private static class Phase
 	{
@@ -43,7 +43,8 @@ public class TeamsManager implements
 
 	private boolean isRotationEnabled = false;
 	private final List<RoundInfo> mapRotation = new ArrayList<>();
-	private DimensionInstancingManager instanceManager;
+	private final DimensionInstancingManager instanceManager;
+	private final DimensionInstancingManager constructManager;
 	private int reservedInstanceID = DimensionInstancingManager.INVALID_INSTANCE;
 
 	private RoundInfo currentRound = RoundInfo.invalid;
@@ -55,6 +56,11 @@ public class TeamsManager implements
 	private int ticksInCurrentPhase = 0;
 	private RoundInstance currentRoundInstance;
 
+	@Nonnull
+	public DimensionInstancingManager getInstances() { return instanceManager; }
+	@Nonnull
+	public DimensionInstancingManager getConstructs() { return constructManager; }
+
 	public TeamsManager()
 	{
 		defaultMapSettings = new Settings();
@@ -62,6 +68,8 @@ public class TeamsManager implements
 		instanceManager = new DimensionInstancingManager(List.of(
 			TeamsDimensions.TEAMS_INSTANCE_A_LEVEL,
 			TeamsDimensions.TEAMS_INSTANCE_B_LEVEL));
+		constructManager = new DimensionInstancingManager(List.of(
+			TeamsDimensions.TEAMS_CONSTRUCT_LEVEL));
 
 		// TODO: Scan for teams_maps/<map_name>.dat
 		// Then load teams_maps/<map_name>/region/...
@@ -118,6 +126,9 @@ public class TeamsManager implements
 			@Override
 			public void tick()
 			{
+				if(targetPhase == ERoundPhase.Inactive)
+					return;
+
 				if(ticksInCurrentPhase >= timeoutTicks())
 				{
 					TeamsMod.LOGGER.error("Preparing phase timed out!");
@@ -265,7 +276,26 @@ public class TeamsManager implements
 			getPhaseImpl(targetPhase).enter();
 		}
 	}
-
+	@Override @Nonnull
+	public OpResult start()
+	{
+		if(currentPhase == ERoundPhase.Inactive)
+		{
+			targetPhase = ERoundPhase.Preparing;
+			return OpResult.SUCCESS;
+		}
+		return OpResult.FAILURE_GENERIC;
+	}
+	@Override @Nonnull
+	public OpResult stop()
+	{
+		if(currentPhase != ERoundPhase.Inactive)
+		{
+			targetPhase = ERoundPhase.Inactive;
+			return OpResult.SUCCESS;
+		}
+		return OpResult.FAILURE_GENERIC;
+	}
 	@Nonnull
 	public OpResult prepareNewRound()
 	{
@@ -487,7 +517,11 @@ public class TeamsManager implements
 
 		return OpResult.SUCCESS;
 	}
-
+	@Override @Nonnull
+	public List<String> getDimensionInfo()
+	{
+		return instanceManager.getInfo();
+	}
 
 	public void onPlayerLogin(@Nonnull ServerPlayer player)
 	{
@@ -545,6 +579,7 @@ public class TeamsManager implements
 
 		return currentRoundInstance.getTeams().get(0);
 	}
+
 
 	public void receiveSelectTeamMessage(@Nonnull SelectTeamMessage msg, @Nonnull ServerPlayer from)
 	{

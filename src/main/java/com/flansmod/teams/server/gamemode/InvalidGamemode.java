@@ -1,6 +1,10 @@
 package com.flansmod.teams.server.gamemode;
 
-import com.flansmod.teams.api.*;
+import com.flansmod.teams.api.admin.GamemodeInfo;
+import com.flansmod.teams.api.admin.ISettings;
+import com.flansmod.teams.api.admin.ISpawnPoint;
+import com.flansmod.teams.api.runtime.IMapInstance;
+import com.flansmod.teams.api.runtime.IRoundInstance;
 import net.minecraft.world.entity.player.Player;
 
 import javax.annotation.Nonnull;

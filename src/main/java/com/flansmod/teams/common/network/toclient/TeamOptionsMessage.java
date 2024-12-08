@@ -1,6 +1,6 @@
 package com.flansmod.teams.common.network.toclient;
 
-import com.flansmod.teams.api.TeamInfo;
+import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.common.network.TeamsModMessage;
 import net.minecraft.network.FriendlyByteBuf;
 

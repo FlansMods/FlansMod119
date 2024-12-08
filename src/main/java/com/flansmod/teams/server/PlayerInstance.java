@@ -1,6 +1,6 @@
 package com.flansmod.teams.server;
 
-import com.flansmod.teams.api.IPlayerInstance;
+import com.flansmod.teams.api.runtime.IPlayerInstance;
 import com.flansmod.teams.api.OpResult;
 
 import javax.annotation.Nonnull;

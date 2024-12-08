@@ -1,10 +1,9 @@
 package com.flansmod.teams.server;
 
-import com.flansmod.teams.api.IGamemodeInstance;
-import com.flansmod.teams.api.ITeamsRuntime;
+import com.flansmod.teams.api.runtime.IGamemodeInstance;
+import com.flansmod.teams.api.runtime.ITeamsRuntime;
 import com.flansmod.teams.api.TeamsAPI;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;

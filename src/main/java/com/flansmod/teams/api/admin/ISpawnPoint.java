@@ -1,4 +1,4 @@
-package com.flansmod.teams.api;
+package com.flansmod.teams.api.admin;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;

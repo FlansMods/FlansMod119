@@ -1,7 +1,7 @@
 package com.flansmod.teams.server;
 
 import com.flansmod.teams.api.OpResult;
-import com.flansmod.teams.api.ISettings;
+import com.flansmod.teams.api.admin.ISettings;
 
 import javax.annotation.Nonnull;
 import java.util.HashMap;

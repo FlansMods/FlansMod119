@@ -1,11 +1,10 @@
 package com.flansmod.teams.client.gui;
 
-import com.flansmod.teams.api.TeamInfo;
+import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.client.TeamsModClient;
 import com.flansmod.teams.common.TeamsMod;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 

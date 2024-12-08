@@ -1,6 +1,9 @@
 package com.flansmod.teams.server.command;
 
 import com.flansmod.teams.api.*;
+import com.flansmod.teams.api.admin.ITeamsAdmin;
+import com.flansmod.teams.api.admin.RoundInfo;
+import com.flansmod.teams.api.runtime.ITeamsRuntime;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -23,6 +26,9 @@ public class CommandTeams
 		dispatch.register(
 			Commands.literal("teams")
 				.requires((player) -> player.hasPermission(2))
+				.then(Commands.literal("start").executes(ctx -> start(ctx.getSource())))
+				.then(Commands.literal("stop").executes(ctx -> stop(ctx.getSource())))
+				.then(Commands.literal("getState").executes(ctx -> getCurrentState(ctx.getSource())))
 				.then(Commands.literal("nextMap").executes(ctx -> goToNextMap(ctx.getSource())))
 				//.then(Commands.literal("setNextRound")
 				//	.then(Commands.argument("index", IntegerArgumentType.integer()))
@@ -52,14 +58,23 @@ public class CommandTeams
 													StringArgumentType.getString(ctx, "gamemode"),
 													StringArgumentType.getString(ctx, "team1"),
 													StringArgumentType.getString(ctx, "team2"),
-													IntegerArgumentType.getInteger(ctx, "atPosition"))))
-					)
-					.then(Commands.literal("remove")
-						.then(Commands.argument("index", IntegerArgumentType.integer())
-							.executes(ctx -> removeMapFromRotation(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "index"))))
+													IntegerArgumentType.getInteger(ctx, "atPosition")
+													)
+												)
+											)
+						)
+						.then(Commands.literal("remove")
+							.then(Commands.argument("index", IntegerArgumentType.integer())
+								.executes(ctx -> removeMapFromRotation(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "index")))
+							)
+						)
 					)
 				)
-			)
+				.then(Commands.literal("instances")
+					.then(Commands.literal("list")
+						.executes(ctx -> listInstances(ctx.getSource()))
+					)
+				)
 				//.then(Commands.literal("settings")
 				//	.then(Commands.argument("settingsName", StringArgumentType.word())
 				//		.then())
@@ -70,9 +85,21 @@ public class CommandTeams
 				//		)
 				//	)
 				//)
-		);
+			);
 	}
 
+	private static int start(@Nonnull CommandSourceStack source)
+	{
+		return runtimeFunc(source, ITeamsRuntime::start,
+			() -> Component.translatable("teams.command.start.success"),
+			(errorType) -> Component.translatable("teams.command.start.failure"));
+	}
+	private static int stop(@Nonnull CommandSourceStack source)
+	{
+		return runtimeFunc(source, ITeamsRuntime::stop,
+			() -> Component.translatable("teams.command.stop.success"),
+			(errorType) -> Component.translatable("teams.command.stop.failure"));
+	}
 	private static int enableRotation(@Nonnull CommandSourceStack source)
 	{
 		return adminFunc(source, ITeamsAdmin::enableMapRotation,
@@ -125,7 +152,15 @@ public class CommandTeams
 					default -> Component.translatable("teams.command.rotation_remove_map.failure", index);
 				});
 	}
-
+	private static int listInstances(@Nonnull CommandSourceStack source)
+	{
+		return runtimeFunc(source, (src, runtime) -> {
+			for(String info : runtime.getDimensionInfo())
+			{
+				src.sendSuccess(() -> Component.literal(info), true);
+			}
+		});
+	}
 	private static int getCurrentMap(@Nonnull CommandSourceStack source)
 	{
 		return runtimeGetFunc(source,
@@ -153,6 +188,15 @@ public class CommandTeams
 		return runtimeFunc(source, ITeamsRuntime::goToNextRound,
 					() -> Component.translatable("teams.command.go_to_next_map.success"),
 					(errorType) -> Component.translatable("teams.command.go_to_next_map.failure"));
+	}
+	private static int getCurrentState(@Nonnull CommandSourceStack source)
+	{
+		return runtimeFunc(source, (src, runtime) -> {
+			source.sendSuccess(() -> Component.literal(
+				runtime.getCurrentGamemodeInfo().gamemodeID() + ": "
+					+ runtime.getCurrentMapInfo().mapName() + " - "
+					+ runtime.getCurrentPhase()), true);
+		});
 	}
 	//private static int setSetting(@Nonnull CommandSourceStack source, @Nonnull String settingsName, @Nonnull String parameterName, @Nonnull String parameterValue)
 	//{

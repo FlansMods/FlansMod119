@@ -1,0 +1,159 @@
+package com.flansmod.teams.server.command;
+
+import com.flansmod.teams.api.admin.MapInfo;
+import com.flansmod.teams.api.OpResult;
+import com.flansmod.teams.common.TeamsMod;
+import com.flansmod.teams.common.dimension.DimensionInstancingManager;
+import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.DimensionArgument;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
+
+import javax.annotation.Nonnull;
+
+public class CommandConstruct
+{
+	public static void register(@Nonnull CommandDispatcher<CommandSourceStack> dispatch,
+								@Nonnull CommandBuildContext context)
+	{
+		dispatch.register(
+			Commands.literal("construct")
+				.requires(player -> player.hasPermission(2))
+				.then(Commands.literal("list").executes(CommandConstruct::listInstances))
+				.then(Commands.literal("enter").executes(CommandConstruct::enterConstruct)
+					.then(Commands.argument("index", IntegerArgumentType.integer(0))
+						.executes(CommandConstruct::enterConstruct)
+						.then(Commands.argument("x", DoubleArgumentType.doubleArg())
+							.then(Commands.argument("y", DoubleArgumentType.doubleArg())
+								.then(Commands.argument("z", DoubleArgumentType.doubleArg())
+									.executes(CommandConstruct::enterConstruct)
+								)
+							)
+						)
+					)
+				)
+				.then(Commands.literal("load")
+					.then(Commands.argument("mapName", StringArgumentType.word())
+						.executes(CommandConstruct::loadMapIntoConstruct)
+					)
+				)
+				.then(Commands.literal("clone")
+					.then(Commands.argument("mapName", StringArgumentType.word())
+						.then(Commands.argument("min", BlockPosArgument.blockPos())
+							.then(Commands.argument("max", BlockPosArgument.blockPos())
+								.executes(CommandConstruct::cloneAreaIntoConstruct)
+							)
+						)
+						.then(Commands.argument("chunkRadius", IntegerArgumentType.integer(0))
+							.executes(CommandConstruct::cloneAreaIntoConstruct)
+						)
+					)
+				)
+				.then(Commands.literal("create")
+					.then(Commands.argument("dimension", DimensionArgument.dimension()))
+				)
+			);
+	}
+
+	private static int listInstances(@Nonnull CommandContext<CommandSourceStack> context)
+	{
+		DimensionInstancingManager dimManager = TeamsMod.MANAGER.getConstructs();
+		for(String info : dimManager.getInfo())
+		{
+			context.getSource().sendSuccess(() -> Component.literal(info), true);
+		}
+		return -1;
+	}
+	private static int enterConstruct(@Nonnull CommandContext<CommandSourceStack> context)
+	{
+		DimensionInstancingManager dimManager = TeamsMod.MANAGER.getConstructs();
+		if(context.getSource().isPlayer())
+		{
+			int constructIndex = tryGetInt(context, "index", 0);
+			double x = tryGetDouble(context, "x", 0d);
+			double y = tryGetDouble(context, "y", 0d);
+			double z = tryGetDouble(context, "z", 0d);
+			ServerPlayer player = context.getSource().getPlayer();
+			if(player != null)
+			{
+				dimManager.enterInstance(context.getSource().getPlayer(), constructIndex, x, y, z);
+			}
+		}
+
+		return -1;
+	}
+	private static int cloneAreaIntoConstruct(@Nonnull CommandContext<CommandSourceStack> context)
+	{
+		DimensionInstancingManager dimManager = TeamsMod.MANAGER.getConstructs();
+		String mapName = StringArgumentType.getString(context, "mapName");
+
+		ResourceKey<Level> sourceDimension =  context.getSource().getEntity() != null ? context.getSource().getEntity().level().dimension() : Level.OVERWORLD;
+		BlockPos defaultPos = context.getSource().getEntity() != null ? context.getSource().getEntity().blockPosition() : BlockPos.ZERO;
+		BlockPos min = tryGetBlockPos(context, "min", defaultPos);
+		BlockPos max = tryGetBlockPos(context, "max", defaultPos);
+		int chunkRadius = tryGetInt(context, "chunkRadius", -1);
+
+		MapInfo existingMap = TeamsMod.MANAGER.getMapData(mapName);
+		if(existingMap != null)
+		{
+			context.getSource().sendFailure(Component.translatable("teams.construct.clone.conflict", mapName));
+			return -1;
+		}
+
+		OpResult createMapResult = TeamsMod.MANAGER.createMap(mapName);
+		if(createMapResult.failure())
+		{
+			context.getSource().sendFailure(Component.translatable("teams.construct.clone.create_fail", mapName));
+			return -1;
+		}
+
+		ChunkPos minChunk = new ChunkPos(min);
+		ChunkPos maxChunk = new ChunkPos(max);
+		if(chunkRadius != -1)
+		{
+			ChunkPos centerChunk = new ChunkPos(defaultPos);
+			minChunk = new ChunkPos(centerChunk.x - chunkRadius, centerChunk.z - chunkRadius);
+			maxChunk = new ChunkPos(centerChunk.x + chunkRadius, centerChunk.z + chunkRadius);
+		}
+
+		dimManager.beginSaveChunksToLevel(sourceDimension, minChunk, maxChunk, mapName);
+
+		return -1;
+	}
+	private static int loadMapIntoConstruct(@Nonnull CommandContext<CommandSourceStack> context)
+	{
+		DimensionInstancingManager dimManager = TeamsMod.MANAGER.getConstructs();
+		int constructIndex = tryGetInt(context, "index", 0);
+		String mapName = StringArgumentType.getString(context, "mapName");
+		dimManager.beginLoadLevel(constructIndex, mapName);
+		return -1;
+	}
+	private static int tryGetInt(@Nonnull CommandContext<CommandSourceStack> ctx, @Nonnull String name, int defaultValue)
+	{
+		try { return IntegerArgumentType.getInteger(ctx, name); }
+		catch(Exception ignored) { return defaultValue; }
+	}
+	private static double tryGetDouble(@Nonnull CommandContext<CommandSourceStack> ctx, @Nonnull String name, double defaultValue)
+	{
+		try { return DoubleArgumentType.getDouble(ctx, name); }
+		catch(Exception ignored) { return defaultValue; }
+	}
+	@Nonnull
+	private static BlockPos tryGetBlockPos(@Nonnull CommandContext<CommandSourceStack> ctx, @Nonnull String name, @Nonnull BlockPos defaultValue)
+	{
+		try { return BlockPosArgument.getBlockPos(ctx, name); }
+		catch(Exception ignored) { return defaultValue; }
+	}
+}

@@ -1,6 +1,4 @@
-package com.flansmod.teams.api;
-
-import net.minecraft.resources.ResourceLocation;
+package com.flansmod.teams.api.admin;
 
 import javax.annotation.Nonnull;
 

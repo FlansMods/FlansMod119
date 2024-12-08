@@ -1,4 +1,6 @@
-package com.flansmod.teams.api;
+package com.flansmod.teams.api.runtime;
+
+import com.flansmod.teams.api.OpResult;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
@@ -18,7 +20,8 @@ public interface IPlayerInstance
 	int getScore(@Nonnull String scoreType);
 	boolean isBuilder();
 
-	@Nonnull OpResult setVote(int index);
+	@Nonnull
+	OpResult setVote(int index);
 	@Nonnull OpResult resetScore(@Nonnull String scoreType);
 	@Nonnull OpResult resetAllScores();
 	@Nonnull OpResult addScore(@Nonnull String scoreType, int add);

@@ -1,6 +1,6 @@
 package com.flansmod.teams.common.info;
 
-import com.flansmod.teams.api.MapInfo;
+import com.flansmod.teams.api.admin.MapInfo;
 
 import javax.annotation.Nonnull;
 import java.util.List;

@@ -1,5 +1,7 @@
-package com.flansmod.teams.api;
+package com.flansmod.teams.api.runtime;
 
+import com.flansmod.teams.api.admin.ISettings;
+import com.flansmod.teams.api.admin.ISpawnPoint;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -18,7 +20,8 @@ public interface IGamemodeInstance
 	@Nullable default ITeamInstance getBestTeamFor(@Nonnull Player player) { return null; }
 
 
-	@Nonnull ISpawnPoint getSpawnPoint(@Nonnull IMapInstance map, @Nonnull Player forPlayer);
+	@Nonnull
+	ISpawnPoint getSpawnPoint(@Nonnull IMapInstance map, @Nonnull Player forPlayer);
 
 	// Events
 	default void playerKilled(@Nonnull ServerPlayer killed, @Nonnull DamageSource damage) {}

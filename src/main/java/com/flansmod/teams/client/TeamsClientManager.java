@@ -1,9 +1,9 @@
 package com.flansmod.teams.client;
 
 import com.flansmod.teams.api.ERoundPhase;
-import com.flansmod.teams.api.GamemodeInfo;
-import com.flansmod.teams.api.MapInfo;
-import com.flansmod.teams.api.TeamInfo;
+import com.flansmod.teams.api.admin.GamemodeInfo;
+import com.flansmod.teams.api.admin.MapInfo;
+import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.client.gamemode.IClientGamemode;
 import com.flansmod.teams.client.gui.ChooseLoadoutScreen;
 import com.flansmod.teams.client.gui.ChooseTeamScreen;

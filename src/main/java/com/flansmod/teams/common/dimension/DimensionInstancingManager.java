@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.storage.LevelResource;
@@ -54,6 +55,17 @@ public class DimensionInstancingManager
 
 		return numFree;
 	}
+	@Nonnull
+	public List<String> getInfo()
+	{
+		List<String> list = new ArrayList<>(getNumInstances());
+		for(int i = 0; i < instances.size(); i++)
+		{
+			Instance instance = instances.get(i);
+			list.add("["+i+"]: "+instance.dimension.location()+", "+(instance.inUse ? "ACTIVE":"INACTIVE"));
+		}
+		return list;
+	}
 
 	public int reserveInstance()
 	{
@@ -76,11 +88,8 @@ public class DimensionInstancingManager
 		if (!instance.inUse)
 			return false;
 
-
 		// TODO: Find lobby spawn point
 		kickAllPlayersFrom(instance.dimension, TeamsDimensions.TEAMS_LOBBY_LEVEL, BlockPos.ZERO);
-
-		//Files.copy()
 
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 		instance.runningTask = server.submit(() -> runLevelCopy(instance, levelID));
@@ -97,6 +106,12 @@ public class DimensionInstancingManager
 
 		return instance.runningTask.isDone();
 	}
+	public boolean beginSaveChunksToLevel(@Nonnull ResourceKey<Level> srcDimension, @Nonnull ChunkPos min, @Nonnull ChunkPos max, @Nonnull String levelName)
+	{
+		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+		server.submit(() -> runChunkCopy(srcDimension, min, max, levelName));
+		return true;
+	}
 
 	private void kickAllPlayersFrom(@Nonnull ResourceKey<Level> dimension, @Nonnull ResourceKey<Level> fallbackDimension, @Nonnull BlockPos fallbackPos)
 	{
@@ -112,6 +127,14 @@ public class DimensionInstancingManager
 			}
 		}
 	}
+
+	private boolean runChunkCopy(@Nonnull ResourceKey<Level> srcDimension, @Nonnull ChunkPos min, @Nonnull ChunkPos max, @Nonnull String levelID)
+	{
+
+
+		return true;
+	}
+
 	private boolean runLevelCopy(@Nonnull Instance instance, @Nonnull String levelID)
 	{
 		try
@@ -154,6 +177,23 @@ public class DimensionInstancingManager
 		{
 			TeamsMod.LOGGER.error(e.toString());
 		}
+		return false;
+	}
+
+	public boolean enterInstance(@Nonnull ServerPlayer player, int instanceID, double x, double y, double z)
+	{
+		if(instanceID < 0 || instanceID >= instances.size())
+			return false;
+
+		Instance instance = instances.get(instanceID);
+		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+		ServerLevel level = server.getLevel(instance.dimension);
+		if(level != null)
+		{
+			player.teleportTo(level, x, y, z, 0f, 0f);
+			return true;
+		}
+
 		return false;
 	}
 }

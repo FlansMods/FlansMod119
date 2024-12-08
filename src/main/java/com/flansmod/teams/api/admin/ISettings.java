@@ -1,4 +1,6 @@
-package com.flansmod.teams.api;
+package com.flansmod.teams.api.admin;
+
+import com.flansmod.teams.api.OpResult;
 
 import javax.annotation.Nonnull;
 

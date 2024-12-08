@@ -1,5 +1,7 @@
-package com.flansmod.teams.api;
+package com.flansmod.teams.api.runtime;
 
+import com.flansmod.teams.api.OpResult;
+import com.flansmod.teams.api.admin.RoundInfo;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
@@ -12,10 +14,12 @@ import java.util.UUID;
 
 public interface IRoundInstance
 {
-	@Nonnull RoundInfo getDef();
+	@Nonnull
+	RoundInfo getDef();
 
 	@Nonnull List<ITeamInstance> getTeams();
-	@Nonnull OpResult assignTeams(@Nonnull List<ITeamInstance> teams);
+	@Nonnull
+	OpResult assignTeams(@Nonnull List<ITeamInstance> teams);
 
 	@Nullable IGamemodeInstance getGamemode();
 	@Nonnull OpResult assignGamemode(@Nonnull IGamemodeInstance gamemode);

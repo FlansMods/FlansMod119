@@ -1,6 +1,6 @@
 package com.flansmod.teams.server;
 
-import com.flansmod.teams.api.ISpawnPoint;
+import com.flansmod.teams.api.admin.ISpawnPoint;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;

@@ -1,10 +1,11 @@
 package com.flansmod.teams.api;
 
+import com.flansmod.teams.api.admin.ITeamsAdmin;
+import com.flansmod.teams.api.runtime.ITeamsRuntime;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.function.Function;
 
 public class TeamsAPI
 {

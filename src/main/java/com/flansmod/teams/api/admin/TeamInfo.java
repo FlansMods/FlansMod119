@@ -1,4 +1,4 @@
-package com.flansmod.teams.api;
+package com.flansmod.teams.api.admin;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;

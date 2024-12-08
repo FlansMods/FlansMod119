@@ -1,5 +1,7 @@
-package com.flansmod.teams.api;
+package com.flansmod.teams.api.runtime;
 
+import com.flansmod.teams.api.OpResult;
+import com.flansmod.teams.api.admin.TeamInfo;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 
@@ -10,10 +12,12 @@ import java.util.UUID;
 
 public interface ITeamInstance
 {
-	@Nonnull TeamInfo getDefinition();
+	@Nonnull
+	TeamInfo getDefinition();
 
 	int getScore(@Nonnull String scoreType);
-	@Nonnull OpResult resetScore(@Nonnull String scoreType);
+	@Nonnull
+	OpResult resetScore(@Nonnull String scoreType);
 	@Nonnull OpResult resetAllScores();
 	@Nonnull OpResult addScore(@Nonnull String scoreType, int add);
 	default int getKills() { return getScore(IPlayerInstance.SCORE_TYPE_KILLS); }
