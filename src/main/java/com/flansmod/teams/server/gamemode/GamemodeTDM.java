@@ -1,9 +1,9 @@
 package com.flansmod.teams.server.gamemode;
 
-import com.flansmod.teams.api.IMapInstance;
-import com.flansmod.teams.api.IRoundInstance;
-import com.flansmod.teams.api.ISettings;
-import com.flansmod.teams.api.ISpawnPoint;
+import com.flansmod.teams.api.runtime.IMapInstance;
+import com.flansmod.teams.api.runtime.IRoundInstance;
+import com.flansmod.teams.api.admin.ISettings;
+import com.flansmod.teams.api.admin.ISpawnPoint;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;

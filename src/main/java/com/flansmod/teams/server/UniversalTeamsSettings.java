@@ -1,6 +1,6 @@
 package com.flansmod.teams.server;
 
-import com.flansmod.teams.api.ITeamsAdmin;
+import com.flansmod.teams.api.admin.ITeamsAdmin;
 import com.flansmod.teams.api.TeamsAPI;
 
 public class UniversalTeamsSettings

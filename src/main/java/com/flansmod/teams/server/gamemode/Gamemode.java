@@ -1,6 +1,13 @@
 package com.flansmod.teams.server.gamemode;
 
-import com.flansmod.teams.api.*;
+import com.flansmod.teams.api.admin.GamemodeInfo;
+import com.flansmod.teams.api.admin.IGamemodeFactory;
+import com.flansmod.teams.api.admin.RoundInfo;
+import com.flansmod.teams.api.admin.TeamInfo;
+import com.flansmod.teams.api.runtime.IGamemodeInstance;
+import com.flansmod.teams.api.runtime.IPlayerInstance;
+import com.flansmod.teams.api.runtime.IRoundInstance;
+import com.flansmod.teams.api.runtime.ITeamInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;

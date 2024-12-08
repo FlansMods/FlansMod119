@@ -1,8 +1,8 @@
 package com.flansmod.teams.server;
 
-import com.flansmod.teams.api.ITeamInstance;
+import com.flansmod.teams.api.runtime.ITeamInstance;
 import com.flansmod.teams.api.OpResult;
-import com.flansmod.teams.api.TeamInfo;
+import com.flansmod.teams.api.admin.TeamInfo;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 

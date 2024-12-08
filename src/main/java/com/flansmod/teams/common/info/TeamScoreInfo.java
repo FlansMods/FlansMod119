@@ -1,6 +1,6 @@
 package com.flansmod.teams.common.info;
 
-import com.flansmod.teams.api.TeamInfo;
+import com.flansmod.teams.api.admin.TeamInfo;
 
 import java.util.ArrayList;
 import java.util.List;
