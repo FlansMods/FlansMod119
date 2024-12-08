@@ -6,6 +6,7 @@ import com.flansmod.teams.api.TeamsAPI;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
@@ -26,14 +27,22 @@ public class ServerEventHooks
 	}
 
 	@SubscribeEvent
+	public void onServerTick(@Nonnull TickEvent.ServerTickEvent event)
+	{
+		manager.serverTick();
+	}
+
+	@SubscribeEvent
 	public void onPlayerLogin(@Nonnull PlayerEvent.PlayerLoggedInEvent event)
 	{
-		manager.autoAssignPlayer(event.getEntity());
+		if(event.getEntity() instanceof ServerPlayer serverPlayer)
+			manager.onPlayerLogin(serverPlayer);
 	}
 	@SubscribeEvent
 	public void onPlayerLogout(@Nonnull PlayerEvent.PlayerLoggedOutEvent event)
 	{
-		manager.removePlayer(event.getEntity());
+		if(event.getEntity() instanceof ServerPlayer serverPlayer)
+			manager.removePlayer(serverPlayer);
 	}
 
 	@SubscribeEvent

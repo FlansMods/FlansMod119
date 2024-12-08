@@ -18,6 +18,7 @@ public interface IGamemodeInstance
 	@Nullable default ITeamInstance getBestTeamFor(@Nonnull Player player) { return null; }
 
 
+	@Nonnull ISpawnPoint getSpawnPoint(@Nonnull IMapInstance map, @Nonnull Player forPlayer);
 
 	// Events
 	default void playerKilled(@Nonnull ServerPlayer killed, @Nonnull DamageSource damage) {}

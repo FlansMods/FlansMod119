@@ -8,22 +8,21 @@ import javax.annotation.Nonnull;
 
 public class SelectTeamMessage extends TeamsModMessage
 {
-	private TeamInfo selection;
-	@Nonnull
-	public TeamInfo getSelection() { return selection; }
+	private int selection;
+	public int getSelection() { return selection; }
 
-	public SelectTeamMessage() { selection = TeamInfo.invalid; }
-	public SelectTeamMessage(@Nonnull TeamInfo teamInfo) { selection = teamInfo; }
+	public SelectTeamMessage() { selection = 0; }
+	public SelectTeamMessage(int teamIndex) { selection = teamIndex; }
 
 	@Override
 	public void encode(FriendlyByteBuf buf)
 	{
-		buf.writeResourceLocation(selection.teamID());
+		buf.writeInt(selection);
 	}
 
 	@Override
 	public void decode(FriendlyByteBuf buf)
 	{
-		selection = new TeamInfo(buf.readResourceLocation());
+		selection = buf.readInt();
 	}
 }

@@ -12,20 +12,24 @@ import java.util.List;
 public class MapVotingOptionsMessage extends TeamsModMessage
 {
 	public List<MapVotingOption> votingOptions;
+	public boolean andOpenGUI;
+
 
 	public MapVotingOptionsMessage() { votingOptions = new ArrayList<>(); }
-	public MapVotingOptionsMessage(@Nonnull List<MapVotingOption> list)
+	public MapVotingOptionsMessage(@Nonnull List<MapVotingOption> list, boolean andOpen)
 	{
 		votingOptions = list;
+		andOpenGUI = andOpen;
 	}
 
 	@Override
 	public void encode(FriendlyByteBuf buf)
 	{
+		buf.writeBoolean(andOpenGUI);
 		buf.writeByte(votingOptions.size());
 		for(int i = 0; i < votingOptions.size(); i++)
 		{
-			buf.writeUtf(votingOptions.get(i).mapInfo.mapName());
+			buf.writeUtf(votingOptions.get(i).mapID);
 			buf.writeByte(votingOptions.get(i).numVotes);
 		}
 	}
@@ -33,6 +37,7 @@ public class MapVotingOptionsMessage extends TeamsModMessage
 	@Override
 	public void decode(FriendlyByteBuf buf)
 	{
+		andOpenGUI = buf.readBoolean();
 		int numOptions = buf.readByte();
 		for(int i = 0; i < numOptions; i++)
 		{

@@ -10,6 +10,8 @@ public class TeamsModConfig
 
 	public static ForgeConfigSpec.DoubleValue preparingPhaseTimeout;
 
+	public static ForgeConfigSpec.BooleanValue useDimensionInstancing;
+
 
 	public static ForgeConfigSpec.DoubleValue gameplayPhaseDurationMultiplier;
 
@@ -37,6 +39,7 @@ public class TeamsModConfig
 	{
 		builder.push("Round Preparation Settings");
 		preparingPhaseTimeout = builder.defineInRange("preparing_timeout", 60d, 1d, 360d);
+		useDimensionInstancing = builder.define("dimension_instancing", true);
 		builder.pop();
 
 

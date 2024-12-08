@@ -8,9 +8,16 @@ import com.flansmod.teams.server.UniversalTeamsSettings;
 import com.flansmod.teams.server.gamemode.Gamemode;
 import com.flansmod.teams.server.gamemode.GamemodeTDM;
 import com.mojang.logging.LogUtils;
+import net.minecraft.world.inventory.MenuType;
+import net.minecraftforge.common.extensions.IForgeMenuType;
+import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.config.ModConfig;
+import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
 @Mod(TeamsMod.MODID)
@@ -21,6 +28,8 @@ public class TeamsMod
 
 	private final TeamsManager MANAGER;
 	private final ServerEventHooks EVENTS;
+	public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
+	//public static final RegistryObject<MenuType<ChooseTeamMenu>> MENU_CHOOSE_TEAM = MENUS.register("choose_team", () -> IForgeMenuType.create(ChooseTeamMenu::new));
 
 	public static final GamemodeInfo TDM = Gamemode.createInfo("TDM", 2,GamemodeTDM::new);
 
@@ -34,5 +43,8 @@ public class TeamsMod
 		EVENTS = new ServerEventHooks(MANAGER);
 
 		MANAGER.registerGamemode(TDM);
+
+		IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+		MENUS.register(modEventBus);
 	}
 }

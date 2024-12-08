@@ -3,14 +3,20 @@ package com.flansmod.teams.server;
 import com.flansmod.teams.api.*;
 import com.flansmod.teams.common.TeamsMod;
 import com.flansmod.teams.common.TeamsModConfig;
+import com.flansmod.teams.common.dimension.DimensionInstancingManager;
+import com.flansmod.teams.common.dimension.TeamsDimensions;
 import com.flansmod.teams.common.network.toclient.DisplayScoresMessage;
 import com.flansmod.teams.common.network.toclient.MapVotingOptionsMessage;
+import com.flansmod.teams.common.network.toclient.PhaseUpdateMessage;
 import com.flansmod.teams.common.network.toserver.PlaceVoteMessage;
 import com.flansmod.teams.common.network.toserver.SelectTeamMessage;
 import com.flansmod.teams.common.network.TeamsModPacketHandler;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -26,6 +32,7 @@ public class TeamsManager implements
 		public void tick() {}
 		public void exit() {}
 		public void onPlayerJoined(@Nonnull ServerPlayer player) {}
+		public long getLength() { return 0L; }
 	}
 
 	private final Map<String, GamemodeInfo> gamemodes = new HashMap<>();
@@ -36,12 +43,15 @@ public class TeamsManager implements
 
 	private boolean isRotationEnabled = false;
 	private final List<RoundInfo> mapRotation = new ArrayList<>();
+	private DimensionInstancingManager instanceManager;
+	private int reservedInstanceID = DimensionInstancingManager.INVALID_INSTANCE;
 
 	private RoundInfo currentRound = RoundInfo.invalid;
 	private RoundInfo nextRound = RoundInfo.invalid;
 
 	private ERoundPhase currentPhase = ERoundPhase.Inactive;
 	private ERoundPhase targetPhase = ERoundPhase.Inactive;
+	private long phaseStartedTick = 0L;
 	private int ticksInCurrentPhase = 0;
 	private RoundInstance currentRoundInstance;
 
@@ -49,6 +59,12 @@ public class TeamsManager implements
 	{
 		defaultMapSettings = new Settings();
 		settings.put(ISettings.DEFAULT_KEY, defaultMapSettings);
+		instanceManager = new DimensionInstancingManager(List.of(
+			TeamsDimensions.TEAMS_INSTANCE_A_LEVEL,
+			TeamsDimensions.TEAMS_INSTANCE_B_LEVEL));
+
+		// TODO: Scan for teams_maps/<map_name>.dat
+		// Then load teams_maps/<map_name>/region/...
 
 		createInactivePhase();
 		createPreparingPhase();
@@ -75,10 +91,29 @@ public class TeamsManager implements
 			@Override
 			public void enter(){
 				OpResult prepResult = prepareNewRound();
-				if(prepResult.success())
-					targetPhase = ERoundPhase.Gameplay;
-				else
+				if(!prepResult.success())
+				{
+					TeamsMod.LOGGER.error("Failed to prepare new round");
 					targetPhase = ERoundPhase.Inactive;
+				}
+
+				if(TeamsModConfig.useDimensionInstancing.get())
+				{
+					reservedInstanceID = instanceManager.reserveInstance();
+					if(reservedInstanceID == DimensionInstancingManager.INVALID_INSTANCE)
+					{
+						TeamsMod.LOGGER.error("Failed to reserve Dimension instance");
+						targetPhase = ERoundPhase.Inactive;
+					}
+					else
+					{
+						if(!instanceManager.beginLoadLevel(reservedInstanceID, getCurrentMapName()))
+						{
+							TeamsMod.LOGGER.error("Failed to begin level load to Dimension instance");
+							targetPhase = ERoundPhase.Inactive;
+						}
+					}
+				}
 			}
 			@Override
 			public void tick()
@@ -87,6 +122,28 @@ public class TeamsManager implements
 				{
 					TeamsMod.LOGGER.error("Preparing phase timed out!");
 					targetPhase = ERoundPhase.Inactive;
+				}
+
+				if(TeamsModConfig.useDimensionInstancing.get())
+				{
+					if(reservedInstanceID != DimensionInstancingManager.INVALID_INSTANCE)
+					{
+						if(instanceManager.isLoadLevelComplete(reservedInstanceID))
+						{
+							TeamsMod.LOGGER.info("Successfully loaded dimension instance in " + (ticksInCurrentPhase / 20) + "s");
+							targetPhase = ERoundPhase.Gameplay;
+						}
+					}
+					else
+					{
+						TeamsMod.LOGGER.error("Somehow waiting in Preparing phase with no valid dimension reservation");
+						targetPhase = ERoundPhase.Inactive;
+					}
+				}
+				else
+				{
+					// There's nothing to wait for if we aren't instancing
+					targetPhase = ERoundPhase.Gameplay;
 				}
 			}
 		});
@@ -189,17 +246,21 @@ public class TeamsManager implements
 		});
 	}
 
+	@Nonnull
+	private Phase getPhaseImpl(@Nonnull ERoundPhase phase) {
+		return phaseImpl.get(currentPhase);
+	}
 	public void serverTick()
 	{
 		ticksInCurrentPhase++;
 
-		phaseImpl.get(currentPhase).tick();
+		getPhaseImpl(currentPhase).tick();
 		if(targetPhase != currentPhase)
 		{
-			phaseImpl.get(currentPhase).exit();
+			getPhaseImpl(currentPhase).exit();
 			currentPhase = targetPhase;
 			ticksInCurrentPhase = 0;
-			phaseImpl.get(targetPhase).enter();
+			getPhaseImpl(targetPhase).enter();
 		}
 	}
 
@@ -237,9 +298,9 @@ public class TeamsManager implements
 		return gamemode.factory().createInstance(roundInstance);
 	}
 	@Nonnull
-	public MapInstance createMapInstance(@Nonnull RoundInfo roundInfo)
+	public SingleDimensionMapInstance createMapInstance(@Nonnull RoundInfo roundInfo)
 	{
-		return new MapInstance(roundInfo.map());
+		return new SingleDimensionMapInstance(roundInfo.map(), Level.OVERWORLD);
 	}
 	@Nonnull
 	public RoundInstance createRoundInstance(@Nonnull RoundInfo roundInfo)
@@ -426,26 +487,28 @@ public class TeamsManager implements
 	}
 
 
-	public void autoAssignPlayer(@Nonnull Player player)
+	public void onPlayerLogin(@Nonnull ServerPlayer player)
 	{
+		sendPhaseUpdateTo(player);
+
 		if(currentRoundInstance != null)
 		{
 			ITeamInstance bestTeam = getBestTeamFor(player);
 			bestTeam.add(player);
 		}
 	}
-	public void playerSelectedTeam(@Nonnull Player player, @Nonnull TeamInfo selection)
+	public void playerSelectedTeam(@Nonnull ServerPlayer player, @Nonnull TeamInfo selection)
 	{
 		if(currentPhase != ERoundPhase.Gameplay)
 			return;
 
 
 	}
-	public void playerSelectedClass(@Nonnull Player player)
+	public void playerSelectedClass(@Nonnull ServerPlayer player)
 	{
 		// TODO:
 	}
-	public void removePlayer(@Nonnull Player player)
+	public void removePlayer(@Nonnull ServerPlayer player)
 	{
 		if(currentRoundInstance != null)
 		{
@@ -483,10 +546,19 @@ public class TeamsManager implements
 
 	public void receiveSelectTeamMessage(@Nonnull SelectTeamMessage msg, @Nonnull ServerPlayer from)
 	{
-		playerSelectedTeam(from, msg.getSelection());
+		playerSelectedTeam(from, currentRound.teams().get(msg.getSelection()));
 	}
 	public void receivePlaceVoteMessage(@Nonnull PlaceVoteMessage msg, @Nonnull ServerPlayer from)
 	{
 
+	}
+
+	public void sendPhaseUpdateTo(@Nonnull ServerPlayer player)
+	{
+		TeamsModPacketHandler.sendToPlayer(player, createPhaseUpdate());
+	}
+	@Nonnull
+	private PhaseUpdateMessage createPhaseUpdate() {
+		return new PhaseUpdateMessage(currentPhase, phaseStartedTick, getPhaseImpl(currentPhase).getLength());
 	}
 }

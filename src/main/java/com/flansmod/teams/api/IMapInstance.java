@@ -13,4 +13,8 @@ public interface IMapInstance
 	@Nonnull MapInfo getInfo();
 	@Nonnull ResourceKey<Level> getPrimaryDimension();
 	@Nonnull List<ChunkPos> getChunkLoadTickets();
+
+	@Nonnull List<IControlPoint> getControlPoints();
+
+	@Nonnull List<ISpawnPoint> getSpawnPoints();
 }

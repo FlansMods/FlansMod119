@@ -1,8 +1,7 @@
 package com.flansmod.teams.server.gamemode;
 
-import com.flansmod.teams.api.GamemodeInfo;
-import com.flansmod.teams.api.IRoundInstance;
-import com.flansmod.teams.api.ISettings;
+import com.flansmod.teams.api.*;
+import net.minecraft.world.entity.player.Player;
 
 import javax.annotation.Nonnull;
 
@@ -17,4 +16,9 @@ public class InvalidGamemode extends Gamemode
 	public void init(@Nonnull ISettings settings) {}
 	@Override
 	public void tick() { }
+	@Override @Nonnull
+	public ISpawnPoint getSpawnPoint(@Nonnull IMapInstance map, @Nonnull Player forPlayer)
+	{
+		return map.getSpawnPoints().get(0);
+	}
 }

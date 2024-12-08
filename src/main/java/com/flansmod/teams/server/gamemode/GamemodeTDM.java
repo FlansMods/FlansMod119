@@ -1,9 +1,9 @@
 package com.flansmod.teams.server.gamemode;
 
-import com.flansmod.teams.api.IPlayerInstance;
+import com.flansmod.teams.api.IMapInstance;
 import com.flansmod.teams.api.IRoundInstance;
 import com.flansmod.teams.api.ISettings;
-import com.flansmod.teams.api.ITeamInstance;
+import com.flansmod.teams.api.ISpawnPoint;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -46,6 +46,12 @@ public class GamemodeTDM extends Gamemode
 			return !sameTeam(attacker, target);
 		}
 		return true;
+	}
+
+	@Override @Nonnull
+	public ISpawnPoint getSpawnPoint(@Nonnull IMapInstance map, @Nonnull Player forPlayer)
+	{
+		return null;
 	}
 
 	@Override
