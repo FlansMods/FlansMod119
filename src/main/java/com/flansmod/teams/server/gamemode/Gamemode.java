@@ -49,11 +49,11 @@ public abstract class Gamemode implements IGamemodeInstance
 		}
 	}
 	@Nonnull
-	public static <T extends Gamemode> GamemodeInfo createInfo(@Nonnull String gamemodeID,
+	public static <T extends Gamemode> IGamemodeFactory createFactory(@Nonnull String gamemodeID,
 															   int teamCount,
 															   @Nonnull Function<IRoundInstance, T> constructor)
 	{
-		return new GamemodeInfo(gamemodeID, new DefaultGamemodeFactory<T>(gamemodeID, teamCount, constructor));
+		return new DefaultGamemodeFactory<T>(gamemodeID, teamCount, constructor);
 	}
 
 	private final IRoundInstance round;

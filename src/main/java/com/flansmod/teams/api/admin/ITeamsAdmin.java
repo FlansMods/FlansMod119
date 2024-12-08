@@ -18,7 +18,8 @@ public interface ITeamsAdmin
 	OpResult createNewSettings(@Nonnull String settingsName);
 	@Nullable MapInfo getMapData(@Nonnull String mapName);
 	default boolean hasMap(@Nonnull String mapName) { return getMapData(mapName) != null; }
-	@Nullable GamemodeInfo getGamemode(@Nonnull String gamemode);
+	@Nullable
+	GamemodeInfo getGamemode(@Nonnull String gamemode);
 	default boolean hasGamemode(@Nonnull String gamemode) { return getGamemode(gamemode) != null; }
 
 	@Nullable RoundInfo tryCreateRoundInfo(@Nonnull String mapName, @Nonnull String gamemodeID, @Nonnull String ... teamNames);

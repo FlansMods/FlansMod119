@@ -14,6 +14,7 @@ import net.minecraft.world.level.storage.LevelResource;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -67,6 +68,13 @@ public class DimensionInstancingManager
 		return list;
 	}
 
+	@Nullable
+	public ResourceKey<Level> getDimension(int instanceID)
+	{
+		if(instanceID < 0 || instanceID >= instances.size())
+			return null;
+		return instances.get(instanceID).dimension;
+	}
 	public int reserveInstance()
 	{
 		for(int i = 0; i < instances.size(); i++)

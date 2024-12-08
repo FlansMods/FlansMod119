@@ -12,4 +12,7 @@ public interface IControlPointInstance extends IControlPointRef
 	void setCaptureProgress(int set);
 	void setContested(boolean set);
 	void setFlagPresent(boolean set);
+
+	void onRoundStart();
+	void onRoundEnd();
 }

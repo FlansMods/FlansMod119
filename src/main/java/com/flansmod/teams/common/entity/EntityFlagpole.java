@@ -77,6 +77,10 @@ public class EntityFlagpole extends Entity implements IControlPointInstance
 		setFlagPresent(true);
 		setContested(false);
 	}
+	@Override
+	public void onRoundEnd()
+	{
+	}
 
 	@Override @Nonnull
 	public ResourceKey<Level> getDimension() { return level().dimension(); }

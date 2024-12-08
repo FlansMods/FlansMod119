@@ -15,6 +15,4 @@ public interface IControlPointRef
 	@Nonnull Collection<IControllableBlockRef> getBlocks();
 	int getStartingTeamIndex();
 	boolean canBeControlledBy(int teamIndex);
-
-	void onRoundStart();
 }

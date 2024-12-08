@@ -37,7 +37,7 @@ public class TeamsMod
 	public static final DeferredRegister<MenuType<?>> MENUS = DeferredRegister.create(ForgeRegistries.MENU_TYPES, MODID);
 	//public static final RegistryObject<MenuType<ChooseTeamMenu>> MENU_CHOOSE_TEAM = MENUS.register("choose_team", () -> IForgeMenuType.create(ChooseTeamMenu::new));
 
-	public static final GamemodeInfo TDM = Gamemode.createInfo("TDM", 2,GamemodeTDM::new);
+	public static final GamemodeInfo TDM = new GamemodeInfo("TDM");
 
 	public TeamsMod()
 	{
@@ -48,7 +48,7 @@ public class TeamsMod
 		UniversalTeamsSettings.registerDefaultSettings();
 		EVENTS = new ServerEventHooks(MANAGER);
 
-		MANAGER.registerGamemode(TDM);
+		MANAGER.registerGamemode(TDM, Gamemode.createFactory("TDM", 2, GamemodeTDM::new));
 
 		IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 		MENUS.register(modEventBus);

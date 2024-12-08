@@ -80,8 +80,9 @@ public class RoundInstance implements IRoundInstance
 	{
 		if(gamemode == null || map == null)
 			return OpResult.FAILURE_GENERIC;
-		if(teams.size() != getDef().gamemode().factory().getNumTeamsRequired())
-			return OpResult.FAILURE_INCORRECT_TEAMS;
+
+		//if(teams.size() != getDef().gamemode().factory().getNumTeamsRequired())
+		//	return OpResult.FAILURE_INCORRECT_TEAMS;
 
 		return OpResult.SUCCESS;
 	}

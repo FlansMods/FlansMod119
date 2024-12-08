@@ -13,6 +13,8 @@ import com.flansmod.teams.common.network.toclient.PhaseUpdateMessage;
 import com.flansmod.teams.common.network.toserver.PlaceVoteMessage;
 import com.flansmod.teams.common.network.toserver.SelectTeamMessage;
 import com.flansmod.teams.common.network.TeamsModPacketHandler;
+import com.flansmod.teams.server.map.SingleDimensionMapInstance;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
@@ -40,6 +42,8 @@ public class TeamsManager implements
 	private final Map<String, Settings> settings = new HashMap<>();
 	private final Settings defaultMapSettings;
 	private final Map<ERoundPhase, Phase> phaseImpl = new HashMap<>();
+
+	private final Map<String, IGamemodeFactory> gamemodeFactories = new HashMap<>();
 
 	private boolean isRotationEnabled = false;
 	private final List<RoundInfo> mapRotation = new ArrayList<>();
@@ -93,18 +97,12 @@ public class TeamsManager implements
 	}
 	private void createPreparingPhase()
 	{
-
 		phaseImpl.put(ERoundPhase.Preparing, new Phase(){
 			private int timeoutTicks() { return (int)Math.floor(TeamsModConfig.preparingPhaseTimeout.get() * 20d); }
 			@Override
-			public void enter(){
-				OpResult prepResult = prepareNewRound();
-				if(!prepResult.success())
-				{
-					TeamsMod.LOGGER.error("Failed to prepare new round");
-					targetPhase = ERoundPhase.Inactive;
-				}
-
+			public void enter()
+			{
+				RoundInfo transitionTo = getNextRoundInfo();
 				if(TeamsModConfig.useDimensionInstancing.get())
 				{
 					reservedInstanceID = instanceManager.reserveInstance();
@@ -115,11 +113,37 @@ public class TeamsManager implements
 					}
 					else
 					{
-						if(!instanceManager.beginLoadLevel(reservedInstanceID, getCurrentMapName()))
+						ResourceKey<Level> dimension = instanceManager.getDimension(reservedInstanceID);
+						if(dimension != null)
 						{
-							TeamsMod.LOGGER.error("Failed to begin level load to Dimension instance");
+							OpResult prepResult = prepareNewRound(transitionTo, dimension);
+							if(!prepResult.success())
+							{
+								TeamsMod.LOGGER.error("Failed to prepare new round");
+								targetPhase = ERoundPhase.Inactive;
+							}
+
+							if(!instanceManager.beginLoadLevel(reservedInstanceID, getCurrentMapName()))
+							{
+								TeamsMod.LOGGER.error("Failed to begin level load to Dimension instance");
+								targetPhase = ERoundPhase.Inactive;
+							}
+						}
+						else
+						{
+							TeamsMod.LOGGER.error("Failed to acquire Dimension for loading level into");
 							targetPhase = ERoundPhase.Inactive;
 						}
+					}
+				}
+				else
+				{
+					// TODO: Not sure about using a default dimension here. Do we even support this?
+					OpResult prepResult = prepareNewRound(transitionTo, Level.OVERWORLD);
+					if(!prepResult.success())
+					{
+						TeamsMod.LOGGER.error("Failed to prepare new round");
+						targetPhase = ERoundPhase.Inactive;
 					}
 				}
 			}
@@ -156,6 +180,61 @@ public class TeamsManager implements
 					// There's nothing to wait for if we aren't instancing
 					targetPhase = ERoundPhase.Gameplay;
 				}
+			}
+			@Nonnull
+			public OpResult prepareNewRound(@Nonnull RoundInfo transitionTo,
+											@Nonnull ResourceKey<Level> inDimension)
+			{
+				RoundInstance round = createRoundInstance(transitionTo);
+				IMapInstance map = createMapInstance(transitionTo, inDimension);
+				IGamemodeInstance gamemode = createGamemodeInstance(round);
+				if(gamemode == null)
+					return OpResult.FAILURE_GENERIC;
+
+				OpResult assignTeamResult = round.assignTeams(createTeamInstances(transitionTo));
+				if(!assignTeamResult.success())
+					return assignTeamResult;
+
+				OpResult assignGamemodeResult =	round.assignGamemode(gamemode);
+				if(!assignGamemodeResult.success())
+					return assignGamemodeResult;
+
+				OpResult assignMapResult = round.assignMap(map);
+				if(!assignMapResult.success())
+					return assignMapResult;
+
+				currentRoundInstance = round;
+				return OpResult.SUCCESS;
+			}
+			@Nullable
+			public IGamemodeInstance createGamemodeInstance(@Nonnull IRoundInstance roundInstance)
+			{
+				GamemodeInfo gamemode = roundInstance.getDef().gamemode();
+				IGamemodeFactory factory = gamemodeFactories.get(gamemode.gamemodeID());
+				if(factory == null)
+					return null;
+
+				if(!factory.isValid(roundInstance.getDef()))
+					return null;
+				return factory.createInstance(roundInstance);
+			}
+			@Nonnull
+			public SingleDimensionMapInstance createMapInstance(@Nonnull RoundInfo roundInfo, @Nonnull ResourceKey<Level> inDimension)
+			{
+				return new SingleDimensionMapInstance(roundInfo.map(), inDimension);
+			}
+			@Nonnull
+			public RoundInstance createRoundInstance(@Nonnull RoundInfo roundInfo)
+			{
+				return new RoundInstance(roundInfo);
+			}
+			@Nonnull
+			public List<ITeamInstance> createTeamInstances(@Nonnull RoundInfo roundInfo)
+			{
+				List<ITeamInstance> list =new ArrayList<>(roundInfo.teams().size());
+				for(TeamInfo teamInfo : roundInfo.teams())
+					list.add(new TeamInstance(teamInfo));
+				return list;
 			}
 		});
 	}
@@ -296,57 +375,7 @@ public class TeamsManager implements
 		}
 		return OpResult.FAILURE_GENERIC;
 	}
-	@Nonnull
-	public OpResult prepareNewRound()
-	{
-		RoundInfo transitionTo = getNextRoundInfo();
-		RoundInstance round = createRoundInstance(transitionTo);
-		IMapInstance map = createMapInstance(transitionTo);
-		IGamemodeInstance gamemode = createGamemodeInstance(round);
-		if(gamemode == null)
-			return OpResult.FAILURE_GENERIC;
 
-		OpResult assignTeamResult = round.assignTeams(createTeamInstances(transitionTo));
-		if(!assignTeamResult.success())
-			return assignTeamResult;
-
-		OpResult assignGamemodeResult =	round.assignGamemode(gamemode);
-		if(!assignGamemodeResult.success())
-			return assignGamemodeResult;
-
-		OpResult assignMapResult = round.assignMap(map);
-		if(!assignMapResult.success())
-			return assignMapResult;
-
-		currentRoundInstance = round;
-		return OpResult.SUCCESS;
-	}
-	@Nullable
-	public IGamemodeInstance createGamemodeInstance(@Nonnull IRoundInstance roundInstance)
-	{
-		GamemodeInfo gamemode = roundInstance.getDef().gamemode();
-		if(!gamemode.factory().isValid(roundInstance.getDef()))
-			return null;
-		return gamemode.factory().createInstance(roundInstance);
-	}
-	@Nonnull
-	public SingleDimensionMapInstance createMapInstance(@Nonnull RoundInfo roundInfo)
-	{
-		return new SingleDimensionMapInstance(roundInfo.map(), Level.OVERWORLD);
-	}
-	@Nonnull
-	public RoundInstance createRoundInstance(@Nonnull RoundInfo roundInfo)
-	{
-		return new RoundInstance(roundInfo);
-	}
-	@Nonnull
-	public List<ITeamInstance> createTeamInstances(@Nonnull RoundInfo roundInfo)
-	{
-		List<ITeamInstance> list =new ArrayList<>(roundInfo.teams().size());
-		for(TeamInfo teamInfo : roundInfo.teams())
-			list.add(new TeamInstance(teamInfo));
-		return list;
-	}
 
 
 	@Override @Nonnull
@@ -357,6 +386,15 @@ public class TeamsManager implements
 
 		gamemodes.put(gamemode.gamemodeID(), gamemode);
 		return OpResult.SUCCESS;
+	}
+	public void registerGamemode(@Nonnull GamemodeInfo gamemode, @Nonnull IGamemodeFactory factory)
+	{
+		if(registerGamemode(gamemode).success())
+			registerGamemodeFactory(gamemode.gamemodeID(), factory);
+	}
+	public void registerGamemodeFactory(@Nonnull String gamemodeID, @Nonnull IGamemodeFactory factory)
+	{
+		gamemodeFactories.put(gamemodeID, factory);
 	}
 	@Override @Nullable
 	public GamemodeInfo getGamemode(@Nonnull String gamemodeID) { return gamemodes.get(gamemodeID); }
