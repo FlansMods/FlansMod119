@@ -14,15 +14,23 @@ import com.flansmod.teams.common.network.toserver.PlaceVoteMessage;
 import com.flansmod.teams.common.network.toserver.SelectTeamMessage;
 import com.flansmod.teams.common.network.TeamsModPacketHandler;
 import com.flansmod.teams.server.map.SingleDimensionMapInstance;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.common.util.ITeleporter;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Function;
 
 public class TeamsManager implements
 	ITeamsAdmin,
@@ -42,6 +50,7 @@ public class TeamsManager implements
 	private final Map<String, Settings> settings = new HashMap<>();
 	private final Settings defaultMapSettings;
 	private final Map<ERoundPhase, Phase> phaseImpl = new HashMap<>();
+	private final Map<UUID, PlayerSaveData> playerSaveData = new HashMap<>();
 
 	private final Map<String, IGamemodeFactory> gamemodeFactories = new HashMap<>();
 
@@ -71,9 +80,13 @@ public class TeamsManager implements
 		settings.put(ISettings.DEFAULT_KEY, defaultMapSettings);
 		instanceManager = new DimensionInstancingManager(List.of(
 			TeamsDimensions.TEAMS_INSTANCE_A_LEVEL,
-			TeamsDimensions.TEAMS_INSTANCE_B_LEVEL));
+			TeamsDimensions.TEAMS_INSTANCE_B_LEVEL),
+			TeamsDimensions.TEAMS_LOBBY_LEVEL,
+			BlockPos.ZERO);
 		constructManager = new DimensionInstancingManager(List.of(
-			TeamsDimensions.TEAMS_CONSTRUCT_LEVEL));
+			TeamsDimensions.TEAMS_CONSTRUCT_LEVEL),
+			TeamsDimensions.TEAMS_LOBBY_LEVEL,
+			BlockPos.ZERO);
 
 		// TODO: Scan for teams_maps/<map_name>.dat
 		// Then load teams_maps/<map_name>/region/...
@@ -163,7 +176,7 @@ public class TeamsManager implements
 				{
 					if(reservedInstanceID != DimensionInstancingManager.INVALID_INSTANCE)
 					{
-						if(instanceManager.isLoadLevelComplete(reservedInstanceID))
+						if(instanceManager.checkLoadLevelComplete(reservedInstanceID))
 						{
 							TeamsMod.LOGGER.info("Successfully loaded dimension instance in " + (ticksInCurrentPhase / 20) + "s");
 							targetPhase = ERoundPhase.Gameplay;
@@ -432,6 +445,14 @@ public class TeamsManager implements
 	public IMapInstance getCurrentMap() { return currentRoundInstance.getMap(); }
 	@Override @Nullable
 	public IGamemodeInstance getCurrentGamemode() { return currentRoundInstance.getGamemode(); }
+	@Override
+	public boolean isInBuildMode(@Nonnull UUID playerID) { return getOrCreatePlayerData(playerID).isBuilder(); }
+	@Override @Nonnull
+	public OpResult setBuildMode(@Nonnull UUID playerID, boolean set)
+	{
+		getOrCreatePlayerData(playerID).setBuilder(set);
+		return OpResult.SUCCESS;
+	}
 
 	@Override @Nonnull
 	public OpResult createMap(@Nonnull String mapName)
@@ -563,6 +584,31 @@ public class TeamsManager implements
 
 	public void onPlayerLogin(@Nonnull ServerPlayer player)
 	{
+		boolean isBuilder = isInBuildMode(player.getUUID());
+		boolean shouldStartInLobby = !isBuilder &&
+			(currentPhase == ERoundPhase.Inactive
+			? TeamsModConfig.startInLobbyDimensionWhenTeamsInactive.get()
+			: TeamsModConfig.startInLobbyDimension.get());
+		if(shouldStartInLobby)
+		{
+			MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+			ServerLevel lobbyLevel = server.getLevel(TeamsDimensions.TEAMS_LOBBY_LEVEL);
+			if(lobbyLevel != null)
+			{
+				Entity teleportedPlayer = player.changeDimension(lobbyLevel, new ITeleporter()
+				{
+					@Override
+					public Entity placeEntity(Entity entity, ServerLevel currentWorld, ServerLevel destWorld, float yaw, Function<Boolean, Entity> repositionEntity)
+					{
+						return ITeleporter.super.placeEntity(entity, currentWorld, destWorld, yaw, repositionEntity);
+					}
+				});
+				if(teleportedPlayer != null)
+				{
+					player.setRespawnPosition(TeamsDimensions.TEAMS_LOBBY_LEVEL, player.getOnPos(), player.getYRot(), true, false);
+				}
+			}
+		}
 		sendPhaseUpdateTo(player);
 
 		if(currentRoundInstance != null)
@@ -578,9 +624,59 @@ public class TeamsManager implements
 
 
 	}
-	public void playerSelectedClass(@Nonnull ServerPlayer player)
+	public void playerSelectedClass(@Nonnull ServerPlayer player, int loadoutIndex)
 	{
 		// TODO:
+
+		if(currentPhase != ERoundPhase.Gameplay)
+		{
+			player.sendSystemMessage(Component.translatable("teams.player_msg.invalid_phase"));
+			return;
+		}
+
+		ITeamInstance team = currentRoundInstance.getTeamOf(player);
+		if(team == null)
+		{
+			player.sendSystemMessage(Component.translatable("teams.player_msg.not_on_team"));
+			return;
+		}
+
+		if(loadoutIndex >= team.getNumPresetLoadouts())
+		{
+			player.sendSystemMessage(Component.translatable("teams.player_msg.invalid_loadout"));
+			return;
+		}
+
+		IPlayerGameplayInfo playerData = currentRoundInstance.getPlayerData(player.getUUID());
+		if(playerData == null)
+		{
+			player.sendSystemMessage(Component.translatable("teams.player_msg.server_error"));
+			return;
+		}
+
+		OpResult choiceResult = playerData.setLoadoutChoice(loadoutIndex);
+		if(choiceResult.failure())
+		{
+			player.sendSystemMessage(Component.translatable("teams.player_msg.server_error"));
+			return;
+		}
+
+		// TODO: Ranked handling
+		//IPlayerPersistentInfo playerSaveData = getOrCreatePlayerData(player.getUUID());
+	}
+
+	@Nonnull
+	public PlayerSaveData getOrCreatePlayerData(@Nonnull UUID playerID)
+	{
+		if(!playerSaveData.containsKey(playerID))
+			playerSaveData.put(playerID, new PlayerSaveData(playerID));
+
+		return playerSaveData.get(playerID);
+	}
+	@Override @Nullable
+	public IPlayerPersistentInfo getPlayerData(@Nonnull UUID playerID)
+	{
+		return playerSaveData.get(playerID);
 	}
 	public void removePlayer(@Nonnull ServerPlayer player)
 	{

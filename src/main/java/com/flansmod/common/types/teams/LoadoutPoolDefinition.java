@@ -4,16 +4,18 @@ import com.flansmod.common.FlansMod;
 import com.flansmod.common.types.JsonDefinition;
 import com.flansmod.common.types.JsonField;
 import com.flansmod.common.types.parts.PartDefinition;
-import com.flansmod.common.types.teams.elements.LevelUpDefinition;
-import com.flansmod.common.types.teams.elements.LoadoutDefinition;
-import com.flansmod.common.types.teams.elements.LoadoutEntryDefinition;
-import com.flansmod.common.types.teams.elements.PaintjobUnlockDefinition;
+import com.flansmod.common.types.teams.elements.*;
 import net.minecraft.resources.ResourceLocation;
+
+import javax.annotation.Nonnull;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoadoutPoolDefinition extends JsonDefinition
 {
 	public static final LoadoutPoolDefinition INVALID = new LoadoutPoolDefinition(new ResourceLocation(FlansMod.MODID, "loadout_pools/null"));
 	public static final String TYPE = "loadout_pool";
+	public static final String FOLDER = "loadout_pools";
 	@Override
 	public String GetTypeName() { return TYPE; }
 
@@ -42,6 +44,35 @@ public class LoadoutPoolDefinition extends JsonDefinition
 	@JsonField(Docs = "Level 0 will be unlocked automatically. Put starter gear in there.")
 	public LevelUpDefinition[] levelUps = new LevelUpDefinition[0];
 
+	@JsonField
+	public LoadoutChoiceDefinition[] choices = new LoadoutChoiceDefinition[0];
 
+
+
+
+
+
+	public void addDefaultChoices(@Nonnull Map<String, Integer> choiceMap)
+	{
+		for(LoadoutChoiceDefinition choice : choices)
+		{
+			if(choice.selectionMandatory)
+				choiceMap.put(choice.choiceName, 0);
+		}
+	}
+	private Map<String, LoadoutChoiceDefinition> SortedChoices = null;
+	@Nonnull
+	public Map<String, LoadoutChoiceDefinition> getSortedChoices()
+	{
+		if(SortedChoices == null)
+		{
+			SortedChoices = new HashMap<>();
+			for(LoadoutChoiceDefinition choice : choices)
+			{
+				SortedChoices.put(choice.choiceName, choice);
+			}
+		}
+		return SortedChoices;
+	}
 }
 

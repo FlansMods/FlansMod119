@@ -6,6 +6,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 public interface ITeamsAdmin
 {
@@ -23,7 +24,10 @@ public interface ITeamsAdmin
 	default boolean hasGamemode(@Nonnull String gamemode) { return getGamemode(gamemode) != null; }
 
 	@Nullable RoundInfo tryCreateRoundInfo(@Nonnull String mapName, @Nonnull String gamemodeID, @Nonnull String ... teamNames);
+	boolean isInBuildMode(@Nonnull UUID player);
+	@Nonnull OpResult setBuildMode(@Nonnull UUID player, boolean set);
 
+	@Nullable IPlayerPersistentInfo getPlayerData(@Nonnull UUID playerID);
 
 	@Nonnull OpResult createMap(@Nonnull String mapName);
 	@Nonnull OpResult deleteMap(@Nonnull String mapName);

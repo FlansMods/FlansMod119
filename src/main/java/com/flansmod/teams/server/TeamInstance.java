@@ -1,8 +1,13 @@
 package com.flansmod.teams.server;
 
+import com.flansmod.common.FlansMod;
+import com.flansmod.common.types.LazyDefinition;
+import com.flansmod.common.types.teams.TeamDefinition;
+import com.flansmod.teams.api.admin.IPlayerLoadout;
 import com.flansmod.teams.api.runtime.ITeamInstance;
 import com.flansmod.teams.api.OpResult;
 import com.flansmod.teams.api.admin.TeamInfo;
+import com.flansmod.teams.common.info.PresetLoadout;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 
@@ -11,17 +16,36 @@ import java.util.*;
 
 public class TeamInstance implements ITeamInstance
 {
-	private final TeamInfo def;
+	private final TeamInfo teamID;
+	private final LazyDefinition<TeamDefinition> teamDef;
 	private final Map<UUID, Player> teamMembers = new HashMap<>();
 	private final Map<String, Integer> scores = new HashMap<>();
+	private final List<PresetLoadout> presetLoadouts = new ArrayList<>();
 
-	public TeamInstance(@Nonnull TeamInfo teamDef)
+	public TeamInstance(@Nonnull TeamInfo id)
 	{
-		def = teamDef;
+		teamID = id;
+		teamDef = LazyDefinition.of(id.teamID(), FlansMod.TEAMS);
 	}
 
 	@Override @Nonnull
-	public TeamInfo getDefinition() { return def; }
+	public TeamInfo getTeamID() { return teamID; }
+	@Nonnull
+	public TeamDefinition getDef() { return teamDef.DefGetter().get(); }
+	@Override
+	public int getNumPresetLoadouts() { return getDef().classes.length; }
+	@Override @Nonnull
+	public IPlayerLoadout getPresetLoadout(int index)
+	{
+		if(presetLoadouts.size() == 0)
+		{
+			for(int i = 0; i < getDef().classes.length; i++)
+			{
+				presetLoadouts.add(new PresetLoadout(getDef().classes[i]));
+			}
+		}
+		return presetLoadouts.get(index);
+	}
 
 	@Override
 	public int getScore(@Nonnull String scoreType) { return scores.getOrDefault(scoreType, 0); }

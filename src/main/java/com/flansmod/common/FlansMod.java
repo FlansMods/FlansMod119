@@ -43,6 +43,9 @@ import com.flansmod.common.types.guns.elements.AbilityDefinition;
 import com.flansmod.common.types.magazines.MagazineDefinitions;
 import com.flansmod.common.types.npc.NpcDefinitions;
 import com.flansmod.common.types.parts.PartDefinitions;
+import com.flansmod.common.types.teams.ClassDefinitions;
+import com.flansmod.common.types.teams.LoadoutPoolDefinitions;
+import com.flansmod.common.types.teams.TeamDefinitions;
 import com.flansmod.common.types.vehicles.ControlSchemeDefinitions;
 import com.flansmod.common.types.vehicles.VehicleDefinitions;
 import com.flansmod.common.worldgen.loot.LootPopulator;
@@ -301,6 +304,9 @@ public class FlansMod
     public static final VehicleDefinitions VEHICLES = new VehicleDefinitions();
     public static final ControlSchemeDefinitions CONTROL_SCHEMES = new ControlSchemeDefinitions();
     public static final TurretBlockDefinitions TURRETS = new TurretBlockDefinitions();
+    public static final TeamDefinitions TEAMS = new TeamDefinitions();
+    public static final ClassDefinitions CLASSES = new ClassDefinitions();
+    public static final LoadoutPoolDefinitions LOADOUT_POOLS = new LoadoutPoolDefinitions();
 
     // Server handlers
     public static final ServerActionManager ACTIONS_SERVER = new ServerActionManager();
@@ -611,5 +617,8 @@ public class FlansMod
         registerFunc.accept(VEHICLES);
         registerFunc.accept(CONTROL_SCHEMES);
         registerFunc.accept(TURRETS);
+        registerFunc.accept(TEAMS);
+        registerFunc.accept(CLASSES);
+        registerFunc.accept(LOADOUT_POOLS);
     }
 }

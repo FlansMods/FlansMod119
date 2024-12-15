@@ -11,6 +11,7 @@ public class TeamDefinition extends JsonDefinition
 {
 	public static final TeamDefinition INVALID = new TeamDefinition(new ResourceLocation(FlansMod.MODID, "teams/null"));
 	public static final String TYPE = "team";
+	public static final String FOLDER = "teams";
 	@Override
 	public String GetTypeName() { return TYPE; }
 
@@ -20,7 +21,7 @@ public class TeamDefinition extends JsonDefinition
 	}
 
 	@JsonField
-	public String[] classes = new String[0];
+	public ResourceLocation[] classes = new ResourceLocation[0];
 
 	@JsonField
 	public ColourDefinition flagColour = new ColourDefinition();

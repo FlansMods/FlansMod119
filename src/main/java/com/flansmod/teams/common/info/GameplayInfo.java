@@ -11,6 +11,7 @@ public class GameplayInfo
 	public ERoundPhase currentPhase;
 	public int ticksRemaining;
 	public int scoreLimit;
+	public boolean isBuilder;
 
 	public List<String> scoreTypes = defaultScoreTypes;
 }

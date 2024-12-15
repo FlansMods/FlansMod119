@@ -1,11 +1,10 @@
 package com.flansmod.teams.server.gamemode;
 
-import com.flansmod.teams.api.admin.GamemodeInfo;
 import com.flansmod.teams.api.admin.IGamemodeFactory;
 import com.flansmod.teams.api.admin.RoundInfo;
 import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.api.runtime.IGamemodeInstance;
-import com.flansmod.teams.api.runtime.IPlayerInstance;
+import com.flansmod.teams.api.runtime.IPlayerGameplayInfo;
 import com.flansmod.teams.api.runtime.IRoundInstance;
 import com.flansmod.teams.api.runtime.ITeamInstance;
 import net.minecraft.core.BlockPos;
@@ -98,7 +97,7 @@ public abstract class Gamemode implements IGamemodeInstance
 			Player damager = getResponsiblePlayer(damage);
 			if (damager != null)
 			{
-				IPlayerInstance damagerPlayer = getPlayerData(damager);
+				IPlayerGameplayInfo damagerPlayer = getPlayerData(damager);
 				if (damagerPlayer != null)
 				{
 					damagerPlayer.tagAssistOn(damaged.getUUID());
@@ -111,7 +110,7 @@ public abstract class Gamemode implements IGamemodeInstance
 										 boolean addToTeamScores,
 										 boolean processAssists)
 	{
-		IPlayerInstance killedPlayer = getPlayerData(killed);
+		IPlayerGameplayInfo killedPlayer = getPlayerData(killed);
 		if(killedPlayer != null)
 			killedPlayer.addDeaths(1);
 
@@ -125,7 +124,7 @@ public abstract class Gamemode implements IGamemodeInstance
 		Player killer = getResponsiblePlayer(damage);
 		if(killer != null)
 		{
-			IPlayerInstance killerPlayer = getPlayerData(killer);
+			IPlayerGameplayInfo killerPlayer = getPlayerData(killer);
 			if(killerPlayer != null)
 				killerPlayer.addKills(1);
 
@@ -139,7 +138,7 @@ public abstract class Gamemode implements IGamemodeInstance
 
 		if(processAssists)
 		{
-			for(IPlayerInstance playerData : round.getParticipatingPlayers())
+			for(IPlayerGameplayInfo playerData : round.getParticipatingPlayers())
 			{
 				if(playerData.hasAssistOn(killed.getUUID()))
 				{
@@ -155,7 +154,7 @@ public abstract class Gamemode implements IGamemodeInstance
 		return round.getTeamOf(a) == round.getTeamOf(b);
 	}
 	@Nullable
-	protected IPlayerInstance getPlayerData(@Nonnull Player player)
+	protected IPlayerGameplayInfo getPlayerData(@Nonnull Player player)
 	{
 		return round.getPlayerData(player.getUUID());
 	}

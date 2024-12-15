@@ -27,9 +27,10 @@ public interface IRoundInstance
 	@Nullable IMapInstance getMap();
 	@Nonnull OpResult assignMap(@Nonnull IMapInstance map);
 
-	@Nonnull List<IPlayerInstance> getParticipatingPlayers();
-	@Nullable IPlayerInstance getPlayerData(@Nonnull UUID playerID);
-	@Nonnull OpResult addPlayer(@Nonnull UUID playerID, @Nonnull IPlayerInstance playerData);
+	@Nonnull List<IPlayerGameplayInfo> getParticipatingPlayers();
+	@Nullable
+	IPlayerGameplayInfo getPlayerData(@Nonnull UUID playerID);
+	@Nonnull OpResult addPlayer(@Nonnull UUID playerID, @Nonnull IPlayerGameplayInfo playerData);
 	@Nonnull OpResult removePlayer(@Nonnull UUID playerID);
 
 

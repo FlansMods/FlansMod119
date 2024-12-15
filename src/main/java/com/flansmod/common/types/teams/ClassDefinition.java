@@ -5,12 +5,14 @@ import com.flansmod.common.types.JsonDefinition;
 import com.flansmod.common.types.JsonField;
 import com.flansmod.common.types.elements.ItemStackDefinition;
 import com.flansmod.common.types.parts.PartDefinition;
+import com.flansmod.teams.api.admin.IPlayerLoadout;
 import net.minecraft.resources.ResourceLocation;
 
 public class ClassDefinition extends JsonDefinition
 {
 	public static final ClassDefinition INVALID = new ClassDefinition(new ResourceLocation(FlansMod.MODID, "classes/null"));
 	public static final String TYPE = "class";
+	public static final String FOLDER = "classes";
 	@Override
 	public String GetTypeName() { return TYPE; }
 
@@ -26,7 +28,7 @@ public class ClassDefinition extends JsonDefinition
 	public String spawnOnEntity = "";
 
 	@JsonField(Docs = "Leave blank to disable. Renders the player with this skin instead of their own")
-	public String playerSkinOverride = "";
+	public ResourceLocation playerSkinOverride = InvalidLocation;
 
 	@JsonField(Docs = "Leave this as empty to take from the team settings")
 	public ItemStackDefinition hat = new ItemStackDefinition();

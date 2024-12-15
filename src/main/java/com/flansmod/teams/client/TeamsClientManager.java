@@ -2,6 +2,7 @@ package com.flansmod.teams.client;
 
 import com.flansmod.teams.api.ERoundPhase;
 import com.flansmod.teams.api.admin.GamemodeInfo;
+import com.flansmod.teams.api.admin.IPlayerLoadout;
 import com.flansmod.teams.api.admin.MapInfo;
 import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.client.gamemode.IClientGamemode;
@@ -32,7 +33,7 @@ public class TeamsClientManager
 {
 	public final List<MapVotingOption> votingOptions = new ArrayList<>();
 	public final List<TeamInfo> teamOptions = new ArrayList<>();
-	public final List<LoadoutInfo> loadoutOptions = new ArrayList<>();
+	public final List<IPlayerLoadout> loadoutOptions = new ArrayList<>();
 
 	public final List<TeamScoreInfo> scores = new ArrayList<>();
 	public GamemodeInfo currentGamemode = GamemodeInfo.invalid;
@@ -54,6 +55,7 @@ public class TeamsClientManager
 		TeamsModPacketHandler.registerClientHandler(
 			PhaseUpdateMessage.class, PhaseUpdateMessage::new, () -> this::receivePhaseUpdate);
 	}
+
 	public void registerClientGamemode(@Nonnull String gamemodeID, @Nonnull IClientGamemode clientGamemode)
 	{
 		clientGamemodes.put(gamemodeID, clientGamemode);
@@ -61,45 +63,85 @@ public class TeamsClientManager
 
 
 	@Nonnull
-	public List<TeamScoreInfo> getTeamScores() { return scores; }
+	public List<TeamScoreInfo> getTeamScores()
+	{
+		return scores;
+	}
+
 	@Nonnull
-	public List<MapVotingOption> getMapVoteOptions() { return votingOptions; }
-	public int getNumTeamOptions() { return teamOptions.size(); }
+	public List<MapVotingOption> getMapVoteOptions()
+	{
+		return votingOptions;
+	}
+
+	public int getNumTeamOptions()
+	{
+		return teamOptions.size();
+	}
+
 	@Nonnull
-	public List<TeamInfo> getTeamOptions() { return teamOptions; }
-	public int getNumLoadoutOptions() { return loadoutOptions.size(); }
+	public List<TeamInfo> getTeamOptions()
+	{
+		return teamOptions;
+	}
+
+	public int getNumLoadoutOptions()
+	{
+		return loadoutOptions.size();
+	}
+
 	@Nonnull
-	public MapInfo getCurrentMap() { return currentMap; }
+	public MapInfo getCurrentMap()
+	{
+		return currentMap;
+	}
+
 	@Nonnull
-	public GamemodeInfo getCurrentGamemode() { return currentGamemode; }
-	public int getTicksRemaining() { return currentState.ticksRemaining; }
-	public boolean isGameRunning() { return currentState.currentPhase == ERoundPhase.Gameplay; }
-	public boolean isGameTied() {
-		for(TeamScoreInfo score : scores)
-			if(!score.isTied())
+	public GamemodeInfo getCurrentGamemode()
+	{
+		return currentGamemode;
+	}
+
+	public int getTicksRemaining()
+	{
+		return currentState.ticksRemaining;
+	}
+
+	public boolean isGameRunning()
+	{
+		return currentState.currentPhase == ERoundPhase.Gameplay;
+	}
+
+	public boolean isGameTied()
+	{
+		for (TeamScoreInfo score : scores)
+			if (!score.isTied())
 				return false;
 
 		return true;
 	}
+
 	@Nullable
 	public TeamScoreInfo getWinningTeam()
 	{
 		TeamScoreInfo lowestRank = null;
-		for(TeamScoreInfo score : scores)
-			if(lowestRank == null || score.rank < lowestRank.rank)
+		for (TeamScoreInfo score : scores)
+			if (lowestRank == null || score.rank < lowestRank.rank)
 				lowestRank = score;
 
 		return lowestRank;
 	}
+
 	public int getScoreLimit()
 	{
 		return currentState.scoreLimit;
 	}
+
 	public int getMaxPlayerCount()
 	{
 		int max = 0;
-		for(TeamScoreInfo score : scores)
-			if(score.players.size() > max)
+		for (TeamScoreInfo score : scores)
+			if (score.players.size() > max)
 				max = score.players.size();
 
 		return max;
@@ -115,37 +157,60 @@ public class TeamsClientManager
 	{
 		votingOptions.clear();
 		votingOptions.addAll(msg.votingOptions);
-		if(msg.andOpenGUI)
+		if (msg.andOpenGUI)
 			openVotingGUI();
 	}
+
 	public void receiveMapVoteUpdate(@Nonnull MapVotingUpdateMessage msg)
 	{
-		for(int i = 0; i < votingOptions.size(); i++)
+		for (int i = 0; i < votingOptions.size(); i++)
 		{
-			if(i < msg.votesCast.size())
+			if (i < msg.votesCast.size())
 				votingOptions.get(i).numVotes = msg.votesCast.get(i);
 		}
 	}
+
 	public void receiveTeamsOptions(@Nonnull TeamOptionsMessage msg)
 	{
 		teamOptions.clear();
 		teamOptions.addAll(msg.teamOptions);
-		if(msg.andOpenGUI)
+		if (msg.andOpenGUI)
 			openTeamSelectGUI();
 	}
+
 	public void receiveLoadoutOptions(@Nonnull PresetLoadoutOptionsMessage msg)
 	{
 		loadoutOptions.clear();
 		loadoutOptions.addAll(msg.loadoutOptions);
-		if(msg.andOpenGUI)
+		if (msg.andOpenGUI)
 			openTeamSelectGUI();
 	}
+
 	public void receivePhaseUpdate(@Nonnull PhaseUpdateMessage msg)
 	{
 		currentState.currentPhase = msg.currentPhase;
-		currentState.ticksRemaining = (int)(msg.startedTick + msg.phaseLength - getCurrentTime());
+		currentState.ticksRemaining = (int) (msg.startedTick + msg.phaseLength - getCurrentTime());
 	}
 
+
+	public void openBestGUI()
+	{
+		if(currentState.isBuilder)
+		{
+			openBuilderGUI();
+			return;
+		}
+		switch(currentState.currentPhase)
+		{
+			case MapVote -> openVotingGUI();
+			case Gameplay -> openTeamSelectGUI();
+			default -> {}
+		}
+	}
+	public void openBuilderGUI()
+	{
+
+	}
 	public void openTeamSelectGUI()
 	{
 		if(teamOptions.size() > 0)

@@ -5,7 +5,7 @@ import com.flansmod.teams.api.OpResult;
 import javax.annotation.Nonnull;
 import java.util.UUID;
 
-public interface IPlayerInstance
+public interface IPlayerGameplayInfo
 {
 	String SCORE_TYPE_OBJECTIVES = "obj";
 	String SCORE_TYPE_KILLS = "kill";
@@ -26,6 +26,8 @@ public interface IPlayerInstance
 	@Nonnull OpResult resetAllScores();
 	@Nonnull OpResult addScore(@Nonnull String scoreType, int add);
 
+	@Nonnull OpResult setLoadoutChoice(int loadoutIndex);
+	int getLoadoutChoice();
 
 	default int getKills() { return getScore(SCORE_TYPE_KILLS); }
 	default int getAssists() { return getScore(SCORE_TYPE_ASSISTS); }

@@ -235,6 +235,28 @@ public abstract class FlanItem extends Item implements IForgeItem
         }
         return attachmentStacks;
     }
+    public static boolean TryAttach(@Nonnull ItemStack stack, @Nonnull ItemStack attachmentStack)
+    {
+        if(attachmentStack.getItem() instanceof AttachmentItem attachmentItem)
+        {
+            CompoundTag tags = stack.getOrCreateTag();
+            CompoundTag attachTags = tags.getCompound("attachments");
+            EAttachmentType type = attachmentItem.Def().attachmentType;
+            int slot = 0;
+            while(attachTags.contains(GetSlotKey(type, slot)))
+            {
+                slot++;
+            }
+            CompoundTag saveTags = new CompoundTag();
+            attachmentStack.save(saveTags);
+            attachTags.put(GetSlotKey(type, slot), saveTags);
+
+            if (!tags.contains("attachments"))
+                tags.put("attachments", attachTags);
+            return true;
+        }
+        return false;
+    }
 
     public static void SetAttachmentInSlot(@Nonnull ItemStack stack, @Nonnull EAttachmentType type, int slot, @Nonnull ItemStack attachmentStack)
     {

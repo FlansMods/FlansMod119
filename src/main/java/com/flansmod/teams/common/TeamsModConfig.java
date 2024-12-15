@@ -9,7 +9,8 @@ public class TeamsModConfig
 	public static final ForgeConfigSpec generalConfig;
 
 	public static ForgeConfigSpec.DoubleValue preparingPhaseTimeout;
-
+	public static ForgeConfigSpec.BooleanValue startInLobbyDimension;
+	public static ForgeConfigSpec.BooleanValue startInLobbyDimensionWhenTeamsInactive;
 	public static ForgeConfigSpec.BooleanValue useDimensionInstancing;
 
 
@@ -40,6 +41,9 @@ public class TeamsModConfig
 		builder.push("Round Preparation Settings");
 		preparingPhaseTimeout = builder.defineInRange("preparing_timeout", 60d, 1d, 360d);
 		useDimensionInstancing = builder.define("dimension_instancing", true);
+		startInLobbyDimension = builder.define("start_in_lobby_dimenson", true);
+		startInLobbyDimensionWhenTeamsInactive = builder.define("start_in_lobby_dimension_when_teams_inactive", false);
+
 		builder.pop();
 
 

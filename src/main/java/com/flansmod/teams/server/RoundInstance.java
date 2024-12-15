@@ -21,7 +21,7 @@ public class RoundInstance implements IRoundInstance
 	private IGamemodeInstance gamemode;
 	private IMapInstance map;
 	public final List<ITeamInstance> teams = new ArrayList<>(2);
-	public final List<IPlayerInstance> players = new ArrayList<>(8);
+	public final List<IPlayerGameplayInfo> players = new ArrayList<>(8);
 	public ERoundPhase phase = ERoundPhase.Preparing;
 
 	public RoundInstance(@Nonnull RoundInfo roundInfo)
@@ -95,22 +95,22 @@ public class RoundInstance implements IRoundInstance
 
 
 	@Override @Nonnull
-	public List<IPlayerInstance> getParticipatingPlayers()
+	public List<IPlayerGameplayInfo> getParticipatingPlayers()
 	{
 		return players;
 	}
 
 	@Override @Nullable
-	public IPlayerInstance getPlayerData(@Nonnull UUID playerID)
+	public IPlayerGameplayInfo getPlayerData(@Nonnull UUID playerID)
 	{
-		for(IPlayerInstance playerData : players)
+		for(IPlayerGameplayInfo playerData : players)
 			if(playerData.getID().equals(playerID))
 				return playerData;
 
 		return null;
 	}
 	@Override @Nonnull
-	public OpResult addPlayer(@Nonnull UUID playerID, @Nonnull IPlayerInstance playerData)
+	public OpResult addPlayer(@Nonnull UUID playerID, @Nonnull IPlayerGameplayInfo playerData)
 	{
 		players.add(playerData);
 		return OpResult.SUCCESS;

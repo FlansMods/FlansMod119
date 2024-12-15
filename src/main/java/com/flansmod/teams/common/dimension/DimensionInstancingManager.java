@@ -26,6 +26,8 @@ public class DimensionInstancingManager
 {
 	public static final int INVALID_INSTANCE = -1;
 	private final List<Instance> instances;
+	private final ResourceKey<Level> fallbackDimension;
+	private final BlockPos fallbackSpawn;
 
 	private static class Instance
 	{
@@ -39,11 +41,15 @@ public class DimensionInstancingManager
 		}
 	}
 
-	public DimensionInstancingManager(@Nonnull List<ResourceKey<Level>> instanceDimensions)
+	public DimensionInstancingManager(@Nonnull List<ResourceKey<Level>> instanceDimensions,
+									  @Nonnull ResourceKey<Level> fallbackDim,
+									  @Nonnull BlockPos fallbackPos)
 	{
 		instances = new ArrayList<>(instanceDimensions.size());
 		for(ResourceKey<Level> dim : instanceDimensions)
 			instances.add(new Instance(dim));
+		fallbackDimension = fallbackDim;
+		fallbackSpawn = fallbackPos;
 	}
 
 	public int getNumInstances() { return instances.size(); }
@@ -97,7 +103,8 @@ public class DimensionInstancingManager
 			return false;
 
 		// TODO: Find lobby spawn point
-		kickAllPlayersFrom(instance.dimension, TeamsDimensions.TEAMS_LOBBY_LEVEL, BlockPos.ZERO);
+		kickAllPlayersFrom(instance.dimension, fallbackDimension, fallbackSpawn);
+		closeInstance(instance.dimension);
 
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 		instance.runningTask = server.submit(() -> runLevelCopy(instance, levelID));
@@ -113,6 +120,27 @@ public class DimensionInstancingManager
 			return true;
 
 		return instance.runningTask.isDone();
+	}
+	public boolean checkLoadLevelComplete(int instanceID)
+	{
+		if(instanceID < 0 || instanceID >= instances.size())
+			return true;
+		Instance instance = instances.get(instanceID);
+		if (instance.runningTask == null)
+			return true;
+
+		if(instance.runningTask.isDone())
+		{
+			MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+			ServerLevel level = server.getLevel(instance.dimension);
+			if(level != null)
+			{
+				level.getChunkSource().tick(() -> true, false);
+			}
+			return true;
+		}
+
+		return false;
 	}
 	public boolean beginSaveChunksToLevel(@Nonnull ResourceKey<Level> srcDimension, @Nonnull ChunkPos min, @Nonnull ChunkPos max, @Nonnull String levelName)
 	{
@@ -132,7 +160,28 @@ public class DimensionInstancingManager
 			for(ServerPlayer player : playersToTeleport)
 			{
 				player.teleportTo(targetLevel, fallbackPos.getX(), fallbackPos.getY(), fallbackPos.getZ(), 0f, 0f);
+				player.setRespawnPosition(fallbackDimension, fallbackPos, 0f, true, false);
 			}
+		}
+	}
+	private void closeInstance(@Nonnull ResourceKey<Level> dimension)
+	{
+		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+		ServerLevel level = server.getLevel(dimension);
+		if(level != null)
+		{
+			level.noSave = true;
+			level.getChunkSource().removeTicketsOnClosing();
+			level.getChunkSource().tick(() -> true, false);
+			//try
+			//{
+			//	net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.level.LevelEvent.Unload(level));
+			//	level.close();
+			//}
+			//catch (IOException e)
+			//{
+			//	TeamsMod.LOGGER.error(e.toString());
+			//}
 		}
 	}
 
