@@ -10,10 +10,7 @@ import com.flansmod.teams.client.gui.ChooseLoadoutScreen;
 import com.flansmod.teams.client.gui.ChooseTeamScreen;
 import com.flansmod.teams.client.gui.VotingScreen;
 import com.flansmod.teams.common.TeamsMod;
-import com.flansmod.teams.common.info.GameplayInfo;
-import com.flansmod.teams.common.info.LoadoutInfo;
-import com.flansmod.teams.common.info.MapVotingOption;
-import com.flansmod.teams.common.info.TeamScoreInfo;
+import com.flansmod.teams.common.info.*;
 import com.flansmod.teams.common.network.TeamsModPacketHandler;
 import com.flansmod.teams.common.network.toclient.*;
 import com.flansmod.teams.common.network.toserver.PlaceVoteMessage;
@@ -21,6 +18,7 @@ import com.flansmod.teams.common.network.toserver.SelectPresetLoadoutMessage;
 import com.flansmod.teams.common.network.toserver.SelectTeamMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -39,6 +37,9 @@ public class TeamsClientManager
 	public GamemodeInfo currentGamemode = GamemodeInfo.invalid;
 	public MapInfo currentMap = MapInfo.invalid;
 	public GameplayInfo currentState = new GameplayInfo();
+	public boolean isBuilder = false;
+	public final List<BuilderMapInfo> builderInfo = new ArrayList<>();
+	public final List<KillInfo> kills = new ArrayList<>();
 
 	private final Map<String, IClientGamemode> clientGamemodes = new HashMap<>();
 
@@ -54,6 +55,11 @@ public class TeamsClientManager
 			PresetLoadoutOptionsMessage.class, PresetLoadoutOptionsMessage::new, () -> this::receiveLoadoutOptions);
 		TeamsModPacketHandler.registerClientHandler(
 			PhaseUpdateMessage.class, PhaseUpdateMessage::new, () -> this::receivePhaseUpdate);
+		TeamsModPacketHandler.registerClientHandler(
+			AddKillsMessage.class, AddKillsMessage::new, () -> this::receiveKillsInfo);
+
+		TeamsModPacketHandler.registerClientHandler(
+			BuilderAdminMessage.class, BuilderAdminMessage::new, () -> this::receiveBuilderInfo);
 	}
 
 	public void registerClientGamemode(@Nonnull String gamemodeID, @Nonnull IClientGamemode clientGamemode)
@@ -61,13 +67,23 @@ public class TeamsClientManager
 		clientGamemodes.put(gamemodeID, clientGamemode);
 	}
 
-
+	public boolean isBuilder() { return isBuilder; }
+	@Nonnull
+	public List<BuilderMapInfo> getBuilderInfo() { return builderInfo; }
 	@Nonnull
 	public List<TeamScoreInfo> getTeamScores()
 	{
 		return scores;
 	}
-
+	@Nonnull
+	public List<TeamScoreInfo> getNonSpectatorTeamScores()
+	{
+		List<TeamScoreInfo> nonSpecs = new ArrayList<>(Math.max(scores.size() - 1, 0));
+		for(TeamScoreInfo teamScore : scores)
+			if(!teamScore.teamID.equals(TeamInfo.spectator))
+				nonSpecs.add(teamScore);
+		return nonSpecs;
+	}
 	@Nonnull
 	public List<MapVotingOption> getMapVoteOptions()
 	{
@@ -120,7 +136,24 @@ public class TeamsClientManager
 
 		return true;
 	}
+	@Nullable
+	public PlayerScoreInfo getMyScoreInfo()
+	{
+		Player player = Minecraft.getInstance().player;
+		if(player == null)
+			return null;
 
+		for(TeamScoreInfo teamScore : getTeamScores())
+		{
+			for(PlayerScoreInfo playerScore : teamScore.players)
+			{
+				if(playerScore.playerID.equals(player.getUUID()))
+					return playerScore;
+			}
+		}
+
+		return null;
+	}
 	@Nullable
 	public TeamScoreInfo getWinningTeam()
 	{
@@ -146,7 +179,11 @@ public class TeamsClientManager
 
 		return max;
 	}
-
+	@Nullable
+	public IClientGamemode getCurrentClientGamemode()
+	{
+		return clientGamemodes.get(currentGamemode.gamemodeID());
+	}
 	@Nullable
 	public IClientGamemode getClientGamemode(@Nonnull String gamemodeID)
 	{
@@ -185,11 +222,21 @@ public class TeamsClientManager
 		if (msg.andOpenGUI)
 			openTeamSelectGUI();
 	}
-
+	public void receiveKillsInfo(@Nonnull AddKillsMessage msg)
+	{
+		kills.addAll(msg.kills);
+	}
 	public void receivePhaseUpdate(@Nonnull PhaseUpdateMessage msg)
 	{
 		currentState.currentPhase = msg.currentPhase;
 		currentState.ticksRemaining = (int) (msg.startedTick + msg.phaseLength - getCurrentTime());
+	}
+	public void receiveBuilderInfo(@Nonnull BuilderAdminMessage msg)
+	{
+		isBuilder = msg.isBuilder;
+		builderInfo.clear();
+		if(isBuilder)
+			builderInfo.addAll(msg.mapInfo);
 	}
 
 

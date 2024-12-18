@@ -1,18 +1,15 @@
 package com.flansmod.teams.api.runtime;
 
 import com.flansmod.teams.api.OpResult;
+import com.flansmod.teams.api.TeamsAPI;
+import com.flansmod.teams.api.admin.TeamInfo;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
 
 public interface IPlayerGameplayInfo
 {
-	String SCORE_TYPE_OBJECTIVES = "obj";
-	String SCORE_TYPE_KILLS = "kill";
-	String SCORE_TYPE_ASSISTS = "assist";
-	String SCORE_TYPE_DEATHS = "death";
 
-	String RELATIONSHIP_TYPE_ASSIST = "assist";
 
 	@Nonnull UUID getID();
 
@@ -26,25 +23,27 @@ public interface IPlayerGameplayInfo
 	@Nonnull OpResult resetAllScores();
 	@Nonnull OpResult addScore(@Nonnull String scoreType, int add);
 
+	@Nonnull OpResult setTeamChoice(@Nonnull TeamInfo teamID);
+	@Nonnull TeamInfo getTeamChoice();
 	@Nonnull OpResult setLoadoutChoice(int loadoutIndex);
 	int getLoadoutChoice();
 
-	default int getKills() { return getScore(SCORE_TYPE_KILLS); }
-	default int getAssists() { return getScore(SCORE_TYPE_ASSISTS); }
-	default int getObjectiveScore() { return getScore(SCORE_TYPE_OBJECTIVES); }
-	default int getDeaths() { return getScore(SCORE_TYPE_DEATHS); }
-	default OpResult addKills(int add) { return addScore(SCORE_TYPE_KILLS, add); }
-	default OpResult addAssists(int add) { return addScore(SCORE_TYPE_ASSISTS, add); }
-	default OpResult addObjectiveScore(int add) { return addScore(SCORE_TYPE_OBJECTIVES, add); }
-	default OpResult addDeaths(int add) { return addScore(SCORE_TYPE_DEATHS, add); }
+	default int getKills() { return getScore(TeamsAPI.SCORE_TYPE_KILLS); }
+	default int getAssists() { return getScore(TeamsAPI.SCORE_TYPE_ASSISTS); }
+	default int getObjectiveScore() { return getScore(TeamsAPI.SCORE_TYPE_OBJECTIVES); }
+	default int getDeaths() { return getScore(TeamsAPI.SCORE_TYPE_DEATHS); }
+	default OpResult addKills(int add) { return addScore(TeamsAPI.SCORE_TYPE_KILLS, add); }
+	default OpResult addAssists(int add) { return addScore(TeamsAPI.SCORE_TYPE_ASSISTS, add); }
+	default OpResult addObjectiveScore(int add) { return addScore(TeamsAPI.SCORE_TYPE_OBJECTIVES, add); }
+	default OpResult addDeaths(int add) { return addScore(TeamsAPI.SCORE_TYPE_DEATHS, add); }
 
 
 	boolean hasRelationship(@Nonnull UUID otherPlayer, @Nonnull String relationshipType);
 	@Nonnull OpResult addRelationship(@Nonnull UUID otherPlayer, @Nonnull String relationshipType);
 	@Nonnull OpResult removeRelationship(@Nonnull UUID otherPlayer, @Nonnull String relationshipType);
 
-	default boolean hasAssistOn(@Nonnull UUID otherPlayer) { return hasRelationship(otherPlayer, RELATIONSHIP_TYPE_ASSIST); }
-	default OpResult tagAssistOn(@Nonnull UUID otherPlayer) { return addRelationship(otherPlayer, RELATIONSHIP_TYPE_ASSIST); }
-	default OpResult removeAssistOn(@Nonnull UUID otherPlayer) { return removeRelationship(otherPlayer, RELATIONSHIP_TYPE_ASSIST); }
+	default boolean hasAssistOn(@Nonnull UUID otherPlayer) { return hasRelationship(otherPlayer, TeamsAPI.RELATIONSHIP_TYPE_ASSIST); }
+	default OpResult tagAssistOn(@Nonnull UUID otherPlayer) { return addRelationship(otherPlayer, TeamsAPI.RELATIONSHIP_TYPE_ASSIST); }
+	default OpResult removeAssistOn(@Nonnull UUID otherPlayer) { return removeRelationship(otherPlayer, TeamsAPI.RELATIONSHIP_TYPE_ASSIST); }
 
 }

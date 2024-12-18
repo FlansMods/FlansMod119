@@ -14,6 +14,7 @@ public interface IPlayerPersistentInfo
 
 	@Nonnull OpResult setBuilder(boolean set);
 	boolean isBuilder();
+	@Nullable IPlayerBuilderSettings getBuilderSettings();
 
 	int getPlayerRank();
 	int getPlayerXP();

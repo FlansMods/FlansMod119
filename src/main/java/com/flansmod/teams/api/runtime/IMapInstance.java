@@ -18,6 +18,5 @@ public interface IMapInstance
 	@Nonnull List<ChunkPos> getChunkLoadTickets();
 	@Nonnull List<IControlPointRef> getControlPoints();
 	@Nonnull List<ISpawnPoint> getSpawnPoints();
-
 	@Nullable IControlPointInstance tryResolve(@Nonnull IControlPointRef ref, boolean loadChunks);
 }

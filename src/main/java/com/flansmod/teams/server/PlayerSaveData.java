@@ -1,11 +1,12 @@
 package com.flansmod.teams.server;
 
 import com.flansmod.teams.api.OpResult;
+import com.flansmod.teams.api.admin.IPlayerBuilderSettings;
 import com.flansmod.teams.api.admin.IPlayerLoadout;
 import com.flansmod.teams.api.admin.IPlayerPersistentInfo;
-import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -17,6 +18,7 @@ public class PlayerSaveData implements IPlayerPersistentInfo
 	private int rank = 0;
 	private int xp = 0;
 	private boolean inBuildMode = false;
+	private IPlayerBuilderSettings builderSettings = null;
 
 	public PlayerSaveData(@Nonnull UUID id)
 	{
@@ -27,10 +29,14 @@ public class PlayerSaveData implements IPlayerPersistentInfo
 	public OpResult setBuilder(boolean set)
 	{
 		inBuildMode = set;
+		if(set && builderSettings == null)
+			builderSettings = new PlayerBuilderSettings();
 		return OpResult.SUCCESS;
 	}
 	@Override
 	public boolean isBuilder() { return inBuildMode; }
+	@Override @Nullable
+	public IPlayerBuilderSettings getBuilderSettings() { return builderSettings; }
 	@Override @Nonnull
 	public UUID getID() { return playerID; }
 	@Override

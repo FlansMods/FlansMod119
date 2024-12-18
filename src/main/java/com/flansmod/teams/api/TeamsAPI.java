@@ -10,8 +10,14 @@ import javax.annotation.Nullable;
 public class TeamsAPI
 {
 	public static final String INVALID_MAP_NAME = "null";
+	public static final String SCORE_TYPE_OBJECTIVES = "obj";
+	public static final String SCORE_TYPE_KILLS = "kill";
+	public static final String SCORE_TYPE_ASSISTS = "assist";
+	public static final String SCORE_TYPE_DEATHS = "death";
+	public static final String RELATIONSHIP_TYPE_ASSIST = "assist";
+
 	@Nonnull
-	public static OpResult isValidMapName(@Nonnull String mapName) { return INVALID_MAP_NAME.equals(mapName) ? OpResult.SUCCESS : OpResult.FAILURE_GENERIC; }
+	public static OpResult isValidMapName(@Nonnull String mapName) { return INVALID_MAP_NAME.equals(mapName) ? OpResult.FAILURE_GENERIC : OpResult.SUCCESS; }
 
 	private static ITeamsAdmin adminInstance;
 	private static ITeamsRuntime runtimeInstance;

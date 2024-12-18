@@ -1,5 +1,6 @@
 package com.flansmod.teams.server;
 
+import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.api.runtime.IPlayerGameplayInfo;
 import com.flansmod.teams.api.OpResult;
 
@@ -10,6 +11,7 @@ public class PlayerInstance implements IPlayerGameplayInfo
 {
 	public final UUID playerID;
 	private int mapVote = 0;
+	private TeamInfo nextTeamChoice = TeamInfo.invalid;
 	private int loadoutChoice = 0;
 	private final Map<String, Integer> scores = new HashMap<>();
 	private final Map<UUID, List<String>> relationships = new HashMap<>();
@@ -39,7 +41,17 @@ public class PlayerInstance implements IPlayerGameplayInfo
 	{
 		return false;
 	}
-
+	@Override @Nonnull
+	public OpResult setTeamChoice(@Nonnull TeamInfo teamID)
+	{
+		nextTeamChoice = teamID;
+		return OpResult.SUCCESS;
+	}
+	@Override @Nonnull
+	public TeamInfo getTeamChoice()
+	{
+		return nextTeamChoice;
+	}
 	@Override @Nonnull
 	public OpResult setLoadoutChoice(int loadoutIndex)
 	{

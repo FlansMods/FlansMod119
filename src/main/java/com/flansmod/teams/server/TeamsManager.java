@@ -14,6 +14,7 @@ import com.flansmod.teams.common.network.toserver.PlaceVoteMessage;
 import com.flansmod.teams.common.network.toserver.SelectTeamMessage;
 import com.flansmod.teams.common.network.TeamsModPacketHandler;
 import com.flansmod.teams.server.map.SingleDimensionMapInstance;
+import com.flansmod.teams.server.map.SpawnPointRef;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -88,6 +89,9 @@ public class TeamsManager implements
 			TeamsDimensions.TEAMS_LOBBY_LEVEL,
 			BlockPos.ZERO);
 
+		// Construct is always available to use, no swapping
+		constructManager.reserveInstance();
+
 		// TODO: Scan for teams_maps/<map_name>.dat
 		// Then load teams_maps/<map_name>/region/...
 
@@ -136,7 +140,7 @@ public class TeamsManager implements
 								targetPhase = ERoundPhase.Inactive;
 							}
 
-							if(!instanceManager.beginLoadLevel(reservedInstanceID, getCurrentMapName()))
+							if(!instanceManager.beginLoadLevel(reservedInstanceID, getCurrentMapName(), null))
 							{
 								TeamsMod.LOGGER.error("Failed to begin level load to Dimension instance");
 								targetPhase = ERoundPhase.Inactive;
@@ -358,6 +362,9 @@ public class TeamsManager implements
 	public void serverTick()
 	{
 		ticksInCurrentPhase++;
+
+		instanceManager.serverTick();
+		constructManager.serverTick();
 
 		getPhaseImpl(currentPhase).tick();
 		if(targetPhase != currentPhase)
@@ -622,12 +629,38 @@ public class TeamsManager implements
 		if(currentPhase != ERoundPhase.Gameplay)
 			return;
 
+		IPlayerGameplayInfo playerData = currentRoundInstance.getPlayerData(player.getUUID());
+		if(playerData == null)
+		{
+			player.sendSystemMessage(Component.translatable("teams.player_msg.server_error"));
+			return;
+		}
+		ITeamInstance selectedTeam = currentRoundInstance.getTeam(selection);
+		if(selectedTeam == null)
+		{
+			player.sendSystemMessage(Component.translatable("teams.player_msg.invalid_team"));
+			return;
+		}
 
+		// Always set the next team
+		playerData.setTeamChoice(selection);
+
+		// Then, work out if we do instant-switch
+		ITeamInstance previousTeam = currentRoundInstance.getTeamOf(player);
+		boolean instantRespawn = previousTeam == null ||
+			(getCurrentGamemode() != null && getCurrentGamemode().doInstantRespawn(previousTeam.getTeamID(), selection));
+
+		if(instantRespawn)
+		{
+			if(previousTeam != null)
+				previousTeam.remove(player);
+
+			selectedTeam.add(player);
+			forceSpawnPlayer(player);
+		}
 	}
 	public void playerSelectedClass(@Nonnull ServerPlayer player, int loadoutIndex)
 	{
-		// TODO:
-
 		if(currentPhase != ERoundPhase.Gameplay)
 		{
 			player.sendSystemMessage(Component.translatable("teams.player_msg.invalid_phase"));
@@ -713,7 +746,28 @@ public class TeamsManager implements
 
 		return currentRoundInstance.getTeams().get(0);
 	}
+	@Nonnull
+	public ISpawnPoint getSpawnPointFor(@Nonnull ServerPlayer player)
+	{
+		if(currentRoundInstance != null)
+		{
+			IGamemodeInstance gamemode = currentRoundInstance.getGamemode();
+			IMapInstance map = currentRoundInstance.getMap();
+			if(gamemode != null && map != null)
+				return gamemode.getSpawnPoint(map, player);
+		}
+		return new SpawnPointRef(TeamsDimensions.TEAMS_LOBBY_LEVEL, BlockPos.ZERO);
+	}
 
+	private void forceSpawnPlayer(@Nonnull ServerPlayer player)
+	{
+		ISpawnPoint spawnPoint = getSpawnPointFor(player);
+		player.setRespawnPosition(spawnPoint.getDimension(), spawnPoint.getPos(), 0f, true, false);
+		if(player.isAlive())
+		{
+			player.kill();
+		}
+	}
 
 	public void receiveSelectTeamMessage(@Nonnull SelectTeamMessage msg, @Nonnull ServerPlayer from)
 	{
@@ -721,7 +775,11 @@ public class TeamsManager implements
 	}
 	public void receivePlaceVoteMessage(@Nonnull PlaceVoteMessage msg, @Nonnull ServerPlayer from)
 	{
-
+		IPlayerGameplayInfo playerInfo = currentRoundInstance.getPlayerData(from.getUUID());
+		if(playerInfo != null)
+		{
+			playerInfo.setVote(msg.voteIndex);
+		}
 	}
 
 	public void sendPhaseUpdateTo(@Nonnull ServerPlayer player)

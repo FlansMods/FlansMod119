@@ -1,5 +1,7 @@
 package com.flansmod.teams.client.gamemode;
 
+import com.flansmod.teams.api.TeamsAPI;
+import com.flansmod.teams.api.runtime.IPlayerGameplayInfo;
 import com.flansmod.teams.client.gui.OneTeamScoresScreen;
 import com.flansmod.teams.client.gui.ScoresScreen;
 import net.minecraft.network.chat.Component;
@@ -33,4 +35,10 @@ public class OneTeamClientGamemode implements IClientGamemode
 	public Component getName() { return name; }
 	@Override @Nonnull
 	public Component getDescription() { return description; }
+
+	@Override @Nonnull
+	public List<String> getScoreTypes()
+	{
+		return List.of(TeamsAPI.SCORE_TYPE_KILLS, TeamsAPI.SCORE_TYPE_ASSISTS, TeamsAPI.SCORE_TYPE_DEATHS);
+	}
 }

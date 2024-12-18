@@ -2,6 +2,7 @@ package com.flansmod.teams.server;
 
 import com.flansmod.teams.api.*;
 import com.flansmod.teams.api.admin.RoundInfo;
+import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.api.runtime.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
@@ -123,7 +124,16 @@ public class RoundInstance implements IRoundInstance
 				players.remove(i);
 		return OpResult.SUCCESS;
 	}
-
+	@Override @Nullable
+	public ITeamInstance getTeam(@Nonnull TeamInfo teamID)
+	{
+		for(ITeamInstance team : getTeams())
+		{
+			if(team.getTeamID().equals(teamID))
+				return team;
+		}
+		return null;
+	}
 	@Override @Nullable
 	public ITeamInstance getTeamOf(@Nonnull Entity entity)
 	{

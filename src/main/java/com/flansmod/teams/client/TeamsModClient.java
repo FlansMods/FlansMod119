@@ -1,6 +1,7 @@
 package com.flansmod.teams.client;
 
 import com.flansmod.teams.client.gamemode.TwoTeamClientGamemode;
+import com.flansmod.teams.client.gui.TeamsRenderHooks;
 import com.flansmod.teams.common.TeamsMod;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
@@ -16,6 +17,7 @@ import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 public class TeamsModClient
 {
 	public static final TeamsClientManager MANAGER = new TeamsClientManager();
+	public static final TeamsRenderHooks HOOKS = new TeamsRenderHooks();
 
 	@SubscribeEvent
 	public static void clientInit(final FMLClientSetupEvent event)

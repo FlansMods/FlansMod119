@@ -1,5 +1,7 @@
 package com.flansmod.teams.server.command;
 
+import com.flansmod.teams.api.admin.IPlayerBuilderSettings;
+import com.flansmod.teams.api.admin.IPlayerPersistentInfo;
 import com.flansmod.teams.api.admin.MapInfo;
 import com.flansmod.teams.api.OpResult;
 import com.flansmod.teams.common.TeamsMod;
@@ -33,13 +35,12 @@ public class CommandConstruct
 				.requires(player -> player.hasPermission(2))
 				.then(Commands.literal("list").executes(CommandConstruct::listInstances))
 				.then(Commands.literal("enter").executes(CommandConstruct::enterConstruct)
-					.then(Commands.argument("index", IntegerArgumentType.integer(0))
-						.executes(CommandConstruct::enterConstruct)
-						.then(Commands.argument("x", DoubleArgumentType.doubleArg())
-							.then(Commands.argument("y", DoubleArgumentType.doubleArg())
-								.then(Commands.argument("z", DoubleArgumentType.doubleArg())
-									.executes(CommandConstruct::enterConstruct)
-								)
+					//.then(Commands.argument("index", IntegerArgumentType.integer(0))
+					.executes(CommandConstruct::enterConstruct)
+					.then(Commands.argument("x", DoubleArgumentType.doubleArg())
+						.then(Commands.argument("y", DoubleArgumentType.doubleArg())
+							.then(Commands.argument("z", DoubleArgumentType.doubleArg())
+								.executes(CommandConstruct::enterConstruct)
 							)
 						)
 					)
@@ -79,18 +80,56 @@ public class CommandConstruct
 	private static int enterConstruct(@Nonnull CommandContext<CommandSourceStack> context)
 	{
 		DimensionInstancingManager dimManager = TeamsMod.MANAGER.getConstructs();
+		String levelID = dimManager.getLoadedLevel(0);
+
+		if(levelID == null)
+		{
+			context.getSource().sendFailure(Component.translatable("teams.construct.enter.failure_construct_empty"));
+			return -1;
+		}
+
 		if(context.getSource().isPlayer())
 		{
-			int constructIndex = tryGetInt(context, "index", 0);
-			double x = tryGetDouble(context, "x", 0d);
-			double y = tryGetDouble(context, "y", 0d);
-			double z = tryGetDouble(context, "z", 0d);
+			//int constructIndex = tryGetInt(context, "index", 0);
 			ServerPlayer player = context.getSource().getPlayer();
 			if(player != null)
 			{
-				dimManager.enterInstance(context.getSource().getPlayer(), constructIndex, x, y, z);
+				double x = tryGetDouble(context, "x", Double.NaN);
+				double y = tryGetDouble(context, "y", Double.NaN);
+				double z = tryGetDouble(context, "z", Double.NaN);
+
+				if(Double.isNaN(x) || Double.isNaN(y) || Double.isNaN(z))
+				{
+					x = 0d;
+					y = 0d;
+					z = 0d;
+
+					// Step 1: Did we save an exit point?
+					IPlayerPersistentInfo playerData = TeamsMod.MANAGER.getPlayerData(player.getUUID());
+					IPlayerBuilderSettings buildSettings = playerData != null ? playerData.getBuilderSettings() : null;
+					if(buildSettings != null)
+					{
+						BlockPos pos = buildSettings.getLastPositionInConstruct(levelID);
+						if(pos != null)
+						{
+							x = pos.getX();
+							y = pos.getY();
+							z = pos.getZ();
+						}
+					}
+				}
+
+				boolean enterSuccess = dimManager.enterInstance(context.getSource().getPlayer(), 0, x, y, z);
+				if(enterSuccess)
+					context.getSource().sendSuccess(() -> Component.translatable("teams.construct.enter.success"), true);
+				else
+					context.getSource().sendFailure(Component.translatable("teams.construct.enter.tp_failed"));
 			}
+			else
+				context.getSource().sendFailure(Component.translatable("teams.construct.enter.no_player"));
 		}
+		else
+			context.getSource().sendFailure(Component.translatable("teams.construct.enter.no_player"));
 
 		return -1;
 	}
@@ -128,7 +167,8 @@ public class CommandConstruct
 			maxChunk = new ChunkPos(centerChunk.x + chunkRadius, centerChunk.z + chunkRadius);
 		}
 
-		dimManager.beginSaveChunksToLevel(sourceDimension, minChunk, maxChunk, mapName);
+		dimManager.beginSaveChunksToLevel(sourceDimension, minChunk, maxChunk, mapName, context.getSource());
+		context.getSource().sendSuccess(() -> Component.translatable("teams.construct.clone.started", mapName), true);
 
 		return -1;
 	}
@@ -137,7 +177,11 @@ public class CommandConstruct
 		DimensionInstancingManager dimManager = TeamsMod.MANAGER.getConstructs();
 		int constructIndex = tryGetInt(context, "index", 0);
 		String mapName = StringArgumentType.getString(context, "mapName");
-		dimManager.beginLoadLevel(constructIndex, mapName);
+
+		boolean success = dimManager.beginLoadLevel(constructIndex, mapName, context.getSource());
+		if(success)
+			context.getSource().sendSuccess(() -> Component.translatable("teams.construct.load.started", mapName), true);
+
 		return -1;
 	}
 	private static int tryGetInt(@Nonnull CommandContext<CommandSourceStack> ctx, @Nonnull String name, int defaultValue)
