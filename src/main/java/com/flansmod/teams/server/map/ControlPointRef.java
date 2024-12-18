@@ -10,21 +10,18 @@ import net.minecraft.world.level.Level;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 
-public record ControlPointRef(@Nonnull ResourceKey<Level> dimension,
-							  @Nonnull BlockPos pos,
+public record ControlPointRef( @Nonnull BlockPos pos,
 							  double radius,
 							  int startingTeamIndex) implements IControlPointRef
 {
-	public static ControlPointRef of(@Nonnull ResourceKey<Level> dimension, @Nonnull CompoundTag tags)
+	public static ControlPointRef of(@Nonnull CompoundTag tags)
 	{
 		BlockPos pos = new BlockPos(tags.getInt("x"), tags.getInt("y"), tags.getInt("z"));
 		double radius = tags.getDouble("radius");
 		int startingTeamIndex = tags.getInt("team");
-		return new ControlPointRef(dimension, pos, radius, startingTeamIndex);
+		return new ControlPointRef(pos, radius, startingTeamIndex);
 	}
 
-	@Override @Nonnull
-	public ResourceKey<Level> getDimension() { return dimension; }
 	@Override @Nonnull
 	public BlockPos getPos() { return pos; }
 	@Override

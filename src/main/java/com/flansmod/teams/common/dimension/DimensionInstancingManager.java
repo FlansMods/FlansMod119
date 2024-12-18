@@ -11,10 +11,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.chunk.storage.RegionFile;
 import net.minecraft.world.level.dimension.DimensionType;
 import net.minecraft.world.level.storage.LevelResource;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nonnull;
@@ -161,7 +159,7 @@ public class DimensionInstancingManager
 
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 		instance.loadingMap = levelID;
-		instance.runningTask = server.submit(() -> runLevelCopy(instance, levelID, listener));
+		instance.runningTask = server.submit(() -> runCopyLevelToInstance(instance, levelID, listener));
 
 		return true;
 	}
@@ -177,6 +175,29 @@ public class DimensionInstancingManager
 	{
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 		server.submit(() -> runChunkCopy(srcDimension, min, max, levelName, listener));
+		return true;
+	}
+	public boolean saveChangesInInstance(int instanceID, @Nullable CommandSourceStack listener)
+	{
+		if(instanceID < 0 || instanceID >= instances.size())
+			return false;
+		Instance instance = instances.get(instanceID);
+		if (instance.runningTask != null)
+		{
+			if(listener != null)
+				listener.sendFailure(Component.translatable("teams.construct.save.failure_instance_busy"));
+			return false;
+		}
+		if(instance.currentMap == null)
+		{
+			if(listener != null)
+				listener.sendFailure(Component.translatable("teams.construct.save.failure_construct_empty"));
+			return false;
+		}
+
+		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+		instance.runningTask = server.submit(() -> runCopyInstanceToLevel(instance, instance.currentMap, listener));
+
 		return true;
 	}
 
@@ -339,8 +360,94 @@ public class DimensionInstancingManager
 
 		return false;
 	}
+	private boolean runCopyInstanceToLevel(@Nonnull Instance instance, @Nonnull String levelID, @Nullable CommandSourceStack listener)
+	{
+		try
+		{
+			MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+			File serverDir = server.getServerDirectory();
+			Path levelRoot = server.getWorldPath(LevelResource.ROOT);
+			Path dimRoot = DimensionType.getStorageFolder(instance.dimension, levelRoot);
 
-	private boolean runLevelCopy(@Nonnull Instance instance, @Nonnull String levelID, @Nullable CommandSourceStack listener)
+			File dstDir = new File(serverDir.getPath() + "/teams_maps/" + levelID);
+			File srcDir = dimRoot.toFile();
+
+			if (dstDir.exists() && dstDir.isDirectory())
+			{
+				File dstRegionsDir = new File(dstDir.getPath() + "/region/");
+				if (dstRegionsDir.exists() && dstRegionsDir.isDirectory())
+				{
+					File[] regionFiles = dstRegionsDir.listFiles();
+					if(regionFiles != null)
+					{
+						for (File regionFile : regionFiles)
+						{
+							if (!regionFile.delete())
+							{
+								TeamsMod.LOGGER.error("[runCopyInstanceToLevel] Region file '" + regionFile + "' could not be deleted");
+								if (listener != null)
+									listener.sendFailure(Component.translatable("teams.construct.save.failure_io_error"));
+								return false;
+							}
+						}
+					}
+				}
+				if (srcDir.exists() && srcDir.isDirectory())
+				{
+					File srcRegionsDir = new File(srcDir.getPath() + "/region/");
+					if (srcRegionsDir.exists() && srcRegionsDir.isDirectory())
+					{
+						File[] srcRegionFiles = srcRegionsDir.listFiles();
+						if(srcRegionFiles != null)
+						{
+							for (File srcRegionFile : srcRegionFiles)
+							{
+								File dstRegionFile = new File(dstRegionsDir + srcRegionFile.getName());
+								Files.createParentDirs(dstRegionFile);
+								Files.copy(srcRegionFile, dstRegionFile);
+							}
+						}
+					}
+					else
+					{
+						TeamsMod.LOGGER.error("[runCopyInstanceToLevel] Regions folder does not exist at '"+srcRegionsDir+"'");
+						if(listener != null)
+							listener.sendFailure(Component.translatable("teams.construct.save.failure_bad_level"));
+						return false;
+					}
+
+					instance.runningTask = null;
+
+					TeamsMod.LOGGER.info("[runCopyInstanceToLevel] Successfully copied '"+srcDir+"' to '"+dstDir+"'");
+					if(listener != null)
+						listener.sendSuccess(() -> Component.translatable("teams.construct.save.success", levelID), true);
+					return true;
+				}
+				else
+				{
+					TeamsMod.LOGGER.error("[runCopyInstanceToLevel] Level directory does not exist at '"+srcDir+"'");
+					if(listener != null)
+						listener.sendFailure(Component.translatable("teams.construct.save.failure_bad_level"));
+					return false;
+				}
+			}
+			else
+			{
+				TeamsMod.LOGGER.error("[runCopyInstanceToLevel] Target level directory does not exist at '"+dstDir+"'");
+				if(listener != null)
+					listener.sendFailure(Component.translatable("teams.construct.save.failure_bad_level"));
+				return false;
+			}
+		}
+		catch(IOException e)
+		{
+			TeamsMod.LOGGER.error(e.toString());
+			if(listener != null)
+				listener.sendFailure(Component.literal(e.toString()));
+		}
+		return false;
+	}
+	private boolean runCopyLevelToInstance(@Nonnull Instance instance, @Nonnull String levelID, @Nullable CommandSourceStack listener)
 	{
 		try
 		{
@@ -362,7 +469,7 @@ public class DimensionInstancingManager
 						{
 							if (!regionFile.delete())
 							{
-								TeamsMod.LOGGER.error("[runLevelCopy] Region file '" + regionFile + "' could not be deleted");
+								TeamsMod.LOGGER.error("[runCopyLevelToInstance] Region file '" + regionFile + "' could not be deleted");
 								if (listener != null)
 									listener.sendFailure(Component.translatable("teams.construct.load.failure_io_error"));
 								return false;
@@ -390,7 +497,7 @@ public class DimensionInstancingManager
 					}
 					else
 					{
-						TeamsMod.LOGGER.error("[runLevelCopy] Regions folder does not exist at '"+srcRegionsDir+"'");
+						TeamsMod.LOGGER.error("[runCopyLevelToInstance] Regions folder does not exist at '"+srcRegionsDir+"'");
 						if(listener != null)
 							listener.sendFailure(Component.translatable("teams.construct.load.failure_bad_level"));
 						return false;
@@ -415,14 +522,14 @@ public class DimensionInstancingManager
 					instance.loadingMap = null;
 					instance.runningTask = null;
 
-					TeamsMod.LOGGER.info("[runLevelCopy] Successfully copied '"+srcDir+"' to '"+dstDir+"'");
+					TeamsMod.LOGGER.info("[runCopyLevelToInstance] Successfully copied '"+srcDir+"' to '"+dstDir+"'");
 					if(listener != null)
 						listener.sendSuccess(() -> Component.translatable("teams.construct.load.success", levelID), true);
 					return true;
 				}
 				else
 				{
-					TeamsMod.LOGGER.error("[runLevelCopy] Level directory does not exist at '"+srcDir+"'");
+					TeamsMod.LOGGER.error("[runCopyLevelToInstance] Level directory does not exist at '"+srcDir+"'");
 					if(listener != null)
 						listener.sendFailure(Component.translatable("teams.construct.load.failure_bad_level"));
 					return false;
@@ -430,7 +537,7 @@ public class DimensionInstancingManager
 			}
 			else
 			{
-				TeamsMod.LOGGER.error("[runLevelCopy] Target level directory does not exist at '"+dstDir+"'");
+				TeamsMod.LOGGER.error("[runCopyLevelToInstance] Target level directory does not exist at '"+dstDir+"'");
 				if(listener != null)
 					listener.sendFailure(Component.translatable("teams.construct.load.failure_bad_level"));
 				return false;
@@ -460,5 +567,10 @@ public class DimensionInstancingManager
 		}
 
 		return false;
+	}
+	public boolean exitInstance(@Nonnull ServerPlayer player)
+	{
+		player.respawn();
+		return true;
 	}
 }

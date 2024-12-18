@@ -9,17 +9,13 @@ import javax.annotation.Nonnull;
 
 public class SpawnPoint implements ISpawnPoint
 {
-	public final ResourceKey<Level> dimension;
 	public final BlockPos blockPos;
 
-	public SpawnPoint(@Nonnull ResourceKey<Level> dim, @Nonnull BlockPos pos)
+	public SpawnPoint(@Nonnull BlockPos pos)
 	{
-		dimension = dim;
 		blockPos = pos;
 	}
 
-	@Override @Nonnull
-	public ResourceKey<Level> getDimension() { return dimension; }
 	@Override @Nonnull
 	public BlockPos getPos() { return blockPos; }
 }

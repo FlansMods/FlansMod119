@@ -14,9 +14,8 @@ import java.util.List;
 public interface IMapInstance
 {
 	@Nonnull MapInfo getInfo();
-	@Nonnull ResourceKey<Level> getPrimaryDimension();
 	@Nonnull List<ChunkPos> getChunkLoadTickets();
 	@Nonnull List<IControlPointRef> getControlPoints();
 	@Nonnull List<ISpawnPoint> getSpawnPoints();
-	@Nullable IControlPointInstance tryResolve(@Nonnull IControlPointRef ref, boolean loadChunks);
+	@Nullable IControlPointInstance tryResolve(@Nonnull Level level, @Nonnull IControlPointRef ref, boolean loadChunks);
 }

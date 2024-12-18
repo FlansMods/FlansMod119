@@ -13,9 +13,11 @@ import com.flansmod.teams.common.network.toclient.PhaseUpdateMessage;
 import com.flansmod.teams.common.network.toserver.PlaceVoteMessage;
 import com.flansmod.teams.common.network.toserver.SelectTeamMessage;
 import com.flansmod.teams.common.network.TeamsModPacketHandler;
-import com.flansmod.teams.server.map.SingleDimensionMapInstance;
+import com.flansmod.teams.server.map.MapInstance;
 import com.flansmod.teams.server.map.SpawnPointRef;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtIo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
@@ -30,6 +32,8 @@ import net.minecraftforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
 
@@ -47,7 +51,8 @@ public class TeamsManager implements
 	}
 
 	private final Map<String, GamemodeInfo> gamemodes = new HashMap<>();
-	private final Map<String, MapInfo> maps = new HashMap<>();
+	private final Map<String, MapInfo> mapNames = new HashMap<>();
+	private final Map<String, MapInstance> mapDetails = new HashMap<>();
 	private final Map<String, Settings> settings = new HashMap<>();
 	private final Settings defaultMapSettings;
 	private final Map<ERoundPhase, Phase> phaseImpl = new HashMap<>();
@@ -92,9 +97,6 @@ public class TeamsManager implements
 		// Construct is always available to use, no swapping
 		constructManager.reserveInstance();
 
-		// TODO: Scan for teams_maps/<map_name>.dat
-		// Then load teams_maps/<map_name>/region/...
-
 		createInactivePhase();
 		createPreparingPhase();
 		createGameplayPhase();
@@ -106,6 +108,71 @@ public class TeamsManager implements
 
 		TeamsModPacketHandler.registerServerHandler(SelectTeamMessage.class, SelectTeamMessage::new, this::receiveSelectTeamMessage);
 		TeamsModPacketHandler.registerServerHandler(PlaceVoteMessage.class, PlaceVoteMessage::new, this::receivePlaceVoteMessage);
+	}
+
+	public void onServerStarted(@Nonnull MinecraftServer server)
+	{
+		scanForMaps(server);
+	}
+
+	private void scanForMaps(@Nonnull MinecraftServer server)
+	{
+		try
+		{
+			File serverDir = server.getServerDirectory();
+			File mapsDir = new File(serverDir.getPath() + "/teams_maps/");
+			TeamsMod.LOGGER.info("Teams Mod map scan started");
+			if(mapsDir.exists() && mapsDir.isDirectory())
+			{
+				File[] files = mapsDir.listFiles();
+				if(files != null)
+				{
+					for(File mapFolder : files)
+					{
+						if(mapFolder.isDirectory())
+						{
+							String mapName = mapFolder.getName();
+							MapInfo mapDef = new MapInfo(mapName, null);
+							File mapData = new File(mapFolder.getPath() + "/map.dat");
+							if(mapData.exists())
+							{
+								MapInstance mapInst = new MapInstance(mapDef);
+								loadMapData(mapInst);
+								mapNames.put(mapName, mapDef);
+								mapDetails.put(mapName, mapInst);
+								TeamsMod.LOGGER.info("Teams Mod map scan found "+mapName);
+							}
+						}
+					}
+				}
+			}
+			TeamsMod.LOGGER.info("Teams Mod map scan complete, found "+ mapNames.size()+ " map(s)");
+		}
+		catch(IOException e)
+		{
+			TeamsMod.LOGGER.error(e.toString());
+		}
+	}
+	private void loadMapData(@Nonnull MapInstance mapInst) throws IOException
+	{
+		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+		File serverDir = server.getServerDirectory();
+		File mapData = new File(serverDir.getPath() + "/teams_maps/"+mapInst.getInfo().mapName()+"/map.dat");
+		if(mapData.exists())
+		{
+			CompoundTag rootTag = NbtIo.readCompressed(mapData);
+			mapInst.loadFrom(rootTag);
+		}
+	}
+	private void saveMapData(@Nonnull MapInstance mapInst) throws IOException
+	{
+		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+		File serverDir = server.getServerDirectory();
+		File mapData = new File(serverDir.getPath() + "/teams_maps/"+mapInst.getInfo().mapName()+"/map.dat");
+
+		CompoundTag rootTag = new CompoundTag();
+		mapInst.saveTo(rootTag);
+		NbtIo.writeCompressed(rootTag, mapData);
 	}
 
 	private void createInactivePhase()
@@ -236,9 +303,9 @@ public class TeamsManager implements
 				return factory.createInstance(roundInstance);
 			}
 			@Nonnull
-			public SingleDimensionMapInstance createMapInstance(@Nonnull RoundInfo roundInfo, @Nonnull ResourceKey<Level> inDimension)
+			public MapInstance createMapInstance(@Nonnull RoundInfo roundInfo, @Nonnull ResourceKey<Level> inDimension)
 			{
-				return new SingleDimensionMapInstance(roundInfo.map(), inDimension);
+				return new MapInstance(roundInfo.map());
 			}
 			@Nonnull
 			public RoundInstance createRoundInstance(@Nonnull RoundInfo roundInfo)
@@ -421,9 +488,9 @@ public class TeamsManager implements
 	@Override @Nonnull
 	public Collection<GamemodeInfo> getAllGamemodes() { return gamemodes.values(); }
 	@Override @Nonnull
-	public Collection<MapInfo> getAllMaps() { return maps.values(); }
+	public Collection<MapInfo> getAllMaps() { return mapNames.values(); }
 	@Override @Nullable
-	public MapInfo getMapData(@Nonnull String mapName) { return maps.get(mapName); }
+	public MapInfo getMapData(@Nonnull String mapName) { return mapNames.get(mapName); }
 	@Override @Nonnull
 	public ISettings getDefaultSettings() { return defaultMapSettings; }
 	@Override @Nonnull
@@ -464,14 +531,15 @@ public class TeamsManager implements
 	@Override @Nonnull
 	public OpResult createMap(@Nonnull String mapName)
 	{
-		if(maps.containsKey(mapName))
+		if(mapNames.containsKey(mapName))
 			return OpResult.FAILURE_GENERIC;
 		OpResult nameCheck = TeamsAPI.isValidMapName(mapName);
 		if(nameCheck.failure())
 			return nameCheck;
 
 		MapInfo newMap = new MapInfo(mapName, null);
-		maps.put(mapName, newMap);
+		mapNames.put(mapName, newMap);
+		mapDetails.put(mapName, new MapInstance(newMap));
 		return OpResult.SUCCESS;
 	}
 	@Override @Nonnull
@@ -747,22 +815,34 @@ public class TeamsManager implements
 		return currentRoundInstance.getTeams().get(0);
 	}
 	@Nonnull
+	public ResourceKey<Level> getSpawnDimensionFor(@Nonnull ServerPlayer player)
+	{
+		if(isInBuildMode(player.getUUID()))
+			return TeamsDimensions.TEAMS_CONSTRUCT_LEVEL;
+
+		ResourceKey<Level> currentDim = instanceManager.getDimension(reservedInstanceID);
+		if(currentDim != null)
+			return currentDim;
+
+		return TeamsDimensions.TEAMS_LOBBY_LEVEL;
+	}
+	@Nonnull
 	public ISpawnPoint getSpawnPointFor(@Nonnull ServerPlayer player)
 	{
-		if(currentRoundInstance != null)
+		if(!isInBuildMode(player.getUUID()) && currentRoundInstance != null)
 		{
 			IGamemodeInstance gamemode = currentRoundInstance.getGamemode();
 			IMapInstance map = currentRoundInstance.getMap();
 			if(gamemode != null && map != null)
 				return gamemode.getSpawnPoint(map, player);
 		}
-		return new SpawnPointRef(TeamsDimensions.TEAMS_LOBBY_LEVEL, BlockPos.ZERO);
+		return new SpawnPointRef(BlockPos.ZERO);
 	}
 
 	private void forceSpawnPlayer(@Nonnull ServerPlayer player)
 	{
 		ISpawnPoint spawnPoint = getSpawnPointFor(player);
-		player.setRespawnPosition(spawnPoint.getDimension(), spawnPoint.getPos(), 0f, true, false);
+		player.setRespawnPosition(getSpawnDimensionFor(player), spawnPoint.getPos(), 0f, true, false);
 		if(player.isAlive())
 		{
 			player.kill();

@@ -10,6 +10,7 @@ import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import javax.annotation.Nonnull;
@@ -25,6 +26,11 @@ public class ServerEventHooks
 		MinecraftForge.EVENT_BUS.register(this);
 	}
 
+	@SubscribeEvent
+	public void onServerStart(@Nonnull ServerStartedEvent event)
+	{
+		manager.onServerStarted(event.getServer());
+	}
 	@SubscribeEvent
 	public void onServerTick(@Nonnull TickEvent.ServerTickEvent event)
 	{

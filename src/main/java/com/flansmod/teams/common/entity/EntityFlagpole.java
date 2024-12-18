@@ -81,9 +81,6 @@ public class EntityFlagpole extends Entity implements IControlPointInstance
 	public void onRoundEnd()
 	{
 	}
-
-	@Override @Nonnull
-	public ResourceKey<Level> getDimension() { return level().dimension(); }
 	@Override @Nonnull
 	public BlockPos getPos() { return blockPosition(); }
 	@Override @Nonnull

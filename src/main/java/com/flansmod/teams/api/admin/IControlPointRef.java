@@ -9,7 +9,6 @@ import java.util.Collection;
 
 public interface IControlPointRef
 {
-	@Nonnull ResourceKey<Level> getDimension();
 	@Nonnull BlockPos getPos();
 	double getRadius();
 	@Nonnull Collection<IControllableBlockRef> getBlocks();

@@ -10,7 +10,6 @@ import javax.annotation.Nullable;
 
 public interface ISpawnPoint
 {
-	@Nonnull ResourceKey<Level> getDimension();
 	@Nonnull BlockPos getPos();
 	@Nullable default AABB getBoundingBoxCheckArea() { return null; }
 }

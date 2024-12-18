@@ -8,16 +8,14 @@ import net.minecraft.world.level.Level;
 
 import javax.annotation.Nonnull;
 
-public record SpawnPointRef(@Nonnull ResourceKey<Level> dimension, @Nonnull BlockPos pos) implements ISpawnPoint
+public record SpawnPointRef(@Nonnull BlockPos pos) implements ISpawnPoint
 {
 	@Nonnull
-	public static SpawnPointRef of(@Nonnull ResourceKey<Level> dimension, @Nonnull CompoundTag tag)
+	public static SpawnPointRef of(@Nonnull CompoundTag tag)
 	{
-		return new SpawnPointRef(dimension, new BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z")));
+		return new SpawnPointRef(new BlockPos(tag.getInt("x"), tag.getInt("y"), tag.getInt("z")));
 	}
 
-	@Override @Nonnull
-	public ResourceKey<Level> getDimension() { return dimension; }
 	@Override @Nonnull
 	public BlockPos getPos() { return pos; }
 }

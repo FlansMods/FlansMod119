@@ -19,9 +19,11 @@ import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nonnull;
 
@@ -45,11 +47,13 @@ public class CommandConstruct
 						)
 					)
 				)
+				.then(Commands.literal("exit").executes(CommandConstruct::exitConstruct))
 				.then(Commands.literal("load")
 					.then(Commands.argument("mapName", StringArgumentType.word())
 						.executes(CommandConstruct::loadMapIntoConstruct)
 					)
 				)
+				.then(Commands.literal("save").executes(CommandConstruct::saveConstruct))
 				.then(Commands.literal("clone")
 					.then(Commands.argument("mapName", StringArgumentType.word())
 						.then(Commands.argument("min", BlockPosArgument.blockPos())
@@ -75,6 +79,21 @@ public class CommandConstruct
 		{
 			context.getSource().sendSuccess(() -> Component.literal(info), true);
 		}
+		return -1;
+	}
+	private static int saveConstruct(@Nonnull CommandContext<CommandSourceStack> context)
+	{
+		DimensionInstancingManager dimManager = TeamsMod.MANAGER.getConstructs();
+		String levelID = dimManager.getLoadedLevel(0);
+
+		if(levelID == null)
+		{
+			context.getSource().sendFailure(Component.translatable("teams.construct.save.failure_construct_empty"));
+			return -1;
+		}
+
+		if(dimManager.saveChangesInInstance(0, context.getSource()))
+			context.getSource().sendSuccess(() -> Component.translatable("teams.construct.save.started"), true);
 		return -1;
 	}
 	private static int enterConstruct(@Nonnull CommandContext<CommandSourceStack> context)
@@ -133,6 +152,25 @@ public class CommandConstruct
 
 		return -1;
 	}
+	private static int exitConstruct(@Nonnull CommandContext<CommandSourceStack> context)
+	{
+		DimensionInstancingManager dimManager = TeamsMod.MANAGER.getConstructs();
+		ResourceKey<Level> constructDimension = dimManager.getDimension(0);
+		if(context.getSource().isPlayer())
+		{
+			ServerPlayer player = context.getSource().getPlayer();
+			if(player != null && player.level().dimension().equals(constructDimension))
+			{
+				dimManager.exitInstance(player);
+				context.getSource().sendSuccess(() -> Component.translatable("teams.construct.exit.success"), true);
+				return -1;
+			}
+		}
+
+		context.getSource().sendSuccess(() -> Component.translatable("teams.construct.exit.failure"), true);
+		return -1;
+	}
+
 	private static int cloneAreaIntoConstruct(@Nonnull CommandContext<CommandSourceStack> context)
 	{
 		DimensionInstancingManager dimManager = TeamsMod.MANAGER.getConstructs();
