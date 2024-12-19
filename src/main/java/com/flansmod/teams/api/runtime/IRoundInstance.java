@@ -1,6 +1,7 @@
 package com.flansmod.teams.api.runtime;
 
 import com.flansmod.teams.api.OpResult;
+import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.admin.RoundInfo;
 import com.flansmod.teams.api.admin.TeamInfo;
 import net.minecraft.core.BlockPos;
@@ -25,8 +26,9 @@ public interface IRoundInstance
 	@Nullable IGamemodeInstance getGamemode();
 	@Nonnull OpResult assignGamemode(@Nonnull IGamemodeInstance gamemode);
 
-	@Nullable IMapInstance getMap();
-	@Nonnull OpResult assignMap(@Nonnull IMapInstance map);
+	@Nullable
+	IMapDetails getMap();
+	@Nonnull OpResult assignMap(@Nonnull IMapDetails map);
 
 	@Nonnull List<IPlayerGameplayInfo> getParticipatingPlayers();
 	@Nullable

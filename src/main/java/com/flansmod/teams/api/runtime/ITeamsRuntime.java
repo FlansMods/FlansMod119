@@ -2,6 +2,7 @@ package com.flansmod.teams.api.runtime;
 
 import com.flansmod.teams.api.*;
 import com.flansmod.teams.api.admin.GamemodeInfo;
+import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.admin.MapInfo;
 import com.flansmod.teams.api.admin.RoundInfo;
 
@@ -27,7 +28,8 @@ public interface ITeamsRuntime
 	int getTicksInCurrentPhase();
 
 	@Nullable IRoundInstance getCurrentRound();
-	@Nullable IMapInstance getCurrentMap();
+	@Nullable
+	IMapDetails getCurrentMap();
 	@Nullable IGamemodeInstance getCurrentGamemode();
 
 	@Nonnull List<String> getDimensionInfo();

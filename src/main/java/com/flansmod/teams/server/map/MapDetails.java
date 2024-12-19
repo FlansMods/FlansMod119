@@ -2,34 +2,37 @@ package com.flansmod.teams.server.map;
 
 import com.flansmod.teams.api.admin.IControlPointRef;
 import com.flansmod.teams.api.runtime.IControlPointInstance;
-import com.flansmod.teams.api.runtime.IMapInstance;
+import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.admin.ISpawnPoint;
 import com.flansmod.teams.api.admin.MapInfo;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraftforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MapInstance implements IMapInstance
+public class MapDetails implements IMapDetails
 {
 	private final MapInfo def;
 	private final List<ChunkPos> chunks = new ArrayList<>();
 	private final List<ISpawnPoint> spawnPoints = new ArrayList<>();
 	private final List<IControlPointRef> controlPoints = new ArrayList<>();
 
-	public MapInstance(@Nonnull MapInfo mapDef)
+	public MapDetails(@Nonnull MapInfo mapDef)
 	{
 		def = mapDef;
+	}
+	public MapDetails(@Nonnull IMapDetails other)
+	{
+		def = other.getInfo();
+		chunks.addAll(other.getChunkLoadTickets());
+		spawnPoints.addAll(other.getSpawnPoints());
+		controlPoints.addAll(other.getControlPoints());
 	}
 
 	@Override @Nullable

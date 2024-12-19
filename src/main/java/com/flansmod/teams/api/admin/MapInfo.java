@@ -7,4 +7,7 @@ public record MapInfo(@Nonnull String mapName,
 					  @Nullable ISettings settings)
 {
 	public static final MapInfo invalid = new MapInfo("invalid", null);
+
+	@Override
+	public String toString() { return mapName; }
 }

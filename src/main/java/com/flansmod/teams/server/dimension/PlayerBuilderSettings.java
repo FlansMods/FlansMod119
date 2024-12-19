@@ -1,4 +1,4 @@
-package com.flansmod.teams.server;
+package com.flansmod.teams.server.dimension;
 
 import com.flansmod.teams.api.OpResult;
 import com.flansmod.teams.api.admin.IPlayerBuilderSettings;

@@ -5,7 +5,8 @@ import com.flansmod.teams.api.admin.*;
 import com.flansmod.teams.api.runtime.*;
 import com.flansmod.teams.common.TeamsMod;
 import com.flansmod.teams.common.TeamsModConfig;
-import com.flansmod.teams.common.dimension.DimensionInstancingManager;
+import com.flansmod.teams.server.dimension.ConstructManager;
+import com.flansmod.teams.server.dimension.DimensionInstancingManager;
 import com.flansmod.teams.common.dimension.TeamsDimensions;
 import com.flansmod.teams.common.network.toclient.DisplayScoresMessage;
 import com.flansmod.teams.common.network.toclient.MapVotingOptionsMessage;
@@ -13,7 +14,7 @@ import com.flansmod.teams.common.network.toclient.PhaseUpdateMessage;
 import com.flansmod.teams.common.network.toserver.PlaceVoteMessage;
 import com.flansmod.teams.common.network.toserver.SelectTeamMessage;
 import com.flansmod.teams.common.network.TeamsModPacketHandler;
-import com.flansmod.teams.server.map.MapInstance;
+import com.flansmod.teams.server.map.MapDetails;
 import com.flansmod.teams.server.map.SpawnPointRef;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -52,7 +53,7 @@ public class TeamsManager implements
 
 	private final Map<String, GamemodeInfo> gamemodes = new HashMap<>();
 	private final Map<String, MapInfo> mapNames = new HashMap<>();
-	private final Map<String, MapInstance> mapDetails = new HashMap<>();
+	private final Map<String, MapDetails> mapDetails = new HashMap<>();
 	private final Map<String, Settings> settings = new HashMap<>();
 	private final Settings defaultMapSettings;
 	private final Map<ERoundPhase, Phase> phaseImpl = new HashMap<>();
@@ -63,7 +64,6 @@ public class TeamsManager implements
 	private boolean isRotationEnabled = false;
 	private final List<RoundInfo> mapRotation = new ArrayList<>();
 	private final DimensionInstancingManager instanceManager;
-	private final DimensionInstancingManager constructManager;
 	private int reservedInstanceID = DimensionInstancingManager.INVALID_INSTANCE;
 
 	private RoundInfo currentRound = RoundInfo.invalid;
@@ -74,11 +74,12 @@ public class TeamsManager implements
 	private long phaseStartedTick = 0L;
 	private int ticksInCurrentPhase = 0;
 	private RoundInstance currentRoundInstance;
+	private ConstructManager constructManager;
 
 	@Nonnull
 	public DimensionInstancingManager getInstances() { return instanceManager; }
 	@Nonnull
-	public DimensionInstancingManager getConstructs() { return constructManager; }
+	public ConstructManager getConstructs() { return constructManager; }
 
 	public TeamsManager()
 	{
@@ -89,13 +90,11 @@ public class TeamsManager implements
 			TeamsDimensions.TEAMS_INSTANCE_B_LEVEL),
 			TeamsDimensions.TEAMS_LOBBY_LEVEL,
 			BlockPos.ZERO);
-		constructManager = new DimensionInstancingManager(List.of(
+		constructManager = new ConstructManager(List.of(
 			TeamsDimensions.TEAMS_CONSTRUCT_LEVEL),
 			TeamsDimensions.TEAMS_LOBBY_LEVEL,
 			BlockPos.ZERO);
 
-		// Construct is always available to use, no swapping
-		constructManager.reserveInstance();
 
 		createInactivePhase();
 		createPreparingPhase();
@@ -136,7 +135,7 @@ public class TeamsManager implements
 							File mapData = new File(mapFolder.getPath() + "/map.dat");
 							if(mapData.exists())
 							{
-								MapInstance mapInst = new MapInstance(mapDef);
+								MapDetails mapInst = new MapDetails(mapDef);
 								loadMapData(mapInst);
 								mapNames.put(mapName, mapDef);
 								mapDetails.put(mapName, mapInst);
@@ -153,7 +152,7 @@ public class TeamsManager implements
 			TeamsMod.LOGGER.error(e.toString());
 		}
 	}
-	private void loadMapData(@Nonnull MapInstance mapInst) throws IOException
+	private void loadMapData(@Nonnull MapDetails mapInst) throws IOException
 	{
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 		File serverDir = server.getServerDirectory();
@@ -164,7 +163,7 @@ public class TeamsManager implements
 			mapInst.loadFrom(rootTag);
 		}
 	}
-	private void saveMapData(@Nonnull MapInstance mapInst) throws IOException
+	private void saveMapData(@Nonnull MapDetails mapInst) throws IOException
 	{
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 		File serverDir = server.getServerDirectory();
@@ -182,42 +181,25 @@ public class TeamsManager implements
 	private void createPreparingPhase()
 	{
 		phaseImpl.put(ERoundPhase.Preparing, new Phase(){
+
+			private String mapName;
 			private int timeoutTicks() { return (int)Math.floor(TeamsModConfig.preparingPhaseTimeout.get() * 20d); }
 			@Override
 			public void enter()
 			{
 				RoundInfo transitionTo = getNextRoundInfo();
+				mapName = transitionTo.map().mapName();
 				if(TeamsModConfig.useDimensionInstancing.get())
 				{
-					reservedInstanceID = instanceManager.reserveInstance();
-					if(reservedInstanceID == DimensionInstancingManager.INVALID_INSTANCE)
+					OpResult prepResult = instanceManager.beginLoad(mapName);
+					if(prepResult.success())
 					{
-						TeamsMod.LOGGER.error("Failed to reserve Dimension instance");
-						targetPhase = ERoundPhase.Inactive;
+						TeamsMod.LOGGER.info("Started loading instance for map "+mapName);
 					}
 					else
 					{
-						ResourceKey<Level> dimension = instanceManager.getDimension(reservedInstanceID);
-						if(dimension != null)
-						{
-							OpResult prepResult = prepareNewRound(transitionTo, dimension);
-							if(!prepResult.success())
-							{
-								TeamsMod.LOGGER.error("Failed to prepare new round");
-								targetPhase = ERoundPhase.Inactive;
-							}
-
-							if(!instanceManager.beginLoadLevel(reservedInstanceID, getCurrentMapName(), null))
-							{
-								TeamsMod.LOGGER.error("Failed to begin level load to Dimension instance");
-								targetPhase = ERoundPhase.Inactive;
-							}
-						}
-						else
-						{
-							TeamsMod.LOGGER.error("Failed to acquire Dimension for loading level into");
-							targetPhase = ERoundPhase.Inactive;
-						}
+						TeamsMod.LOGGER.error("Failed to prepare new round");
+						targetPhase = ERoundPhase.Inactive;
 					}
 				}
 				else
@@ -247,7 +229,7 @@ public class TeamsManager implements
 				{
 					if(reservedInstanceID != DimensionInstancingManager.INVALID_INSTANCE)
 					{
-						if(instanceManager.checkLoadLevelComplete(reservedInstanceID))
+						if(instanceManager.isLoaded(mapName))
 						{
 							TeamsMod.LOGGER.info("Successfully loaded dimension instance in " + (ticksInCurrentPhase / 20) + "s");
 							targetPhase = ERoundPhase.Gameplay;
@@ -270,7 +252,7 @@ public class TeamsManager implements
 											@Nonnull ResourceKey<Level> inDimension)
 			{
 				RoundInstance round = createRoundInstance(transitionTo);
-				IMapInstance map = createMapInstance(transitionTo, inDimension);
+				IMapDetails map = createMapInstance(transitionTo, inDimension);
 				IGamemodeInstance gamemode = createGamemodeInstance(round);
 				if(gamemode == null)
 					return OpResult.FAILURE_GENERIC;
@@ -303,9 +285,9 @@ public class TeamsManager implements
 				return factory.createInstance(roundInstance);
 			}
 			@Nonnull
-			public MapInstance createMapInstance(@Nonnull RoundInfo roundInfo, @Nonnull ResourceKey<Level> inDimension)
+			public MapDetails createMapInstance(@Nonnull RoundInfo roundInfo, @Nonnull ResourceKey<Level> inDimension)
 			{
-				return new MapInstance(roundInfo.map());
+				return new MapDetails(roundInfo.map());
 			}
 			@Nonnull
 			public RoundInstance createRoundInstance(@Nonnull RoundInfo roundInfo)
@@ -516,7 +498,7 @@ public class TeamsManager implements
 	@Override @Nullable
 	public IRoundInstance getCurrentRound() { return currentRoundInstance; }
 	@Override @Nullable
-	public IMapInstance getCurrentMap() { return currentRoundInstance.getMap(); }
+	public IMapDetails getCurrentMap() { return currentRoundInstance.getMap(); }
 	@Override @Nullable
 	public IGamemodeInstance getCurrentGamemode() { return currentRoundInstance.getGamemode(); }
 	@Override
@@ -539,7 +521,15 @@ public class TeamsManager implements
 
 		MapInfo newMap = new MapInfo(mapName, null);
 		mapNames.put(mapName, newMap);
-		mapDetails.put(mapName, new MapInstance(newMap));
+		mapDetails.put(mapName, new MapDetails(newMap));
+		try
+		{
+			saveMapData(mapDetails.get(mapName));
+		}
+		catch (IOException e)
+		{
+			return OpResult.FAILURE_GENERIC;
+		}
 		return OpResult.SUCCESS;
 	}
 	@Override @Nonnull
@@ -547,7 +537,6 @@ public class TeamsManager implements
 	{
 		return OpResult.SUCCESS;
 	}
-
 	@Override @Nonnull
 	public OpResult enableMapRotation()
 	{
@@ -654,7 +643,7 @@ public class TeamsManager implements
 	@Override @Nonnull
 	public List<String> getDimensionInfo()
 	{
-		return instanceManager.getInfo();
+		return instanceManager.printDebug();
 	}
 
 	public void onPlayerLogin(@Nonnull ServerPlayer player)
@@ -820,7 +809,7 @@ public class TeamsManager implements
 		if(isInBuildMode(player.getUUID()))
 			return TeamsDimensions.TEAMS_CONSTRUCT_LEVEL;
 
-		ResourceKey<Level> currentDim = instanceManager.getDimension(reservedInstanceID);
+		ResourceKey<Level> currentDim = instanceManager.dimensionOf(getCurrentMapName());
 		if(currentDim != null)
 			return currentDim;
 
@@ -832,7 +821,7 @@ public class TeamsManager implements
 		if(!isInBuildMode(player.getUUID()) && currentRoundInstance != null)
 		{
 			IGamemodeInstance gamemode = currentRoundInstance.getGamemode();
-			IMapInstance map = currentRoundInstance.getMap();
+			IMapDetails map = currentRoundInstance.getMap();
 			if(gamemode != null && map != null)
 				return gamemode.getSpawnPoint(map, player);
 		}

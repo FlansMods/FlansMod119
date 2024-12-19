@@ -1,6 +1,6 @@
 package com.flansmod.teams.server.gamemode;
 
-import com.flansmod.teams.api.runtime.IMapInstance;
+import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.runtime.IRoundInstance;
 import com.flansmod.teams.api.admin.ISettings;
 import com.flansmod.teams.api.admin.ISpawnPoint;
@@ -49,7 +49,7 @@ public class GamemodeTDM extends Gamemode
 	}
 
 	@Override @Nonnull
-	public ISpawnPoint getSpawnPoint(@Nonnull IMapInstance map, @Nonnull Player forPlayer)
+	public ISpawnPoint getSpawnPoint(@Nonnull IMapDetails map, @Nonnull Player forPlayer)
 	{
 		return null;
 	}

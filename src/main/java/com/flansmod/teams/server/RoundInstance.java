@@ -1,6 +1,7 @@
 package com.flansmod.teams.server;
 
 import com.flansmod.teams.api.*;
+import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.admin.RoundInfo;
 import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.api.runtime.*;
@@ -20,7 +21,7 @@ public class RoundInstance implements IRoundInstance
 	private final RoundInfo info;
 
 	private IGamemodeInstance gamemode;
-	private IMapInstance map;
+	private IMapDetails map;
 	public final List<ITeamInstance> teams = new ArrayList<>(2);
 	public final List<IPlayerGameplayInfo> players = new ArrayList<>(8);
 	public ERoundPhase phase = ERoundPhase.Preparing;
@@ -35,9 +36,9 @@ public class RoundInstance implements IRoundInstance
 
 
 	@Override @Nullable
-	public IMapInstance getMap() { return map; }
+	public IMapDetails getMap() { return map; }
 	@Override @Nonnull
-	public OpResult assignMap(@Nonnull IMapInstance set)
+	public OpResult assignMap(@Nonnull IMapDetails set)
 	{
 		if(phase == ERoundPhase.Preparing)
 		{

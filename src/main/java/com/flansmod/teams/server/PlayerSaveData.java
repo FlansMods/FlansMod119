@@ -4,6 +4,7 @@ import com.flansmod.teams.api.OpResult;
 import com.flansmod.teams.api.admin.IPlayerBuilderSettings;
 import com.flansmod.teams.api.admin.IPlayerLoadout;
 import com.flansmod.teams.api.admin.IPlayerPersistentInfo;
+import com.flansmod.teams.server.dimension.PlayerBuilderSettings;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;

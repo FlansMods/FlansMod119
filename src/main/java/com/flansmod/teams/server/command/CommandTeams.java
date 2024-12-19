@@ -2,6 +2,7 @@ package com.flansmod.teams.server.command;
 
 import com.flansmod.teams.api.*;
 import com.flansmod.teams.api.admin.ITeamsAdmin;
+import com.flansmod.teams.api.admin.MapInfo;
 import com.flansmod.teams.api.admin.RoundInfo;
 import com.flansmod.teams.api.runtime.ITeamsRuntime;
 import com.mojang.brigadier.CommandDispatcher;
@@ -29,6 +30,8 @@ public class CommandTeams
 				.then(Commands.literal("start").executes(ctx -> start(ctx.getSource())))
 				.then(Commands.literal("stop").executes(ctx -> stop(ctx.getSource())))
 				.then(Commands.literal("getState").executes(ctx -> getCurrentState(ctx.getSource())))
+
+				.then(Commands.literal("listMaps").executes(ctx -> listMaps(ctx.getSource())))
 				.then(Commands.literal("nextMap").executes(ctx -> goToNextMap(ctx.getSource())))
 				//.then(Commands.literal("setNextRound")
 				//	.then(Commands.argument("index", IntegerArgumentType.integer()))
@@ -36,6 +39,7 @@ public class CommandTeams
 				//)
 				.then(Commands.literal("getNextMap").executes(ctx -> getNextMap(ctx.getSource())))
 				.then(Commands.literal("getCurrentMap").executes(ctx -> getCurrentMap(ctx.getSource())))
+
 				.then(Commands.literal("rotation")
 					.then(Commands.literal("enable").executes(ctx -> enableRotation(ctx.getSource())))
 					.then(Commands.literal("disable").executes(ctx -> disableRotation(ctx.getSource())))
@@ -111,6 +115,16 @@ public class CommandTeams
 		return adminFunc(source, ITeamsAdmin::disableMapRotation,
 				() -> Component.translatable("teams.command.disable_rotation.success"),
 				(errorType) -> Component.translatable("teams.command.disable_rotation.failure"));
+	}
+
+	private static int listMaps(@Nonnull CommandSourceStack source)
+	{
+		return adminFunc(source, (src, admin) -> {
+			for(MapInfo map : admin.getAllMaps())
+			{
+				src.sendSystemMessage(Component.literal(map.toString()));
+			}
+		});
 	}
 	private static int addMapToRotation(@Nonnull CommandSourceStack source, @Nonnull String mapName, @Nonnull String gamemodeID, @Nonnull String team1Name, @Nonnull String team2Name, int positionHint)
 	{

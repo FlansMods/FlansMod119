@@ -1,5 +1,6 @@
 package com.flansmod.teams.api.runtime;
 
+import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.admin.ISettings;
 import com.flansmod.teams.api.admin.ISpawnPoint;
 import com.flansmod.teams.api.admin.TeamInfo;
@@ -25,7 +26,7 @@ public interface IGamemodeInstance
 	}
 
 	@Nonnull
-	ISpawnPoint getSpawnPoint(@Nonnull IMapInstance map, @Nonnull Player forPlayer);
+	ISpawnPoint getSpawnPoint(@Nonnull IMapDetails map, @Nonnull Player forPlayer);
 
 	// Events
 	default void playerKilled(@Nonnull ServerPlayer killed, @Nonnull DamageSource damage) {}

@@ -3,6 +3,7 @@ package com.flansmod.teams.server;
 import com.flansmod.teams.api.runtime.IGamemodeInstance;
 import com.flansmod.teams.api.runtime.ITeamsRuntime;
 import com.flansmod.teams.api.TeamsAPI;
+import com.flansmod.teams.server.dimension.ConstructManager;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
