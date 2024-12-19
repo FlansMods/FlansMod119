@@ -1,6 +1,7 @@
 package com.flansmod.teams.server.gamemode;
 
 import com.flansmod.teams.api.admin.IGamemodeFactory;
+import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.admin.RoundInfo;
 import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.api.runtime.IGamemodeInstance;
@@ -40,6 +41,11 @@ public abstract class Gamemode implements IGamemodeInstance
 		public boolean isValid(@Nonnull RoundInfo roundInfo)
 		{
 			return roundInfo.gamemode().gamemodeID().equals(id) && roundInfo.teams().size() == teamCount;
+		}
+		@Override
+		public boolean isValid(@Nonnull IMapDetails mapDetails)
+		{
+			return mapDetails.getSpawnPoints().size() > 0;
 		}
 		@Override @Nonnull
 		public IGamemodeInstance createInstance(@Nonnull IRoundInstance roundInstance)

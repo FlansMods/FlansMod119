@@ -119,6 +119,7 @@ public class DimensionInstancingManager implements IDimensionInstancer
 						runningTask = null;
 						currentMap = loadingMap;
 						loadingMap = null;
+						onLoadComplete();
 						switchState(State.Loaded);
 					}
 				}
@@ -141,6 +142,7 @@ public class DimensionInstancingManager implements IDimensionInstancer
 				}
 			}
 		}
+		protected void onLoadComplete() {}
 
 		@Override
 		public String toString()

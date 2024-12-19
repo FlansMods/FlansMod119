@@ -13,12 +13,15 @@ public interface IGamemodeFactory
 		@Override
 		public boolean isValid(@Nonnull RoundInfo roundInfo) { return false; }
 		@Override
+		public boolean isValid(@Nonnull IMapDetails mapDetails) { return false; }
+		@Override
 		public int getNumTeamsRequired() { return 0; }
 		@Override @Nullable
 		public IGamemodeInstance createInstance(@Nonnull IRoundInstance roundInstance) { return null; }
 	};
 
 	boolean isValid(@Nonnull RoundInfo roundInfo);
+	boolean isValid(@Nonnull IMapDetails mapDetails);
 	int getNumTeamsRequired();
 	@Nullable IGamemodeInstance createInstance(@Nonnull IRoundInstance roundInstance);
 }

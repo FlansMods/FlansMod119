@@ -1,7 +1,9 @@
 package com.flansmod.teams.server.dimension;
 
 import com.flansmod.teams.api.OpResult;
+import com.flansmod.teams.api.admin.IControlPointRef;
 import com.flansmod.teams.api.admin.IMapDetails;
+import com.flansmod.teams.api.admin.MapInfo;
 import com.flansmod.teams.common.TeamsMod;
 import com.flansmod.teams.server.map.MapDetails;
 import com.google.common.io.Files;
@@ -25,6 +27,27 @@ import java.util.List;
 
 public class ConstructManager extends DimensionInstancingManager
 {
+	protected static class ConstructInstance extends Instance
+	{
+		public IMapDetails mapDetailsCopy;
+
+		public ConstructInstance(@Nonnull ResourceKey<Level> dim)
+		{
+			super(dim);
+		}
+
+		@Override
+		protected void onLoadComplete()
+		{
+			IMapDetails details = TeamsMod.MANAGER.getMapDetails(currentMap);
+			if(details != null)
+				mapDetailsCopy = new MapDetails(details);
+			else
+				mapDetailsCopy = new MapDetails(new MapInfo(currentMap, null));
+		}
+
+	}
+
 	public ConstructManager(@Nonnull List<ResourceKey<Level>> instanceDimensions,
 							@Nonnull ResourceKey<Level> fallbackDim,
 							@Nonnull BlockPos fallbackPos)
@@ -35,6 +58,7 @@ public class ConstructManager extends DimensionInstancingManager
 	{
 		super.serverTick();
 	}
+
 
 	@Nonnull
 	public OpResult saveChangesInInstance(@Nonnull ResourceKey<Level> dimension, @Nullable String saveAsMapName)
@@ -269,6 +293,22 @@ public class ConstructManager extends DimensionInstancingManager
 	}
 
 
+
+	// Editing tools
+	public void addControlPoint(@Nonnull ResourceKey<Level> dimension, @Nonnull IControlPointRef controlPoint)
+	{
+		for(Instance instance : instances)
+		{
+			if(instance.dimension.equals(dimension) && instance.currentMap != null)
+			{
+
+			}
+		}
+	}
+	public void removeControlPoint(@Nonnull ResourceKey<Level> dimension, @Nonnull BlockPos pos)
+	{
+
+	}
 
 
 	// --------------------------------------------------------------------------------------------------------------

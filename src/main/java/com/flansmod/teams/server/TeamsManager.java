@@ -473,6 +473,8 @@ public class TeamsManager implements
 	public Collection<MapInfo> getAllMaps() { return mapNames.values(); }
 	@Override @Nullable
 	public MapInfo getMapData(@Nonnull String mapName) { return mapNames.get(mapName); }
+	@Nullable
+	public IMapDetails getMapDetails(@Nonnull String mapName) { return mapDetails.get(mapName); }
 	@Override @Nonnull
 	public ISettings getDefaultSettings() { return defaultMapSettings; }
 	@Override @Nonnull
