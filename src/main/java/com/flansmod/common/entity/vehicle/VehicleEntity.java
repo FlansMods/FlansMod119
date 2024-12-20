@@ -2,6 +2,8 @@ package com.flansmod.common.entity.vehicle;
 
 import com.flansmod.client.input.ClientInputHooks;
 import com.flansmod.common.FlansMod;
+import com.flansmod.physics.common.FlansPhysicsMod;
+import com.flansmod.physics.common.collision.ICollisionSystem;
 import com.flansmod.physics.common.entity.PhysicsEntity;
 import com.flansmod.physics.common.units.IAcceleration;
 import com.flansmod.physics.common.util.ITransformPair;
@@ -10,7 +12,6 @@ import com.flansmod.common.entity.vehicle.controls.ControlLogics;
 import com.flansmod.common.entity.vehicle.controls.VehicleInputState;
 import com.flansmod.common.entity.vehicle.modules.IVehicleEngineModule;
 import com.flansmod.common.entity.vehicle.modules.IVehicleTransformHelpers;
-import com.flansmod.physics.common.deprecated.ForcesOnPart;
 import com.flansmod.physics.common.entity.PhysicsComponent;
 import com.flansmod.common.entity.vehicle.save.*;
 import com.flansmod.common.entity.vehicle.modules.IVehicleDamageHelper;
@@ -24,7 +25,6 @@ import com.flansmod.common.types.vehicles.ControlSchemeDefinition;
 import com.flansmod.common.types.vehicles.VehicleDefinition;
 import com.flansmod.common.types.vehicles.elements.*;
 import com.flansmod.physics.common.collision.ColliderHandle;
-import com.flansmod.physics.common.collision.OBBCollisionSystem;
 import com.flansmod.physics.common.util.Maths;
 import com.flansmod.physics.common.util.Transform;
 import com.flansmod.physics.common.util.TransformStack;
@@ -629,7 +629,7 @@ public class VehicleEntity extends PhysicsEntity implements
 	protected void InitPhysics()
 	{
 		Map<VehiclePartPath, ImmutableList<AABB>> bbLists = GatherBBs();
-		OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
+		ICollisionSystem physics = FlansPhysicsMod.forLevel(level());
 
 		for(var kvp : bbLists.entrySet())
 		{
@@ -659,7 +659,7 @@ public class VehicleEntity extends PhysicsEntity implements
 	}
 	protected void StopPhysics()
 	{
-		OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
+		ICollisionSystem physics = FlansPhysicsMod.forLevel(level());
 		for(PhysicsComponent part : PhysicsParts.values())
 		{
 			part.unregister(physics);
@@ -685,9 +685,9 @@ public class VehicleEntity extends PhysicsEntity implements
 		//}
 	}
 
-	protected void CopyResponsesToForceModel(@Nonnull OBBCollisionSystem physics, @Nullable ControlLogic controller)
+	protected void CopyResponsesToForceModel(@Nonnull ICollisionSystem physics, @Nullable ControlLogic controller)
 	{
-		if(OBBCollisionSystem.PAUSE_PHYSICS)
+		if(FlansPhysicsMod.PAUSE_PHYSICS)
 			return;
 
 		for(var kvp : PhysicsParts.entrySet())
@@ -700,7 +700,7 @@ public class VehicleEntity extends PhysicsEntity implements
 	}
 	protected void TickController(@Nullable ControlLogic controller)
 	{
-		if(OBBCollisionSystem.PAUSE_PHYSICS)
+		if(FlansPhysicsMod.PAUSE_PHYSICS)
 			return;
 
 		if(controller != null)
@@ -738,9 +738,9 @@ public class VehicleEntity extends PhysicsEntity implements
 			});
 		}
 	}
-	protected void SendNewForcesToPhysics(@Nonnull OBBCollisionSystem physics)
+	protected void SendNewForcesToPhysics(@Nonnull ICollisionSystem physics)
 	{
-		if(OBBCollisionSystem.PAUSE_PHYSICS)
+		if(FlansPhysicsMod.PAUSE_PHYSICS)
 			return;
 
 		{
@@ -775,7 +775,7 @@ public class VehicleEntity extends PhysicsEntity implements
 
 		// Create a force model and load it up with forces for debug rendering
 		ControlLogic controller = CurrentController();
-		OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
+		ICollisionSystem physics = FlansPhysicsMod.forLevel(level());
 
 		// Check to see if the physics system killed us
 		AABB physicsBounds = null;

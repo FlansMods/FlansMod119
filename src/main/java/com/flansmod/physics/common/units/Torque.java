@@ -41,6 +41,8 @@ public record Torque(@Nonnull Vec3 Axis, double Magnitude) implements IForce
 	}
 
 	@Nonnull
+	public Vec3 asVec3() { return Axis.scale(Magnitude); }
+	@Nonnull
 	public Torque scale(double scale)
 	{
 		return new Torque(Axis, Magnitude * scale);
@@ -56,7 +58,7 @@ public record Torque(@Nonnull Vec3 Axis, double Magnitude) implements IForce
 
 	@Nonnull
 	public Units.Torque getDefaultUnits() { return Units.Torque.KgBlocksSqPerTickSq; }
-	public double convertToUnits(@Nonnull Units.Torque toUnits) { return Units.Torque.Convert(Magnitude, Units.Torque.KgBlocksSqPerTickSq, toUnits); }
+	public Torque convertToUnits(@Nonnull Units.Torque toUnits) { return new Torque(Axis, Units.Torque.Convert(Magnitude, Units.Torque.KgBlocksSqPerTickSq, toUnits)); }
 	@Nonnull
 	public AngularAcceleration sumTorqueActingOnMass(double mass) { return new AngularAcceleration(Axis, Magnitude / mass); }
 	@Nonnull

@@ -1,4 +1,4 @@
-package com.flansmod.physics.common.collision;
+package com.flansmod.physics.common.collision.obb;
 
 import com.google.common.collect.ImmutableList;
 

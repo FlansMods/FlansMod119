@@ -1,7 +1,8 @@
-package com.flansmod.physics.common.collision;
+package com.flansmod.physics.common.collision.obb;
 
 import com.flansmod.physics.client.DebugRenderer;
 import com.flansmod.physics.common.FlansPhysicsMod;
+import com.flansmod.physics.common.collision.*;
 import com.flansmod.physics.common.collision.threading.CollisionTaskResolveDynamic;
 import com.flansmod.physics.common.units.*;
 import com.flansmod.physics.common.util.ProjectedRange;
@@ -27,7 +28,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
-public class OBBCollisionSystem
+public class OBBCollisionSystem implements ICollisionSystem
 {
 	private static Map<Level, OBBCollisionSystem> Instances = new HashMap<>();
 	@Nonnull
@@ -65,7 +66,6 @@ public class OBBCollisionSystem
 	public static final double MAX_LINEAR_BLOCKS_PER_TICK = 60d;
 	public static final double MAX_ANGULAR_MOTION_PER_TICK = 60d;
 
-	public static boolean PAUSE_PHYSICS = false;
 	public static boolean DEBUG_SETTING_ONLY_LINEAR_REACTIONS = false;
 
 	private final boolean SINGLE_THREAD_DEBUG = true;
@@ -132,6 +132,7 @@ public class OBBCollisionSystem
 		BlockAccess = level;
 	}
 
+	@Override
 	public long getGameTick()
 	{
 		return BlockAccess.getGameTime();
@@ -199,14 +200,7 @@ public class OBBCollisionSystem
 		else
 			func.run();
 	}
-	@Nonnull
-	public ColliderHandle registerDynamic(@Nonnull List<AABB> localColliders,
-										  @Nonnull Transform initialTransform,
-										  double mass)
-	{
-		return registerDynamic(localColliders, initialTransform, mass, new Vec3(mass, mass, mass));
-	}
-	@Nonnull
+	@Override @Nonnull
 	public ColliderHandle registerDynamic(@Nonnull List<AABB> localColliders,
 										  @Nonnull Transform initialTransform,
 										  double mass,
@@ -233,6 +227,7 @@ public class OBBCollisionSystem
 		});
 		return handle;
 	}
+	@Override
 	public void unregisterDynamic(@Nonnull ColliderHandle handle)
 	{
 		doAfterPhysics(() -> {
@@ -241,6 +236,7 @@ public class OBBCollisionSystem
 			InvalidatedHandles.remove(handle);
 		});
 	}
+	@Override
 	public void updateColliders(@Nonnull ColliderHandle handle, @Nonnull List<AABB> localColliders)
 	{
 		// TODO:
@@ -248,15 +244,8 @@ public class OBBCollisionSystem
 		//	Dynamics.put(handle, dynObj);
 		//});
 	}
-	public void addLinearAcceleration(@Nonnull ColliderHandle handle, @Nonnull LinearAcceleration linearAcceleration)
-	{
-		doAfterPhysics(() -> {
-			DynamicObject dyn = Dynamics.get(handle);
-			if(dyn != null)
-				dyn.addLinearAcceleration(linearAcceleration);
-		});
-	}
-	@Nonnull
+
+	@Override @Nonnull
 	public LinearVelocity getLinearVelocity(@Nonnull ColliderHandle handle)
 	{
 		DynamicObject dyn = Dynamics.get(handle);
@@ -264,7 +253,7 @@ public class OBBCollisionSystem
 			return dyn.NextFrameLinearMotion;
 		return LinearVelocity.Zero;
 	}
-	@Nonnull
+	@Override @Nonnull
 	public AngularVelocity getAngularVelocity(@Nonnull ColliderHandle handle)
 	{
 		DynamicObject dyn = Dynamics.get(handle);
@@ -272,6 +261,7 @@ public class OBBCollisionSystem
 			return dyn.NextFrameAngularMotion;
 		return AngularVelocity.Zero;
 	}
+	@Override
 	public void setLinearVelocity(@Nonnull ColliderHandle handle, @Nonnull LinearVelocity linearVelocity)
 	{
 		doAfterPhysics(() -> {
@@ -280,14 +270,7 @@ public class OBBCollisionSystem
 				dyn.setLinearVelocity(linearVelocity);
 		});
 	}
-	public void addAngularAcceleration(@Nonnull ColliderHandle handle, @Nonnull AngularAcceleration angularAcceleration)
-	{
-		doAfterPhysics(() -> {
-			DynamicObject dyn = Dynamics.get(handle);
-			if(dyn != null)
-				dyn.addAngularAcceleration(angularAcceleration);
-		});
-	}
+	@Override
 	public void setAngularVelocity(@Nonnull ColliderHandle handle, @Nonnull AngularVelocity angularVelocity)
 	{
 		doAfterPhysics(() -> {
@@ -296,6 +279,7 @@ public class OBBCollisionSystem
 				dyn.setAngularVelocity(angularVelocity);
 		});
 	}
+	@Override
 	public void teleport(@Nonnull ColliderHandle handle, @Nonnull Transform to)
 	{
 		doAfterPhysics(() -> {
@@ -307,12 +291,48 @@ public class OBBCollisionSystem
 		});
 	}
 
+	@Override
+	public void applyForce(@Nonnull ColliderHandle handle, @Nonnull LinearForce force)
+	{
+		doAfterPhysics(() -> {
+			DynamicObject dyn = Dynamics.get(handle);
+			if(dyn != null)
+				dyn.addLinearAcceleration(force.actingOn(dyn.getMass()));
+		});
+	}
+	@Override
+	public void applyTorque(@Nonnull ColliderHandle handle, @Nonnull Torque torque)
+	{
+		doAfterPhysics(() -> {
+			DynamicObject dyn = Dynamics.get(handle);
+			if(dyn != null)
+				dyn.addAngularAcceleration(torque.actingOnInertiaTensor(dyn.InertiaTensor));
+		});
+	}
 
+	public void addLinearAcceleration(@Nonnull ColliderHandle handle, @Nonnull LinearAcceleration linearAcceleration)
+	{
+		doAfterPhysics(() -> {
+			DynamicObject dyn = Dynamics.get(handle);
+			if(dyn != null)
+				dyn.addLinearAcceleration(linearAcceleration);
+		});
+	}
+	public void addAngularAcceleration(@Nonnull ColliderHandle handle, @Nonnull AngularAcceleration angularAcceleration)
+	{
+		doAfterPhysics(() -> {
+			DynamicObject dyn = Dynamics.get(handle);
+			if(dyn != null)
+				dyn.addAngularAcceleration(angularAcceleration);
+		});
+	}
+
+	@Override
 	public boolean isHandleInvalidated(@Nonnull ColliderHandle handle)
 	{
 		return InvalidatedHandles.contains(handle);
 	}
-	@Nonnull
+	@Override @Nonnull
 	public Transform processEvents(@Nonnull ColliderHandle handle,
 								   @Nonnull Consumer<StaticCollisionEvent> staticFunc,
 								   @Nonnull Consumer<DynamicCollisionEvent> dynamicFunc)
@@ -321,7 +341,7 @@ public class OBBCollisionSystem
 		DynamicObject obj = Dynamics.get(handle);
 		if(obj != null)
 		{
-			if(PAUSE_PHYSICS)
+			if(FlansPhysicsMod.PAUSE_PHYSICS)
 			{
 				return obj.getCurrentLocation();
 			}
@@ -336,12 +356,13 @@ public class OBBCollisionSystem
 		}
 		return Transform.IDENTITY;
 	}
+	@Override
 	public void copyDynamicState(@Nonnull ColliderHandle handle,
 								 @Nonnull IDynamicObjectUpdateReceiver receiver)
 	{
 		DynamicObject obj = Dynamics.get(handle);
 		if(obj != null) {
-			if (PAUSE_PHYSICS) {
+			if (FlansPhysicsMod.PAUSE_PHYSICS) {
 				receiver.updateLocation(obj.getCurrentLocation());
 			}
 			else
@@ -370,7 +391,7 @@ public class OBBCollisionSystem
 	//{
 //
 	//}
-
+	@Override
 	public void preTick()
 	{
 		if(lockDynamics(PHYSICS_LOCK_MS_TIMEOUT))
@@ -389,7 +410,7 @@ public class OBBCollisionSystem
 			FlansPhysicsMod.LOGGER.warn("Physics could not lock after " + PHYSICS_LOCK_MS_TIMEOUT + "ms");
 		}
 	}
-
+	@Override
 	public void physicsTick()
 	{
 		if(lockDynamics(PHYSICS_LOCK_MS_TIMEOUT))
@@ -675,7 +696,7 @@ public class OBBCollisionSystem
 
 	private void physicsStep_commitFrame()
 	{
-		if(PAUSE_PHYSICS)
+		if(FlansPhysicsMod.PAUSE_PHYSICS)
 		{
 			for (DynamicObject dyn : Dynamics.values())
 				dyn.resetVelocity();

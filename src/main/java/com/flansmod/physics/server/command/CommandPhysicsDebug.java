@@ -1,7 +1,9 @@
 package com.flansmod.physics.server.command;
 
+import com.flansmod.physics.common.FlansPhysicsMod;
 import com.flansmod.physics.common.collision.ColliderHandle;
-import com.flansmod.physics.common.collision.OBBCollisionSystem;
+import com.flansmod.physics.common.collision.ICollisionSystem;
+import com.flansmod.physics.common.collision.obb.OBBCollisionSystem;
 import com.flansmod.physics.common.entity.PhysicsEntity;
 import com.flansmod.physics.common.units.*;
 import com.mojang.brigadier.CommandDispatcher;
@@ -77,8 +79,8 @@ public class CommandPhysicsDebug
 
     private static int PausePhysicsToggle(@Nonnull CommandSourceStack source)
     {
-        OBBCollisionSystem.PAUSE_PHYSICS = !OBBCollisionSystem.PAUSE_PHYSICS;
-        if(OBBCollisionSystem.PAUSE_PHYSICS)
+        FlansPhysicsMod.PAUSE_PHYSICS = !FlansPhysicsMod.PAUSE_PHYSICS;
+        if(FlansPhysicsMod.PAUSE_PHYSICS)
             source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.physics_pause"), true);
         else
             source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.physics_resume"), true);
@@ -87,7 +89,7 @@ public class CommandPhysicsDebug
     }
     private static int PausePhysics(@Nonnull CommandSourceStack source, boolean pause)
     {
-        OBBCollisionSystem.PAUSE_PHYSICS = pause;
+        FlansPhysicsMod.PAUSE_PHYSICS = pause;
         if(pause)
             source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.physics_pause"), true);
         else
@@ -153,9 +155,9 @@ public class CommandPhysicsDebug
         ColliderHandle handle = OBBCollisionSystem.DEBUG_HANDLE;
         if(handle.IsValid())
         {
-            OBBCollisionSystem system = OBBCollisionSystem.ForLevel(source.getLevel());
+            ICollisionSystem system = FlansPhysicsMod.forLevel(source.getLevel());
             AngularAcceleration acc = AngularAcceleration.fromUtoVinTicks(AngularVelocity.Zero, AngularVelocity.degreesPerSecond(spinAxis.normalize(), spinSpeed), 1);
-            system.addAngularAcceleration(handle, acc);
+            system.applyTorque(handle, acc.asTorqueForPointMass(1d));
             source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.yeet_single", acc.toFancyString(), handle.Handle()), true);
         }
         return -1;
@@ -168,7 +170,6 @@ public class CommandPhysicsDebug
         {
             if(entity instanceof PhysicsEntity physicsEntity)
             {
-                OBBCollisionSystem system = OBBCollisionSystem.ForLevel(entity.level());
                 physicsEntity.forEachPhysicsComponent((component) ->
                 {
                     component.getPendingForces().addForce(acc.asTorqueForPointMass(component.mass));

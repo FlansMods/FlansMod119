@@ -1,9 +1,11 @@
 package com.flansmod.physics.common.collision.threading;
 
 import com.flansmod.physics.client.DebugRenderer;
-import com.flansmod.physics.client.PhysicsDebugRenderer;
 import com.flansmod.physics.common.FlansPhysicsMod;
 import com.flansmod.physics.common.collision.*;
+import com.flansmod.physics.common.collision.obb.FullSeparationResult;
+import com.flansmod.physics.common.collision.obb.IConstDynamicObject;
+import com.flansmod.physics.common.collision.obb.SeparationResult;
 import com.flansmod.physics.common.util.ProjectedRange;
 import com.flansmod.physics.common.util.shapes.*;
 

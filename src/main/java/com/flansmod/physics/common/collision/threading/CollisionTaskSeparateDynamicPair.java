@@ -1,6 +1,8 @@
 package com.flansmod.physics.common.collision.threading;
 
 import com.flansmod.physics.common.collision.*;
+import com.flansmod.physics.common.collision.obb.IConstDynamicObject;
+import com.flansmod.physics.common.collision.obb.SeparationResult;
 import com.flansmod.physics.common.util.shapes.ISeparationAxis;
 
 import com.google.common.collect.ImmutableList;

@@ -7,6 +7,8 @@ import com.flansmod.common.entity.longdistance.LongDistanceEntity;
 import com.flansmod.common.entity.longdistance.LongDistanceVehicle;
 import com.flansmod.common.entity.vehicle.VehicleEntity;
 import com.flansmod.common.entity.vehicle.hierarchy.VehicleComponentPath;
+import com.flansmod.physics.common.collision.obb.DynamicObject;
+import com.flansmod.physics.common.collision.obb.OBBCollisionSystem;
 import com.flansmod.physics.common.entity.PhysicsComponent;
 import com.flansmod.physics.common.collision.*;
 import com.flansmod.physics.common.units.*;

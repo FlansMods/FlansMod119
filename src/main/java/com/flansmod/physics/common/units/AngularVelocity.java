@@ -152,7 +152,11 @@ public record AngularVelocity(@Nonnull Vec3 Axis, double Magnitude) implements I
 
 	@Nonnull
 	public Units.AngularSpeed getDefaultUnits() { return Units.AngularSpeed.RadiansPerTick; }
-	public double convertToUnits(@Nonnull Units.AngularSpeed toUnits) { return Units.AngularSpeed.Convert(Magnitude, Units.AngularSpeed.RadiansPerTick, toUnits); }
+	@Nonnull
+	public AngularVelocity convertToUnits(@Nonnull Units.AngularSpeed toUnits)
+	{
+		return new AngularVelocity(Axis, Units.AngularSpeed.Convert(Magnitude, Units.AngularSpeed.RadiansPerTick, toUnits));
+	}
 
 	@Nonnull
 	public Quaternionf applyOverTicks(double ticks)

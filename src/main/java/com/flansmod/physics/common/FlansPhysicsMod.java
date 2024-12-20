@@ -5,7 +5,8 @@ import com.flansmod.physics.client.PhysicsDebugRenderer;
 import com.flansmod.physics.client.PhysicsKeyMappings;
 import com.flansmod.physics.client.TestCubeEntityRenderer;
 import com.flansmod.physics.common.collision.ColliderHandle;
-import com.flansmod.physics.common.collision.OBBCollisionSystem;
+import com.flansmod.physics.common.collision.ICollisionSystem;
+import com.flansmod.physics.common.collision.obb.OBBCollisionSystem;
 import com.flansmod.physics.common.entity.PhysicsEntity;
 import com.flansmod.physics.common.tests.CollisionTests;
 import com.flansmod.physics.common.tests.TestCubeEntity;
@@ -22,6 +23,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
+import net.minecraft.world.level.Level;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
@@ -45,6 +47,8 @@ public class FlansPhysicsMod
     public static final String MODID = "flansphysics";
     public static final Logger LOGGER = LogUtils.getLogger();
 
+    public static boolean PAUSE_PHYSICS = false;
+
     public static final DeferredRegister<EntityType<?>> ENTITY_TYPES = DeferredRegister.create(ForgeRegistries.ENTITY_TYPES, MODID);
     public static final RegistryObject<EntityType<TestCubeEntity>> ENT_TYPE_TEST_CUBE = ENTITY_TYPES.register(
             "test_cube",
@@ -53,6 +57,13 @@ public class FlansPhysicsMod
                             MobCategory.MISC)
                     .sized(1.0f, 1.0f)
                     .build("test_cube"));
+
+    @Nonnull
+    public static ICollisionSystem forLevel(@Nonnull Level level)
+    {
+        return OBBCollisionSystem.ForLevel(level);
+        //return ODECollisionSystem.forLevel(level);
+    }
 
     public FlansPhysicsMod()
     {
@@ -67,7 +78,7 @@ public class FlansPhysicsMod
     @SubscribeEvent
     public void OnLevelTick(@Nonnull TickEvent.LevelTickEvent levelTick)
     {
-        OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(levelTick.level);
+        ICollisionSystem physics = forLevel(levelTick.level);
 
         if(levelTick.phase == TickEvent.Phase.START)
             physics.preTick();
@@ -115,8 +126,8 @@ public class FlansPhysicsMod
             {
                 while(PhysicsKeyMappings.DEBUG_PAUSE_PHYSICS.get().consumeClick())
                 {
-                    OBBCollisionSystem.PAUSE_PHYSICS = !OBBCollisionSystem.PAUSE_PHYSICS;
-                    if(OBBCollisionSystem.PAUSE_PHYSICS)
+                    PAUSE_PHYSICS = !PAUSE_PHYSICS;
+                    if(PAUSE_PHYSICS)
                         Minecraft.getInstance().getChatListener().handleSystemMessage(Component.translatable("Phys Pause"), false);
                     else
                         Minecraft.getInstance().getChatListener().handleSystemMessage(Component.translatable("Phys Resume"), false);

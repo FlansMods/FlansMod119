@@ -1,6 +1,8 @@
 package com.flansmod.physics.client;
 
 import com.flansmod.physics.common.collision.*;
+import com.flansmod.physics.common.collision.obb.DynamicObject;
+import com.flansmod.physics.common.collision.obb.OBBCollisionSystem;
 import com.flansmod.physics.common.entity.PhysicsEntity;
 import com.flansmod.physics.common.units.*;
 import com.flansmod.physics.common.util.Transform;

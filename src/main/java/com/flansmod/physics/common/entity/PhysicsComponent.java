@@ -309,7 +309,7 @@ public class PhysicsComponent
 		pendingForces = new ForcesOnPart();
 	}
 
-	public void unregister(@Nonnull OBBCollisionSystem system)
+	public void unregister(@Nonnull ICollisionSystem system)
 	{
 		if(physicsHandle.IsValid())
 		{
@@ -317,7 +317,7 @@ public class PhysicsComponent
 			physicsHandle = ColliderHandle.invalid;
 		}
 	}
-	public void syncCollisionToComponent(@Nonnull OBBCollisionSystem system)
+	public void syncCollisionToComponent(@Nonnull ICollisionSystem system)
 	{
 		Frame pendingFrame = new Frame();
 		pendingFrame.gameTick = system.getGameTick();
@@ -326,7 +326,7 @@ public class PhysicsComponent
 		if(changed)
 			scheduledUpdate = checkIfUpdateNeeded(pendingFrame);
 	}
-	private void generatePendingFrameFromCollision(@Nonnull OBBCollisionSystem system, @Nonnull Frame target)
+	private void generatePendingFrameFromCollision(@Nonnull ICollisionSystem system, @Nonnull Frame target)
 	{
 		// Sum all the non-reactionary forces of the last frame
 		LinearForce impactForce = pendingForces.sumLinearForces(getCurrentTransform(), false);
@@ -336,19 +336,19 @@ public class PhysicsComponent
 			system.copyDynamicState(physicsHandle, target);
 		}
 	}
-	public void syncComponentToCollision(@Nonnull OBBCollisionSystem physics)
+	public void syncComponentToCollision(@Nonnull ICollisionSystem physics)
 	{
 		if(physicsHandle.IsValid())
 		{
-			LinearAcceleration linear = pendingForces.sumLinearAcceleration(getCurrentTransform(), mass, true);
-			AngularAcceleration angular = pendingForces.sumAngularAcceleration(getCurrentTransform(), momentOfInertia, true);
+			LinearForce linear = pendingForces.sumLinearForces(getCurrentTransform(), true);
+			Torque angular = pendingForces.sumTorque(getCurrentTransform(), true);
 			//float dampening = 1.0f;//part.Forces.GetDampeningRatio();
 			//if(dampening < 1.0f)
 			//{
 			//	linear = linear.subtract(part.GetVelocityMS().scale(1.0f - dampening));
 			//}
-			physics.addLinearAcceleration(physicsHandle, linear);
-			physics.addAngularAcceleration(physicsHandle, angular);
+			physics.applyForce(physicsHandle, linear);
+			physics.applyTorque(physicsHandle, angular);
 		}
 	}
 
@@ -426,7 +426,7 @@ public class PhysicsComponent
 			return defaultValue;
 		}
 	}
-	public void teleportTo(@Nonnull OBBCollisionSystem system, @Nonnull Transform newLocation)
+	public void teleportTo(@Nonnull ICollisionSystem system, @Nonnull Transform newLocation)
 	{
 		if(physicsHandle.IsValid())
 		{
@@ -481,7 +481,7 @@ public class PhysicsComponent
 		localFrameAtLastReceive = getMostRecentFrame();
 	}
 	public static long REMOTE_LERP_CONVERGE_TICKS = 3;
-	public void syncAndLerpToComponent(@Nonnull OBBCollisionSystem system)
+	public void syncAndLerpToComponent(@Nonnull ICollisionSystem system)
 	{
 		Frame pendingFrame = new Frame();
 		pendingFrame.gameTick = system.getGameTick();

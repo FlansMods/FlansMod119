@@ -48,9 +48,10 @@ public class TestCubeEntity extends PhysicsEntity // implements ITransformEntity
                 CORE_PHYSICS,
                 getEntityRootAsTransform(),
                 List.of(new AABB(-0.5d, -0.5d, -0.5d, 0.5d, 0.5d, 0.5d)),
-                (builder) -> {
-                    builder.withMass(1d).withDrag(0.05d);
-                });
+                1d);
+                //(builder) -> {
+                //    builder.withMass(1d).withDrag(0.05d);
+                //});
     }
     @Override
     protected void tickPhysics()

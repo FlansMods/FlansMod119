@@ -1,5 +1,7 @@
-package com.flansmod.physics.common.collision;
+package com.flansmod.physics.common.collision.obb;
 
+import com.flansmod.physics.common.collision.TransformedBB;
+import com.flansmod.physics.common.collision.TransformedBBCollection;
 import com.flansmod.physics.common.units.AngularVelocity;
 import com.flansmod.physics.common.units.LinearVelocity;
 import com.flansmod.physics.common.util.Transform;
@@ -25,8 +27,10 @@ public interface IConstDynamicObject
     double getAngularDrag();
 
     @Nonnull Transform getCurrentLocation();
-    @Nonnull TransformedBB getCurrentBB();
-    @Nonnull TransformedBBCollection getCurrentColliders();
+    @Nonnull
+	TransformedBB getCurrentBB();
+    @Nonnull
+	TransformedBBCollection getCurrentColliders();
     @Nonnull AABB getCurrentWorldBounds();
 
     @Nonnull Optional<Transform> getNextFrameTeleport();

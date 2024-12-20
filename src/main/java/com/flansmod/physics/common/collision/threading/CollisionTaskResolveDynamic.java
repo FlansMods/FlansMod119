@@ -2,14 +2,11 @@ package com.flansmod.physics.common.collision.threading;
 
 import com.flansmod.physics.client.DebugRenderer;
 import com.flansmod.physics.common.collision.*;
+import com.flansmod.physics.common.collision.obb.IConstDynamicObject;
 import com.flansmod.physics.common.units.*;
 import com.flansmod.physics.common.util.Maths;
-import com.flansmod.physics.common.util.ProjectedRange;
 
 import com.flansmod.physics.common.util.Transform;
-import com.flansmod.physics.common.util.TransformStack;
-import com.google.common.collect.ImmutableList;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Quaternionf;
 import org.joml.Vector4f;
@@ -17,9 +14,7 @@ import org.joml.Vector4f;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class CollisionTaskResolveDynamic
         implements ICollisionTask<CollisionTaskResolveDynamic.Input, CollisionTaskResolveDynamic.Output>

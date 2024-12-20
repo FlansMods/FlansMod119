@@ -2,8 +2,9 @@ package com.flansmod.physics.common.entity;
 
 import com.flansmod.physics.common.FlansPhysicsMod;
 import com.flansmod.physics.common.collision.ColliderHandle;
-import com.flansmod.physics.common.collision.DynamicObject;
-import com.flansmod.physics.common.collision.OBBCollisionSystem;
+import com.flansmod.physics.common.collision.ICollisionSystem;
+import com.flansmod.physics.common.collision.obb.DynamicObject;
+import com.flansmod.physics.common.collision.obb.OBBCollisionSystem;
 import com.flansmod.physics.common.util.ITransformEntity;
 import com.flansmod.physics.common.util.ITransformPair;
 import com.flansmod.physics.common.util.Transform;
@@ -98,7 +99,7 @@ public abstract class PhysicsEntity extends Entity implements ITransformEntity
 
         // We should move all the other parts, relative to the root
         // And if those parts have physics handles, we should update them in the physics system too.
-        OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
+        ICollisionSystem physics = FlansPhysicsMod.forLevel(level());
         Map<ColliderHandle, Transform> newPartPositions = new HashMap<>();
         for (var kvp : physicsComponents.entrySet())
         {
@@ -142,26 +143,26 @@ public abstract class PhysicsEntity extends Entity implements ITransformEntity
     }
     protected void addPhysicsComponent(@Nonnull UUID id, @Nonnull Transform worldPos, @Nonnull List<AABB> aabbs, double mass)
     {
-        OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
+        ICollisionSystem physics = FlansPhysicsMod.forLevel(level());
         physicsComponents.put(id, new PhysicsComponent(worldPos, level().getGameTime(), physics.registerDynamic(aabbs, worldPos, mass)));
     }
     protected void addPhysicsComponent(@Nonnull UUID id, @Nonnull Transform worldPos, @Nonnull List<AABB> aabbs, double mass, @Nonnull Vec3 momentOfInertia)
     {
-        OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
+        ICollisionSystem physics = FlansPhysicsMod.forLevel(level());
         physicsComponents.put(id, new PhysicsComponent(worldPos, level().getGameTime(), physics.registerDynamic(aabbs, worldPos, mass, momentOfInertia)));
     }
-    protected void addPhysicsComponent(@Nonnull UUID id, @Nonnull Transform worldPos, @Nonnull List<AABB> aabbs, @Nonnull Consumer<DynamicObject.Builder> buildFunc)
-    {
-        OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
-        physicsComponents.put(id, new PhysicsComponent(worldPos, level().getGameTime(), physics.registerDynamic((builder) -> {
-            builder.withColliders(aabbs);
-            builder.inLocation(worldPos);
-            buildFunc.accept(builder);
-        })));
-    }
+    //protected void addPhysicsComponent(@Nonnull UUID id, @Nonnull Transform worldPos, @Nonnull List<AABB> aabbs, @Nonnull Consumer<DynamicObject.Builder> buildFunc)
+    //{
+    //    ICollisionSystem physics = FlansPhysicsMod.forLevel(level());
+    //    physicsComponents.put(id, new PhysicsComponent(worldPos, level().getGameTime(), physics.registerDynamic((builder) -> {
+    //        builder.withColliders(aabbs);
+    //        builder.inLocation(worldPos);
+    //        buildFunc.accept(builder);
+    //    })));
+    //}
     protected void unregisterAllPhysics()
     {
-        OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
+        ICollisionSystem physics = FlansPhysicsMod.forLevel(level());
         for(PhysicsComponent component : physicsComponents.values())
         {
             physics.unregisterDynamic(component.getPhysicsHandle());
@@ -175,7 +176,7 @@ public abstract class PhysicsEntity extends Entity implements ITransformEntity
         checkPhysicsActivate();
         if(physicsActive)
         {
-            OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
+            ICollisionSystem physics = FlansPhysicsMod.forLevel(level());
 
             if(isControlledByLocalInstance())
             {
@@ -217,7 +218,7 @@ public abstract class PhysicsEntity extends Entity implements ITransformEntity
             if(!isAlive())
                 shouldDeactivate = true;
 
-            OBBCollisionSystem physics = OBBCollisionSystem.ForLevel(level());
+            ICollisionSystem physics = FlansPhysicsMod.forLevel(level());
             for(PhysicsComponent component : physicsComponents.values())
             {
                 if(physics.isHandleInvalidated(component.getPhysicsHandle()))

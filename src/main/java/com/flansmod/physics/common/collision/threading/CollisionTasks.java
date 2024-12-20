@@ -1,8 +1,8 @@
 package com.flansmod.physics.common.collision.threading;
 
 import com.flansmod.physics.common.FlansPhysicsMod;
-import com.flansmod.physics.common.collision.FullSeparationResult;
-import com.flansmod.physics.common.collision.SeparationResult;
+import com.flansmod.physics.common.collision.obb.FullSeparationResult;
+import com.flansmod.physics.common.collision.obb.SeparationResult;
 import com.flansmod.physics.common.units.AngularVelocity;
 import com.flansmod.physics.common.units.CompoundVelocity;
 import com.flansmod.physics.common.units.Impulse;
