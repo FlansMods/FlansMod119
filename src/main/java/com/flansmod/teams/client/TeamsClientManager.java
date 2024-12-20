@@ -1,10 +1,8 @@
 package com.flansmod.teams.client;
 
 import com.flansmod.teams.api.ERoundPhase;
-import com.flansmod.teams.api.admin.GamemodeInfo;
+import com.flansmod.teams.api.TeamsAPI;
 import com.flansmod.teams.api.admin.IPlayerLoadout;
-import com.flansmod.teams.api.admin.MapInfo;
-import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.client.gamemode.IClientGamemode;
 import com.flansmod.teams.client.gui.ChooseLoadoutScreen;
 import com.flansmod.teams.client.gui.ChooseTeamScreen;
@@ -18,6 +16,7 @@ import com.flansmod.teams.common.network.toserver.SelectPresetLoadoutMessage;
 import com.flansmod.teams.common.network.toserver.SelectTeamMessage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 
 import javax.annotation.Nonnull;
@@ -30,12 +29,12 @@ import java.util.Map;
 public class TeamsClientManager
 {
 	public final List<MapVotingOption> votingOptions = new ArrayList<>();
-	public final List<TeamInfo> teamOptions = new ArrayList<>();
+	public final List<ResourceLocation> teamOptions = new ArrayList<>();
 	public final List<IPlayerLoadout> loadoutOptions = new ArrayList<>();
 
 	public final List<TeamScoreInfo> scores = new ArrayList<>();
-	public GamemodeInfo currentGamemode = GamemodeInfo.invalid;
-	public MapInfo currentMap = MapInfo.invalid;
+	public ResourceLocation currentGamemode = TeamsAPI.invalidGamemode;
+	public String currentMap = TeamsAPI.invalidMapName;
 	public GameplayInfo currentState = new GameplayInfo();
 	public boolean isBuilder = false;
 	public final List<BuilderMapInfo> builderInfo = new ArrayList<>();
@@ -80,7 +79,7 @@ public class TeamsClientManager
 	{
 		List<TeamScoreInfo> nonSpecs = new ArrayList<>(Math.max(scores.size() - 1, 0));
 		for(TeamScoreInfo teamScore : scores)
-			if(!teamScore.teamID.equals(TeamInfo.spectator))
+			if(!teamScore.teamID.equals(TeamsAPI.spectatorTeam))
 				nonSpecs.add(teamScore);
 		return nonSpecs;
 	}
@@ -96,7 +95,7 @@ public class TeamsClientManager
 	}
 
 	@Nonnull
-	public List<TeamInfo> getTeamOptions()
+	public List<ResourceLocation> getTeamOptions()
 	{
 		return teamOptions;
 	}
@@ -107,13 +106,13 @@ public class TeamsClientManager
 	}
 
 	@Nonnull
-	public MapInfo getCurrentMap()
+	public String getCurrentMap()
 	{
 		return currentMap;
 	}
 
 	@Nonnull
-	public GamemodeInfo getCurrentGamemode()
+	public ResourceLocation getCurrentGamemode()
 	{
 		return currentGamemode;
 	}
@@ -182,7 +181,7 @@ public class TeamsClientManager
 	@Nullable
 	public IClientGamemode getCurrentClientGamemode()
 	{
-		return clientGamemodes.get(currentGamemode.gamemodeID());
+		return clientGamemodes.get(currentGamemode);
 	}
 	@Nullable
 	public IClientGamemode getClientGamemode(@Nonnull String gamemodeID)

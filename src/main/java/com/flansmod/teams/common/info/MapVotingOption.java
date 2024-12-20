@@ -1,7 +1,5 @@
 package com.flansmod.teams.common.info;
 
-import com.flansmod.teams.api.admin.MapInfo;
-
 import javax.annotation.Nonnull;
 import java.util.List;
 
@@ -13,14 +11,14 @@ public class MapVotingOption
 	public List<String> teamIDs;
 	public int numVotes;
 
-	public MapVotingOption(@Nonnull MapInfo map)
+	public MapVotingOption(@Nonnull String map)
 	{
-		mapID = map.mapName();
+		mapID = map;
 		numVotes = 0;
 	}
-	public MapVotingOption(@Nonnull MapInfo map, int votes)
+	public MapVotingOption(@Nonnull String map, int votes)
 	{
-		mapID = map.mapName();
+		mapID = map;
 		numVotes = votes;
 	}
 

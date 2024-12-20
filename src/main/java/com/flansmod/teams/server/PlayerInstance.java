@@ -1,8 +1,9 @@
 package com.flansmod.teams.server;
 
-import com.flansmod.teams.api.admin.TeamInfo;
+import com.flansmod.teams.api.TeamsAPI;
 import com.flansmod.teams.api.runtime.IPlayerGameplayInfo;
 import com.flansmod.teams.api.OpResult;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -11,7 +12,7 @@ public class PlayerInstance implements IPlayerGameplayInfo
 {
 	public final UUID playerID;
 	private int mapVote = 0;
-	private TeamInfo nextTeamChoice = TeamInfo.invalid;
+	private ResourceLocation nextTeamChoice = TeamsAPI.invalidTeam;
 	private int loadoutChoice = 0;
 	private final Map<String, Integer> scores = new HashMap<>();
 	private final Map<UUID, List<String>> relationships = new HashMap<>();
@@ -42,13 +43,13 @@ public class PlayerInstance implements IPlayerGameplayInfo
 		return false;
 	}
 	@Override @Nonnull
-	public OpResult setTeamChoice(@Nonnull TeamInfo teamID)
+	public OpResult setTeamChoice(@Nonnull ResourceLocation teamID)
 	{
 		nextTeamChoice = teamID;
 		return OpResult.SUCCESS;
 	}
 	@Override @Nonnull
-	public TeamInfo getTeamChoice()
+	public ResourceLocation getTeamChoice()
 	{
 		return nextTeamChoice;
 	}

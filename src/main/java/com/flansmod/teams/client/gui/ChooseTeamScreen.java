@@ -1,6 +1,5 @@
 package com.flansmod.teams.client.gui;
 
-import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.client.TeamsModClient;
 import com.flansmod.teams.common.TeamsMod;
 import net.minecraft.client.gui.GuiGraphics;
@@ -48,10 +47,13 @@ public class ChooseTeamScreen extends AbstractTeamsScreen
 	{
 		super.render(graphics, x, y, f);
 
+		xOrigin = width / 2 - 256/2;
+		yOrigin = 0;
+
 		graphics.blit(texture, xOrigin, yOrigin, 0, 0, imageWidth, 22);
 		graphics.blit(texture, xOrigin, yOrigin + imageWidth - 6, 0, 73, imageWidth, 7);
 
-		List<TeamInfo> options = TeamsModClient.MANAGER.getTeamOptions();
+		List<ResourceLocation> options = TeamsModClient.MANAGER.getTeamOptions();
 		for(int i = 0; i < options.size(); i++)
 		{
 			graphics.blit(texture, xOrigin, yOrigin + 22 + 24 * i, 0, 23, imageWidth, 24);

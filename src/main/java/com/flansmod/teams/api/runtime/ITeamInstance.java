@@ -3,7 +3,7 @@ package com.flansmod.teams.api.runtime;
 import com.flansmod.teams.api.OpResult;
 import com.flansmod.teams.api.TeamsAPI;
 import com.flansmod.teams.api.admin.IPlayerLoadout;
-import com.flansmod.teams.api.admin.TeamInfo;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 
@@ -14,8 +14,7 @@ import java.util.UUID;
 
 public interface ITeamInstance
 {
-	@Nonnull
-	TeamInfo getTeamID();
+	@Nonnull ResourceLocation getTeamID();
 
 	int getNumPresetLoadouts();
 	@Nonnull

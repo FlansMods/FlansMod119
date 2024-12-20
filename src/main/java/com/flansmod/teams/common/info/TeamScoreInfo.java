@@ -1,13 +1,13 @@
 package com.flansmod.teams.common.info;
 
-import com.flansmod.teams.api.admin.TeamInfo;
+import net.minecraft.resources.ResourceLocation;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TeamScoreInfo
 {
-	public TeamInfo teamID;
+	public ResourceLocation teamID;
 	public int teamTextColour;
 
 	public int score;

@@ -1,6 +1,5 @@
 package com.flansmod.teams.common.network.toclient;
 
-import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.common.info.TeamScoreInfo;
 import com.flansmod.teams.common.network.TeamsModMessage;
 import net.minecraft.network.FriendlyByteBuf;
@@ -28,7 +27,7 @@ public class DisplayScoresMessage extends TeamsModMessage
 			TeamScoreInfo teamScore = teamScores.get(i);
 			buf.writeInt(teamScore.score);
 			buf.writeInt(teamScore.rank);
-			buf.writeResourceLocation(teamScore.teamID.teamID());
+			buf.writeResourceLocation(teamScore.teamID);
 		}
 	}
 
@@ -41,7 +40,7 @@ public class DisplayScoresMessage extends TeamsModMessage
 			TeamScoreInfo teamScore = new TeamScoreInfo();
 			teamScore.score = buf.readInt();
 			teamScore.rank = buf.readInt();
-			teamScore.teamID = new TeamInfo(buf.readResourceLocation());
+			teamScore.teamID = buf.readResourceLocation();
 			teamScores.add(teamScore);
 		}
 	}

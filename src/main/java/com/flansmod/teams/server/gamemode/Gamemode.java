@@ -3,12 +3,12 @@ package com.flansmod.teams.server.gamemode;
 import com.flansmod.teams.api.admin.IGamemodeFactory;
 import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.admin.RoundInfo;
-import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.api.runtime.IGamemodeInstance;
 import com.flansmod.teams.api.runtime.IPlayerGameplayInfo;
 import com.flansmod.teams.api.runtime.IRoundInstance;
 import com.flansmod.teams.api.runtime.ITeamInstance;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
@@ -25,11 +25,11 @@ public abstract class Gamemode implements IGamemodeInstance
 {
 	public static class DefaultGamemodeFactory<T extends Gamemode> implements IGamemodeFactory
 	{
-		public final String id;
+		public final ResourceLocation id;
 		public final int teamCount;
 		public final Function<IRoundInstance, T> createFunc;
 
-		public DefaultGamemodeFactory(@Nonnull String gamemodeID, int count, @Nonnull Function<IRoundInstance, T> constructor)
+		public DefaultGamemodeFactory(@Nonnull ResourceLocation gamemodeID, int count, @Nonnull Function<IRoundInstance, T> constructor)
 		{
 			id = gamemodeID;
 			teamCount = count;
@@ -40,7 +40,7 @@ public abstract class Gamemode implements IGamemodeInstance
 		@Override
 		public boolean isValid(@Nonnull RoundInfo roundInfo)
 		{
-			return roundInfo.gamemode().gamemodeID().equals(id) && roundInfo.teams().size() == teamCount;
+			return roundInfo.gamemodeID().equals(id) && roundInfo.teams().size() == teamCount;
 		}
 		@Override
 		public boolean isValid(@Nonnull IMapDetails mapDetails)
@@ -54,9 +54,9 @@ public abstract class Gamemode implements IGamemodeInstance
 		}
 	}
 	@Nonnull
-	public static <T extends Gamemode> IGamemodeFactory createFactory(@Nonnull String gamemodeID,
-															   int teamCount,
-															   @Nonnull Function<IRoundInstance, T> constructor)
+	public static <T extends Gamemode> IGamemodeFactory createFactory(@Nonnull ResourceLocation gamemodeID,
+															          int teamCount,
+															          @Nonnull Function<IRoundInstance, T> constructor)
 	{
 		return new DefaultGamemodeFactory<T>(gamemodeID, teamCount, constructor);
 	}
@@ -71,8 +71,8 @@ public abstract class Gamemode implements IGamemodeInstance
 	public boolean canDamage(@Nonnull Entity attacker, @Nonnull Entity target) { return true; }
 	public int getTeamCountRequirement() { return 2; }
 	public boolean allowDuplicateTeams() { return false; }
-	public boolean canUseTeam(int teamIndex, @Nonnull TeamInfo team) { return true; }
-	public boolean canUseTeams(@Nonnull List<TeamInfo> teams)
+	public boolean canUseTeam(int teamIndex, @Nonnull ResourceLocation team) { return true; }
+	public boolean canUseTeams(@Nonnull List<ResourceLocation> teams)
 	{
 		if(teams.size() != getTeamCountRequirement())
 			return false;

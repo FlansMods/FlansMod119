@@ -3,8 +3,8 @@ package com.flansmod.teams.api.runtime;
 import com.flansmod.teams.api.OpResult;
 import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.admin.RoundInfo;
-import com.flansmod.teams.api.admin.TeamInfo;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -40,7 +40,7 @@ public interface IRoundInstance
 	@Nonnull OpResult begin();
 	@Nonnull OpResult end();
 
-	@Nullable ITeamInstance getTeam(@Nonnull TeamInfo teamID);
+	@Nullable ITeamInstance getTeam(@Nonnull ResourceLocation teamID);
 	@Nullable ITeamInstance getTeamOf(@Nonnull Entity entity);
 	@Nullable ITeamInstance getTeamOf(@Nonnull BlockEntity blockEntity);
 	@Nullable ITeamInstance getTeamOf(@Nonnull BlockPos pos);

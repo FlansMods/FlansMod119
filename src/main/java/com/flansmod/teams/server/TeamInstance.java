@@ -6,8 +6,8 @@ import com.flansmod.common.types.teams.TeamDefinition;
 import com.flansmod.teams.api.admin.IPlayerLoadout;
 import com.flansmod.teams.api.runtime.ITeamInstance;
 import com.flansmod.teams.api.OpResult;
-import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.common.info.PresetLoadout;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 
@@ -16,20 +16,20 @@ import java.util.*;
 
 public class TeamInstance implements ITeamInstance
 {
-	private final TeamInfo teamID;
+	private final ResourceLocation teamID;
 	private final LazyDefinition<TeamDefinition> teamDef;
 	private final Map<UUID, Player> teamMembers = new HashMap<>();
 	private final Map<String, Integer> scores = new HashMap<>();
 	private final List<PresetLoadout> presetLoadouts = new ArrayList<>();
 
-	public TeamInstance(@Nonnull TeamInfo id)
+	public TeamInstance(@Nonnull ResourceLocation id)
 	{
 		teamID = id;
-		teamDef = LazyDefinition.of(id.teamID(), FlansMod.TEAMS);
+		teamDef = LazyDefinition.of(id, FlansMod.TEAMS);
 	}
 
 	@Override @Nonnull
-	public TeamInfo getTeamID() { return teamID; }
+	public ResourceLocation getTeamID() { return teamID; }
 	@Nonnull
 	public TeamDefinition getDef() { return teamDef.DefGetter().get(); }
 	@Override

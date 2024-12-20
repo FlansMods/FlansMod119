@@ -4,7 +4,6 @@ import com.flansmod.teams.api.admin.IControlPointRef;
 import com.flansmod.teams.api.runtime.IControlPointInstance;
 import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.admin.ISpawnPoint;
-import com.flansmod.teams.api.admin.MapInfo;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.ChunkPos;
@@ -18,18 +17,18 @@ import java.util.List;
 
 public class MapDetails implements IMapDetails
 {
-	private final MapInfo def;
+	private final String mapName;
 	private final List<ChunkPos> chunks = new ArrayList<>();
 	private final List<ISpawnPoint> spawnPoints = new ArrayList<>();
 	private final List<IControlPointRef> controlPoints = new ArrayList<>();
 
-	public MapDetails(@Nonnull MapInfo mapDef)
+	public MapDetails(@Nonnull String name)
 	{
-		def = mapDef;
+		mapName = name;
 	}
 	public MapDetails(@Nonnull IMapDetails other)
 	{
-		def = other.getInfo();
+		mapName = other.getName();
 		chunks.addAll(other.getChunkLoadTickets());
 		spawnPoints.addAll(other.getSpawnPoints());
 		controlPoints.addAll(other.getControlPoints());
@@ -47,7 +46,7 @@ public class MapDetails implements IMapDetails
 		return null;
 	}
 	@Override @Nonnull
-	public MapInfo getInfo() { return def; }
+	public String getName() { return mapName; }
 	@Override @Nonnull
 	public List<ChunkPos> getChunkLoadTickets()
 	{

@@ -1,6 +1,9 @@
 package com.flansmod.teams.api.admin;
 
 import com.flansmod.teams.api.OpResult;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -10,20 +13,22 @@ import java.util.UUID;
 
 public interface ITeamsAdmin
 {
-	@Nonnull Collection<MapInfo> getAllMaps();
-	@Nonnull Collection<GamemodeInfo> getAllGamemodes();
+	@Nonnull ResourceKey<Level> getLobbyDimension();
+	@Nonnull ISpawnPoint getLobbySpawnPoint();
+
+	@Nonnull Collection<String> getAllMaps();
+	@Nonnull Collection<ResourceLocation> getAllGamemodes();
 	@Nonnull ISettings getDefaultSettings();
 
 	@Nonnull Collection<RoundInfo> getMapRotation();
 	@Nonnull
 	OpResult createNewSettings(@Nonnull String settingsName);
-	@Nullable MapInfo getMapData(@Nonnull String mapName);
+	@Nullable IMapDetails getMapData(@Nonnull String mapName);
 	default boolean hasMap(@Nonnull String mapName) { return getMapData(mapName) != null; }
-	@Nullable
-	GamemodeInfo getGamemode(@Nonnull String gamemode);
-	default boolean hasGamemode(@Nonnull String gamemode) { return getGamemode(gamemode) != null; }
+	@Nullable IGamemodeFactory getGamemode(@Nonnull ResourceLocation gamemodeID);
+	default boolean hasGamemode(@Nonnull ResourceLocation gamemodeID) { return getGamemode(gamemodeID) != null; }
 
-	@Nullable RoundInfo tryCreateRoundInfo(@Nonnull String mapName, @Nonnull String gamemodeID, @Nonnull String ... teamNames);
+	@Nullable RoundInfo tryCreateRoundInfo(@Nonnull String mapName, @Nonnull ResourceLocation gamemodeID, @Nonnull String ... teamNames);
 	boolean isInBuildMode(@Nonnull UUID player);
 	@Nonnull OpResult setBuildMode(@Nonnull UUID player, boolean set);
 
@@ -37,7 +42,7 @@ public interface ITeamsAdmin
 	@Nonnull OpResult addMapToRotation(@Nonnull RoundInfo round, int positionHint);
 	@Nonnull OpResult removeMapFromRotation(int inPosition);
 
-	@Nonnull OpResult registerGamemode(@Nonnull GamemodeInfo gamemode);
+	@Nonnull OpResult registerGamemode(@Nonnull ResourceLocation gamemodeID, @Nonnull IGamemodeFactory factory);
 	@Nonnull OpResult registerIntParameter(@Nonnull String parameterName, int defaultValue);
 	@Nonnull OpResult registerBooleanParameter(@Nonnull String parameterName, boolean defaultValue);
 }

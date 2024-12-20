@@ -2,8 +2,6 @@ package com.flansmod.teams.client.gui;
 
 import com.flansmod.physics.common.util.MinecraftHelpers;
 import com.flansmod.teams.api.TeamsAPI;
-import com.flansmod.teams.api.admin.GamemodeInfo;
-import com.flansmod.teams.api.admin.MapInfo;
 import com.flansmod.teams.client.TeamsModClient;
 import com.flansmod.teams.client.gamemode.IClientGamemode;
 import com.flansmod.teams.common.TeamsMod;
@@ -12,7 +10,6 @@ import com.flansmod.teams.common.info.KillInfo;
 import com.flansmod.teams.common.info.PlayerScoreInfo;
 import com.flansmod.teams.common.info.TeamScoreInfo;
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.minecraft.MinecraftSessionService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -46,7 +43,7 @@ public class TeamsHUD
 
 		IClientGamemode gamemode = TeamsModClient.MANAGER.getCurrentClientGamemode();
 		GameplayInfo gameplay = TeamsModClient.MANAGER.currentState;
-		MapInfo map = TeamsModClient.MANAGER.currentMap;
+		String map = TeamsModClient.MANAGER.currentMap;
 		List<TeamScoreInfo> teamScores = TeamsModClient.MANAGER.getNonSpectatorTeamScores();
 		PlayerScoreInfo myScore = TeamsModClient.MANAGER.getMyScoreInfo();
 
@@ -90,8 +87,8 @@ public class TeamsHUD
 
 			graphics.drawString(font, gamemode.getName(), i / 2 + 48, 9, 0x000000);
 			graphics.drawString(font, gamemode.getName(), i / 2 + 47, 8, 0xffffff);
-			graphics.drawString(font, map.mapName(), i / 2 - 47 - font.width(map.mapName()), 9, 0x000000);
-			graphics.drawString(font, map.mapName(), i / 2 - 48 - font.width(map.mapName()), 8, 0xffffff);
+			graphics.drawString(font, map, i / 2 - 47 - font.width(map), 9, 0x000000);
+			graphics.drawString(font, map, i / 2 - 48 - font.width(map), 8, 0xffffff);
 
 			String timeLeft = minutesLeft + ":" + (secondsLeft < 10 ? "0" + secondsLeft : secondsLeft);
 			graphics.drawString(font, timeLeft, i / 2 - font.width(timeLeft) / 2 - 1, 29, 0x000000);

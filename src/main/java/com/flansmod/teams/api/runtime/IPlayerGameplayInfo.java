@@ -2,7 +2,7 @@ package com.flansmod.teams.api.runtime;
 
 import com.flansmod.teams.api.OpResult;
 import com.flansmod.teams.api.TeamsAPI;
-import com.flansmod.teams.api.admin.TeamInfo;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nonnull;
 import java.util.UUID;
@@ -23,8 +23,8 @@ public interface IPlayerGameplayInfo
 	@Nonnull OpResult resetAllScores();
 	@Nonnull OpResult addScore(@Nonnull String scoreType, int add);
 
-	@Nonnull OpResult setTeamChoice(@Nonnull TeamInfo teamID);
-	@Nonnull TeamInfo getTeamChoice();
+	@Nonnull OpResult setTeamChoice(@Nonnull ResourceLocation teamID);
+	@Nonnull ResourceLocation getTeamChoice();
 	@Nonnull OpResult setLoadoutChoice(int loadoutIndex);
 	int getLoadoutChoice();
 

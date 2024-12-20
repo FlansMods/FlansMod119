@@ -3,11 +3,9 @@ package com.flansmod.teams.server.dimension;
 import com.flansmod.teams.api.OpResult;
 import com.flansmod.teams.api.admin.IControlPointRef;
 import com.flansmod.teams.api.admin.IMapDetails;
-import com.flansmod.teams.api.admin.MapInfo;
 import com.flansmod.teams.common.TeamsMod;
 import com.flansmod.teams.server.map.MapDetails;
 import com.google.common.io.Files;
-import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -39,13 +37,12 @@ public class ConstructManager extends DimensionInstancingManager
 		@Override
 		protected void onLoadComplete()
 		{
-			IMapDetails details = TeamsMod.MANAGER.getMapDetails(currentMap);
+			IMapDetails details = TeamsMod.MANAGER.getMapData(currentMap);
 			if(details != null)
 				mapDetailsCopy = new MapDetails(details);
 			else
-				mapDetailsCopy = new MapDetails(new MapInfo(currentMap, null));
+				mapDetailsCopy = new MapDetails(currentMap);
 		}
-
 	}
 
 	public ConstructManager(@Nonnull List<ResourceKey<Level>> instanceDimensions,

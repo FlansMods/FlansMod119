@@ -1,9 +1,9 @@
 package com.flansmod.teams.server.command;
 
 import com.flansmod.teams.api.TeamsAPI;
+import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.admin.IPlayerBuilderSettings;
 import com.flansmod.teams.api.admin.IPlayerPersistentInfo;
-import com.flansmod.teams.api.admin.MapInfo;
 import com.flansmod.teams.api.OpResult;
 import com.flansmod.teams.common.TeamsMod;
 import com.flansmod.teams.server.dimension.ConstructManager;
@@ -49,7 +49,7 @@ public class CommandConstruct
 				)
 				.then(Commands.literal("exit").executes(CommandConstruct::exitConstruct))
 				.then(Commands.literal("load")
-					.then(Commands.argument("mapName", StringArgumentType.word())
+					.then(Commands.argument("mapName", MapArgument.mapArgument())
 						.executes(CommandConstruct::loadMapIntoConstruct)
 					)
 				)
@@ -101,7 +101,7 @@ public class CommandConstruct
 			context.getSource().sendFailure(Component.translatable("teams.construct.create.failure_map_name_invalid", "null"));
 			return -1;
 		}
-		if(TeamsAPI.isValidMapName(mapName).failure())
+		if(!TeamsAPI.isValidMapName(mapName))
 		{
 			context.getSource().sendFailure(Component.translatable("teams.construct.create.failure_map_name_invalid", mapName));
 			return -1;
@@ -142,7 +142,7 @@ public class CommandConstruct
 		constructManager.registerListener(context.getSource());
 
 		String mapName = tryGetString(context, "mapName", null);
-		if(mapName == null || TeamsAPI.isValidMapName(mapName).failure())
+		if(mapName == null || !TeamsAPI.isValidMapName(mapName))
 		{
 			context.getSource().sendFailure(Component.translatable("teams.construct.save_as.failure_invalid_name"));
 			return -1;
@@ -238,7 +238,7 @@ public class CommandConstruct
 		BlockPos max = tryGetBlockPos(context, "max", defaultPos);
 		int chunkRadius = tryGetInt(context, "chunkRadius", -1);
 
-		MapInfo existingMap = TeamsMod.MANAGER.getMapData(mapName);
+		IMapDetails existingMap = TeamsMod.MANAGER.getMapData(mapName);
 		if(existingMap != null)
 		{
 			context.getSource().sendFailure(Component.translatable("teams.construct.clone.conflict", mapName));

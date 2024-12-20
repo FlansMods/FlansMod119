@@ -72,10 +72,10 @@ public class DimensionInstancingManager implements IDimensionInstancer
 									@Nonnull Function<Instance, Boolean> loadTask,
 									@Nonnull String mapName)
 		{
-			if(currentState.compareAndExchange(State.Unloaded, State.LoadingMap) == State.LoadingMap)
+			if(currentState.weakCompareAndSetVolatile(State.Unloaded, State.LoadingMap))
 			{
-				runningTask = server.submit(() -> loadTask.apply(this));
 				loadingMap = mapName;
+				runningTask = server.submit(() -> loadTask.apply(this));
 				return OpResult.SUCCESS;
 			}
 			return OpResult.FAILURE_WRONG_STATE;
@@ -85,7 +85,7 @@ public class DimensionInstancingManager implements IDimensionInstancer
 									  @Nonnull Function<Instance, Boolean> unloadTask,
 									  @Nonnull String mapName)
 		{
-			if(currentState.compareAndExchange(State.Loaded, State.UnloadingMap) == State.UnloadingMap)
+			if(currentState.weakCompareAndSetVolatile(State.Loaded, State.UnloadingMap))
 			{
 				runningTask = server.submit(() -> unloadTask.apply(this));
 				return OpResult.SUCCESS;
@@ -97,7 +97,7 @@ public class DimensionInstancingManager implements IDimensionInstancer
 									 @Nonnull Function<Instance, Boolean> saveTask,
 									 @Nonnull String saveAsMapName)
 		{
-			if(currentState.compareAndExchange(State.Loaded, State.SavingMap) == State.SavingMap)
+			if(currentState.weakCompareAndSetVolatile(State.Loaded, State.SavingMap))
 			{
 				runningTask = server.submit(() -> saveTask.apply(this));
 				return OpResult.SUCCESS;
@@ -318,7 +318,7 @@ public class DimensionInstancingManager implements IDimensionInstancer
 						{
 							if (!regionFile.delete())
 							{
-								TeamsMod.LOGGER.error("[runCopyLevelToInstance] Region file '" + regionFile + "' could not be deleted");
+								TeamsMod.LOGGER.error("[load] Region file '" + regionFile + "' could not be deleted");
 								for(var listener : listeners)
 									listener.sendFailure(Component.translatable("teams.construct.load.failure_io_error"));
 								return false;
@@ -346,20 +346,20 @@ public class DimensionInstancingManager implements IDimensionInstancer
 					}
 					else
 					{
-						TeamsMod.LOGGER.error("[runCopyLevelToInstance] Regions folder does not exist at '"+srcRegionsDir+"'");
+						TeamsMod.LOGGER.error("[load] Regions folder does not exist at '"+srcRegionsDir+"'");
 						for(var listener : listeners)
 							listener.sendFailure(Component.translatable("teams.construct.load.failure_bad_level"));
 						return false;
 					}
 
-					TeamsMod.LOGGER.info("[runCopyLevelToInstance] Successfully copied '"+srcDir+"' to '"+dstDir+"'");
+					TeamsMod.LOGGER.info("[load] Successfully copied '"+srcDir+"' to '"+dstDir+"'");
 					for(var listener : listeners)
 						listener.sendSuccess(() -> Component.translatable("teams.construct.load.success", mapName), true);
 					return true;
 				}
 				else
 				{
-					TeamsMod.LOGGER.error("[runCopyLevelToInstance] Level directory does not exist at '"+srcDir+"'");
+					TeamsMod.LOGGER.error("[load] Level directory does not exist at '"+srcDir+"'");
 					for(var listener : listeners)
 						listener.sendFailure(Component.translatable("teams.construct.load.failure_bad_level"));
 					return false;
@@ -367,7 +367,7 @@ public class DimensionInstancingManager implements IDimensionInstancer
 			}
 			else
 			{
-				TeamsMod.LOGGER.error("[runCopyLevelToInstance] Target level directory does not exist at '"+dstDir+"'");
+				TeamsMod.LOGGER.error("[load] Target level directory does not exist at '"+dstDir+"'");
 				for(var listener : listeners)
 					listener.sendFailure(Component.translatable("teams.construct.load.failure_bad_level"));
 				return false;

@@ -3,9 +3,9 @@ package com.flansmod.teams.server;
 import com.flansmod.teams.api.*;
 import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.admin.RoundInfo;
-import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.api.runtime.*;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -126,7 +126,7 @@ public class RoundInstance implements IRoundInstance
 		return OpResult.SUCCESS;
 	}
 	@Override @Nullable
-	public ITeamInstance getTeam(@Nonnull TeamInfo teamID)
+	public ITeamInstance getTeam(@Nonnull ResourceLocation teamID)
 	{
 		for(ITeamInstance team : getTeams())
 		{

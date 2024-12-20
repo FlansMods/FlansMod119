@@ -46,8 +46,8 @@ public class TwoTeamScoresScreen extends ScoresScreen
 		graphics.blit(texture, xOrigin, yOrigin + 65 + (numLines) * 16, 100, 170, 312, 10, 512, 256);
 
 		// Map Name 		Gamemode
-		graphics.drawString(font, teams.getCurrentMap().mapName(), xOrigin + 6, yOrigin + 6, 0xffffff);
-		String gamemodeString = teams.getCurrentGamemode().gamemodeID();
+		graphics.drawString(font, teams.getCurrentMap(), xOrigin + 6, yOrigin + 6, 0xffffff);
+		String gamemodeString = teams.getCurrentGamemode().toString();
 		graphics.drawCenteredString(font, gamemodeString, xOrigin + 312 - 6 - font.width(gamemodeString), yOrigin + 6, 0xffffff);
 
 		if(isRoundOver)
@@ -77,7 +77,7 @@ public class TwoTeamScoresScreen extends ScoresScreen
 		for(int teamIndex = 0; teamIndex < 2; teamIndex++)
 		{
 			TeamScoreInfo teamInfo = teams.getTeamScores().get(teamIndex);
-			graphics.drawString(font, "\u00a7" + teamInfo.teamTextColour + teamInfo.teamID.getName(), xOrigin + 10 + 151 * teamIndex, yOrigin + 39, 0xffffff);
+			graphics.drawString(font, "\u00a7" + teamInfo.teamTextColour + teamInfo.teamID.toString(), xOrigin + 10 + 151 * teamIndex, yOrigin + 39, 0xffffff);
 			graphics.drawString(font, "\u00a7" + teamInfo.teamTextColour + teamInfo.score, xOrigin + 133 + 151 * teamIndex, yOrigin + 39, 0xffffff);
 			for(int playerIndex = 0; playerIndex < teamInfo.players.size(); playerIndex++)
 			{

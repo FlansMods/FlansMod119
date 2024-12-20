@@ -1,8 +1,8 @@
 package com.flansmod.teams.common.network.toclient;
 
-import com.flansmod.teams.api.admin.TeamInfo;
 import com.flansmod.teams.common.network.TeamsModMessage;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -10,11 +10,11 @@ import java.util.List;
 
 public class TeamOptionsMessage extends TeamsModMessage
 {
-	public List<TeamInfo> teamOptions;
+	public List<ResourceLocation> teamOptions;
 	public boolean andOpenGUI;
 
 	public TeamOptionsMessage() { teamOptions = new ArrayList<>(); }
-	public TeamOptionsMessage(@Nonnull List<TeamInfo> options, boolean andOpen)
+	public TeamOptionsMessage(@Nonnull List<ResourceLocation> options, boolean andOpen)
 	{
 		teamOptions = options;
 		andOpenGUI = andOpen;
@@ -27,7 +27,7 @@ public class TeamOptionsMessage extends TeamsModMessage
 		buf.writeInt(teamOptions.size());
 		for(int i = 0; i < teamOptions.size(); i++)
 		{
-			buf.writeResourceLocation(teamOptions.get(i).teamID());
+			buf.writeResourceLocation(teamOptions.get(i));
 		}
 	}
 
@@ -38,7 +38,7 @@ public class TeamOptionsMessage extends TeamsModMessage
 		int count = buf.readInt();
 		for(int i = 0; i < count; i++)
 		{
-			teamOptions.add(new TeamInfo(buf.readResourceLocation()));
+			teamOptions.add(buf.readResourceLocation());
 		}
 	}
 }

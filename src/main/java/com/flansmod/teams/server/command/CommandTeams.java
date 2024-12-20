@@ -2,18 +2,23 @@ package com.flansmod.teams.server.command;
 
 import com.flansmod.teams.api.*;
 import com.flansmod.teams.api.admin.ITeamsAdmin;
-import com.flansmod.teams.api.admin.MapInfo;
 import com.flansmod.teams.api.admin.RoundInfo;
 import com.flansmod.teams.api.runtime.ITeamsRuntime;
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
+import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -41,36 +46,26 @@ public class CommandTeams
 				.then(Commands.literal("getCurrentMap").executes(ctx -> getCurrentMap(ctx.getSource())))
 
 				.then(Commands.literal("rotation")
+					.then(Commands.literal("list").executes(ctx -> listRotation(ctx.getSource())))
 					.then(Commands.literal("enable").executes(ctx -> enableRotation(ctx.getSource())))
 					.then(Commands.literal("disable").executes(ctx -> disableRotation(ctx.getSource())))
 					.then(Commands.literal("add")
-						.then(Commands.argument("mapName", StringArgumentType.word())
-							.then(Commands.argument("gamemode", StringArgumentType.word()))
-								.then(Commands.argument("team1", StringArgumentType.word()))
-									.then(Commands.argument("team2", StringArgumentType.word()))
-										.executes(ctx -> addMapToRotation(
-											ctx.getSource(),
-											StringArgumentType.getString(ctx, "mapName"),
-											StringArgumentType.getString(ctx, "gamemode"),
-											StringArgumentType.getString(ctx, "team1"),
-											StringArgumentType.getString(ctx, "team2"),
-											-1))
-											.then(Commands.argument("atPosition", IntegerArgumentType.integer(0, 999))
-												.executes(ctx -> addMapToRotation(
-													ctx.getSource(),
-													StringArgumentType.getString(ctx, "mapName"),
-													StringArgumentType.getString(ctx, "gamemode"),
-													StringArgumentType.getString(ctx, "team1"),
-													StringArgumentType.getString(ctx, "team2"),
-													IntegerArgumentType.getInteger(ctx, "atPosition")
-													)
-												)
-											)
-						)
-						.then(Commands.literal("remove")
-							.then(Commands.argument("index", IntegerArgumentType.integer())
-								.executes(ctx -> removeMapFromRotation(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "index")))
+						.then(Commands.argument("mapName", MapArgument.mapArgument())
+							.then(Commands.argument("gamemode", GamemodeArgument.gamemodeArgument())
+								.then(Commands.argument("team1", TeamArgument.teamArgument())
+									.then(Commands.argument("team2", TeamArgument.teamArgument())
+										.executes(CommandTeams::addMapToRotation)
+										.then(Commands.argument("atPosition", IntegerArgumentType.integer(0, 999))
+											.executes(CommandTeams::addMapToRotation)
+										)
+									)
+								)
 							)
+						)
+					)
+					.then(Commands.literal("remove")
+						.then(Commands.argument("index", IntegerArgumentType.integer())
+							.executes(ctx -> removeMapFromRotation(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "index")))
 						)
 					)
 				)
@@ -96,7 +91,15 @@ public class CommandTeams
 	{
 		return runtimeFunc(source, ITeamsRuntime::start,
 			() -> Component.translatable("teams.command.start.success"),
-			(errorType) -> Component.translatable("teams.command.start.failure"));
+			(errorType) -> switch(errorType)
+			{
+				case FAILURE_MAP_ROTATION_EMPTY -> Component.translatable("teams.command.start.failure_map_rotation_empty");
+				case FAILURE_INVALID_MAP_NAME -> Component.translatable("teams.command.start.failure_invalid_map_name");
+				case FAILURE_INVALID_GAMEMODE_ID -> Component.translatable("teams.command.start.failure_invalid_gamemode_id");
+				case FAILURE_INVALID_TEAM_ID -> Component.translatable("teams.command.start.failure_invalid_team_id");
+
+				default -> Component.translatable("teams.command.start.failure");
+			});
 	}
 	private static int stop(@Nonnull CommandSourceStack source)
 	{
@@ -116,19 +119,42 @@ public class CommandTeams
 				() -> Component.translatable("teams.command.disable_rotation.success"),
 				(errorType) -> Component.translatable("teams.command.disable_rotation.failure"));
 	}
-
+	private static int listRotation(@Nonnull CommandSourceStack source)
+	{
+		return adminFunc(source, (src, admin) -> {
+			for(RoundInfo round : admin.getMapRotation())
+			{
+				src.sendSystemMessage(Component.literal(round.toString()));
+			}
+			src.sendSystemMessage(Component.translatable("teams.command.listRotation.count", admin.getMapRotation().size()));
+		});
+	}
 	private static int listMaps(@Nonnull CommandSourceStack source)
 	{
 		return adminFunc(source, (src, admin) -> {
-			for(MapInfo map : admin.getAllMaps())
+			for(String map : admin.getAllMaps())
 			{
-				src.sendSystemMessage(Component.literal(map.toString()));
+				src.sendSystemMessage(Component.literal(map));
 			}
+			src.sendSystemMessage(Component.translatable("teams.command.listMaps.count", admin.getAllMaps().size()));
 		});
 	}
-	private static int addMapToRotation(@Nonnull CommandSourceStack source, @Nonnull String mapName, @Nonnull String gamemodeID, @Nonnull String team1Name, @Nonnull String team2Name, int positionHint)
+	private static int addMapToRotation(@Nonnull CommandContext<CommandSourceStack> ctx)
 	{
-		return adminFunc(source, (admin) ->
+		String mapName = tryGetString(ctx, "mapName", null);
+		String gamemodeString = tryGetString(ctx, "gamemode", "TDM");
+		ResourceLocation gamemodeID = gamemodeString == null ? null : ResourceLocation.tryParse(gamemodeString);
+		String team1Name = tryGetString(ctx, "team1", null);
+		String team2Name = tryGetString(ctx, "team2", null);
+		int positionHint = tryGetInt(ctx, "atPosition", -1);
+
+		if(mapName == null || gamemodeID == null || team1Name == null || team2Name == null)
+		{
+			ctx.getSource().sendFailure(Component.translatable("teams.command.rotation_add_map.failure"));
+			return -1;
+		}
+
+		return adminFunc(ctx.getSource(), (admin) ->
 			{
 				RoundInfo roundInfo = admin.tryCreateRoundInfo(mapName, gamemodeID, team1Name, team2Name);
 				if(roundInfo != null)
@@ -150,9 +176,9 @@ public class CommandTeams
 				() -> Component.translatable("teams.command.rotation_add_map.success", round),
 				(errorType) -> switch(errorType)
 				{
-					case FAILURE_INVALID_MAP_INDEX -> Component.translatable("teams.command.rotation_add_map.failure.invalid_map_index", round.map().mapName(), positionHint);
-					case FAILURE_INVALID_MAP_NAME -> Component.translatable("teams.command.rotation_add_map.failure.invalid_map_name", round.map().mapName());
-					default -> Component.translatable("teams.command.rotation_add_map.failure", round.map().mapName());
+					case FAILURE_INVALID_MAP_INDEX -> Component.translatable("teams.command.rotation_add_map.failure.invalid_map_index", round.mapName(), positionHint);
+					case FAILURE_INVALID_MAP_NAME -> Component.translatable("teams.command.rotation_add_map.failure.invalid_map_name", round.mapName());
+					default -> Component.translatable("teams.command.rotation_add_map.failure", round.mapName());
 				});
 	}
 	private static int removeMapFromRotation(@Nonnull CommandSourceStack source, int index)
@@ -179,7 +205,7 @@ public class CommandTeams
 	{
 		return runtimeGetFunc(source,
 				ITeamsRuntime::getCurrentMapName,
-				TeamsAPI::isValidMapName,
+				TeamsAPI::validateMapName,
 				(result) -> Component.translatable("teams.command.get_current_map.success", result),
 				(errorType, result) -> Component.translatable("teams.command.get_current_map.failure"));
 	}
@@ -187,7 +213,7 @@ public class CommandTeams
 	{
 		return runtimeGetFunc(source,
 				ITeamsRuntime::getNextMapName,
-				TeamsAPI::isValidMapName,
+				TeamsAPI::validateMapName,
 				(result) -> Component.translatable("teams.command.get_next_map.success", result),
 				(errorType, result) -> Component.translatable("teams.command.get_next_map.failure"));
 	}
@@ -207,8 +233,8 @@ public class CommandTeams
 	{
 		return runtimeFunc(source, (src, runtime) -> {
 			source.sendSuccess(() -> Component.literal(
-				runtime.getCurrentGamemodeInfo().gamemodeID() + ": "
-					+ runtime.getCurrentMapInfo().mapName() + " - "
+				runtime.getCurrentGamemodeID() + ": "
+					+ runtime.getCurrentMapName() + " - "
 					+ runtime.getCurrentPhase()), true);
 		});
 	}
@@ -310,5 +336,30 @@ public class CommandTeams
 			source.sendFailure(Component.translatable("teams.command.runtime_not_found"));
 			return -1;
 		}
+	}
+
+
+
+	private static int tryGetInt(@Nonnull CommandContext<CommandSourceStack> ctx, @Nonnull String name, int defaultValue)
+	{
+		try { return IntegerArgumentType.getInteger(ctx, name); }
+		catch(Exception ignored) { return defaultValue; }
+	}
+	private static double tryGetDouble(@Nonnull CommandContext<CommandSourceStack> ctx, @Nonnull String name, double defaultValue)
+	{
+		try { return DoubleArgumentType.getDouble(ctx, name); }
+		catch(Exception ignored) { return defaultValue; }
+	}
+	@Nullable
+	private static String tryGetString(@Nonnull CommandContext<CommandSourceStack> ctx, @Nonnull String name, @Nullable String defaultValue)
+	{
+		try { return StringArgumentType.getString(ctx, name); }
+		catch(Exception ignored) { return defaultValue; }
+	}
+	@Nonnull
+	private static BlockPos tryGetBlockPos(@Nonnull CommandContext<CommandSourceStack> ctx, @Nonnull String name, @Nonnull BlockPos defaultValue)
+	{
+		try { return BlockPosArgument.getBlockPos(ctx, name); }
+		catch(Exception ignored) { return defaultValue; }
 	}
 }

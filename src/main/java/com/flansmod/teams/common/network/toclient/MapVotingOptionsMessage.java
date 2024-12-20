@@ -1,6 +1,5 @@
 package com.flansmod.teams.common.network.toclient;
 
-import com.flansmod.teams.api.admin.MapInfo;
 import com.flansmod.teams.common.info.MapVotingOption;
 import com.flansmod.teams.common.network.TeamsModMessage;
 import net.minecraft.network.FriendlyByteBuf;
@@ -43,9 +42,7 @@ public class MapVotingOptionsMessage extends TeamsModMessage
 		{
 			String mapName = buf.readUtf();
 			int numVotes = buf.readByte();
-
-			MapInfo mapInfo = new MapInfo(mapName, null);
-			votingOptions.add(new MapVotingOption(mapInfo, numVotes));
+			votingOptions.add(new MapVotingOption(mapName, numVotes));
 		}
 	}
 }

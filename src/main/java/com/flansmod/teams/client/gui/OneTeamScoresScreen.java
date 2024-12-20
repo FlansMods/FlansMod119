@@ -35,7 +35,7 @@ public class OneTeamScoresScreen extends ScoresScreen
 			graphics.blit(texture, xOrigin, yOrigin + 24 + 9 * p, 0, 71, 256, 9);
 		graphics.blit(texture, xOrigin, yOrigin - 10, 0, 87, 256, 10);
 
-		graphics.drawCenteredString(font, teams.getCurrentGamemode().gamemodeID(), xOrigin, yOrigin + 4, 0xffffff);
+		graphics.drawCenteredString(font, teams.getCurrentGamemode().toString(), xOrigin, yOrigin + 4, 0xffffff);
 		graphics.drawString(font, "Name", xOrigin + 8, yOrigin + 14, 0xffffff);
 		graphics.drawString(font, "Score", xOrigin + 100, yOrigin + 14, 0xffffff);
 		graphics.drawString(font, "Kills", xOrigin + 150, yOrigin + 14, 0xffffff);
