@@ -219,7 +219,7 @@ public class TeamsClientManager
 		loadoutOptions.clear();
 		loadoutOptions.addAll(msg.loadoutOptions);
 		if (msg.andOpenGUI)
-			openTeamSelectGUI();
+			openLoadoutSelectGUI();
 	}
 	public void receiveKillsInfo(@Nonnull AddKillsMessage msg)
 	{
@@ -269,7 +269,7 @@ public class TeamsClientManager
 		if(loadoutOptions.size() > 0)
 			Minecraft.getInstance().setScreen(new ChooseLoadoutScreen(Component.translatable("teams.gui.loadout_select")));
 		else
-			TeamsMod.LOGGER.warn("Tried to open LoadoutSelect GUI without any teams to select from");
+			TeamsMod.LOGGER.warn("Tried to open LoadoutSelect GUI without any loadouts to select from");
 	}
 	public void openVotingGUI()
 	{

@@ -109,7 +109,9 @@ public class RoundInstance implements IRoundInstance
 			if(playerData.getID().equals(playerID))
 				return playerData;
 
-		return null;
+		PlayerInstance data = new PlayerInstance(playerID);
+		players.add(data);
+		return data;
 	}
 	@Override @Nonnull
 	public OpResult addPlayer(@Nonnull UUID playerID, @Nonnull IPlayerGameplayInfo playerData)

@@ -6,20 +6,15 @@ import com.flansmod.teams.api.runtime.*;
 import com.flansmod.teams.common.TeamsMod;
 import com.flansmod.teams.common.TeamsModConfig;
 import com.flansmod.teams.common.info.TeamScoreInfo;
-import com.flansmod.teams.common.network.toclient.TeamOptionsMessage;
+import com.flansmod.teams.common.network.toclient.*;
 import com.flansmod.teams.server.dimension.ConstructManager;
 import com.flansmod.teams.server.dimension.DimensionInstancingManager;
 import com.flansmod.teams.common.dimension.TeamsDimensions;
-import com.flansmod.teams.common.network.toclient.DisplayScoresMessage;
-import com.flansmod.teams.common.network.toclient.MapVotingOptionsMessage;
-import com.flansmod.teams.common.network.toclient.PhaseUpdateMessage;
 import com.flansmod.teams.common.network.toserver.PlaceVoteMessage;
 import com.flansmod.teams.common.network.toserver.SelectTeamMessage;
 import com.flansmod.teams.common.network.TeamsModPacketHandler;
 import com.flansmod.teams.server.map.MapDetails;
 import com.flansmod.teams.server.map.SpawnPointRef;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -346,6 +341,7 @@ public class TeamsManager implements
 					return assignMapResult;
 
 				currentRoundInstance = round;
+				currentRound = transitionTo;
 				return OpResult.SUCCESS;
 			}
 			@Nullable
@@ -405,7 +401,7 @@ public class TeamsManager implements
 							teleportSpawnPlayer(player, getLobbyDimension(), getLobbySpawnPoint());
 
 							// And send them team options
-							TeamsModPacketHandler.sendToPlayer(player, createTeamOptions(true));
+							TeamsModPacketHandler.sendToPlayer(player, createTeamOptionsMsg(true));
 						}
 					}
 				}
@@ -435,7 +431,7 @@ public class TeamsManager implements
 			@Override
 			public void onPlayerJoined(@Nonnull ServerPlayer player)
 			{
-				TeamsModPacketHandler.sendToPlayer(player, createTeamOptions(true));
+				TeamsModPacketHandler.sendToPlayer(player, createTeamOptionsMsg(true));
 			}
 		});
 	}
@@ -474,7 +470,7 @@ public class TeamsManager implements
 			public void enter()
 			{
 				selectVotingOptions();
-				TeamsModPacketHandler.sendToAll(createMapVotingMessage());
+				TeamsModPacketHandler.sendToAll(createMapVotingMsg());
 			}
 			@Override
 			public void tick()
@@ -485,7 +481,7 @@ public class TeamsManager implements
 			@Override
 			public void onPlayerJoined(@Nonnull ServerPlayer player)
 			{
-				TeamsModPacketHandler.sendToPlayer(player, createMapVotingMessage());
+				TeamsModPacketHandler.sendToPlayer(player, createMapVotingMsg());
 			}
 
 			private void selectVotingOptions()
@@ -529,6 +525,7 @@ public class TeamsManager implements
 			currentPhase = targetPhase;
 			ticksInCurrentPhase = 0;
 			getPhaseImpl(targetPhase).enter();
+			TeamsModPacketHandler.sendToAll(createPhaseUpdateMsg());
 		}
 	}
 	@Override @Nonnull
@@ -787,7 +784,7 @@ public class TeamsManager implements
 				}
 			}
 		}
-		TeamsModPacketHandler.sendToPlayer(player, createPhaseUpdate());
+		TeamsModPacketHandler.sendToPlayer(player, createPhaseUpdateMsg());
 
 		if(currentRoundInstance != null)
 		{
@@ -829,6 +826,9 @@ public class TeamsManager implements
 			selectedTeam.add(player);
 			forceSpawnPlayer(player);
 		}
+
+		if(selectedTeam instanceof TeamInstance teamInst)
+			TeamsModPacketHandler.sendToPlayer(player, createPresetLoadoutsMsg(teamInst, true));
 	}
 	public void playerSelectedClass(@Nonnull ServerPlayer player, int loadoutIndex)
 	{
@@ -977,7 +977,7 @@ public class TeamsManager implements
 		}
 	}
 	@Nonnull
-	private TeamOptionsMessage createTeamOptions(boolean andOpenGUI)
+	private TeamOptionsMessage createTeamOptionsMsg(boolean andOpenGUI)
 	{
 		TeamOptionsMessage msg = new TeamOptionsMessage();
 		msg.andOpenGUI = andOpenGUI;
@@ -990,12 +990,20 @@ public class TeamsManager implements
 		return msg;
 	}
 	@Nonnull
-	private PhaseUpdateMessage createPhaseUpdate()
+	private PresetLoadoutOptionsMessage createPresetLoadoutsMsg(@Nonnull TeamInstance team, boolean andOpenGUI)
+	{
+		PresetLoadoutOptionsMessage msg = new PresetLoadoutOptionsMessage();
+		msg.andOpenGUI = andOpenGUI;
+		msg.loadoutOptions.addAll(team.presetLoadouts);
+		return msg;
+	}
+	@Nonnull
+	private PhaseUpdateMessage createPhaseUpdateMsg()
 	{
 		return new PhaseUpdateMessage(currentPhase, phaseStartedTick, getPhaseImpl(currentPhase).getLength());
 	}
 	@Nonnull
-	private MapVotingOptionsMessage createMapVotingMessage()
+	private MapVotingOptionsMessage createMapVotingMsg()
 	{
 		return new MapVotingOptionsMessage();
 	}

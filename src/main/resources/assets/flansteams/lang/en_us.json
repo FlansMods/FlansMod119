@@ -1,4 +1,7 @@
 {
+  "teams.select_team.title": "Select Team",
+  "teams.select_loadout.title": "Select Loadout",
+
   "teams.announce.start": "TeamsMod is now running",
   "teams.announce.load_map": "Loading map \"{0}\"...",
   "teams.announce.stop": "TeamsMod is shutting down",

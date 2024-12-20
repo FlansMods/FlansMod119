@@ -20,7 +20,7 @@ public class TeamInstance implements ITeamInstance
 	private final LazyDefinition<TeamDefinition> teamDef;
 	private final Map<UUID, Player> teamMembers = new HashMap<>();
 	private final Map<String, Integer> scores = new HashMap<>();
-	private final List<PresetLoadout> presetLoadouts = new ArrayList<>();
+	public final List<PresetLoadout> presetLoadouts = new ArrayList<>();
 
 	public TeamInstance(@Nonnull ResourceLocation id)
 	{

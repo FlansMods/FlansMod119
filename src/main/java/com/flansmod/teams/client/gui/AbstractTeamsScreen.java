@@ -36,4 +36,9 @@ public class AbstractTeamsScreen extends Screen
 		else
 			graphics.blit(ranksTexture, xOrigin + x, yOrigin + y, rank * 16, prestige * 16, 16, 16, 512, 256);
 	}
+
+	@Override
+	public boolean isPauseScreen() {
+		return false;
+	}
 }
