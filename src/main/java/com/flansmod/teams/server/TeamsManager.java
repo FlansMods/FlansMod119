@@ -500,9 +500,9 @@ public class TeamsManager implements
 	@Override @Nullable
 	public IRoundInstance getCurrentRound() { return currentRoundInstance; }
 	@Override @Nullable
-	public IMapDetails getCurrentMap() { return currentRoundInstance.getMap(); }
+	public IMapDetails getCurrentMap() { return currentRoundInstance != null ? currentRoundInstance.getMap() : null; }
 	@Override @Nullable
-	public IGamemodeInstance getCurrentGamemode() { return currentRoundInstance.getGamemode(); }
+	public IGamemodeInstance getCurrentGamemode() { return currentRoundInstance != null ? currentRoundInstance.getGamemode() : null; }
 	@Override
 	public boolean isInBuildMode(@Nonnull UUID playerID) { return getOrCreatePlayerData(playerID).isBuilder(); }
 	@Override @Nonnull

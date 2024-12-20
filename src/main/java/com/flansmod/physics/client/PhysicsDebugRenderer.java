@@ -223,6 +223,11 @@ public class PhysicsDebugRenderer
                             componentPos,
                             palette,
                             (float) component.mass);
+
+
+                    DebugRenderer.renderRotation(componentPos, 1, palette.MotionCurrent,
+                        component.getCurrentAngularVelocity().Axis(), component.getCurrentAngularVelocity().Magnitude());
+
                     DebugRenderForces(
                             component.getCurrentReactionForces(),
                             vehicle.getDeltaMovement(),
