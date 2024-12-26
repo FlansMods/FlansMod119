@@ -28,6 +28,7 @@ public class TeamsAPI
 	// Team IDs
 	public static final ResourceLocation invalidTeam = new ResourceLocation("flansteams", "null");
 	public static final ResourceLocation spectatorTeam = new ResourceLocation("flansteams", "spectator");
+	public static boolean isSpectator(@Nonnull ResourceLocation teamID) { return spectatorTeam.equals(teamID); }
 	public static boolean isValidTeamID(@Nonnull ResourceLocation teamID) { return !invalidTeam.equals(teamID); }
 
 	// Settings Names

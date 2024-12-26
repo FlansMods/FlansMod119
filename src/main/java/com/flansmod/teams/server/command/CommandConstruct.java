@@ -59,6 +59,11 @@ public class CommandConstruct
 						.executes(CommandConstruct::saveAsConstruct)
 					)
 				)
+				.then(Commands.literal("close").executes(CommandConstruct::closeConstruct)
+					.then(Commands.argument("mapName", MapArgument.mapArgument())
+						.executes(CommandConstruct::closeConstruct)
+					)
+				)
 				.then(Commands.literal("cloneChunks")
 					.then(Commands.argument("mapName", StringArgumentType.word())
 						.then(Commands.argument("min", BlockPosArgument.blockPos())
@@ -80,6 +85,12 @@ public class CommandConstruct
 				)
 				.then(Commands.literal("link")
 					.then(Commands.literal("auto").executes(CommandConstruct::autoLink))
+				)
+				.then(Commands.literal("validate")
+					.executes(CommandConstruct::validateConstruct)
+					.then(Commands.argument("gamemode", GamemodeArgument.gamemodeArgument())
+						.executes(CommandConstruct::validateConstruct)
+					)
 				)
 			);
 	}
@@ -117,7 +128,11 @@ public class CommandConstruct
 	}
 	private static int validateConstruct(@Nonnull CommandContext<CommandSourceStack> context)
 	{
-
+		String gamemodeID = tryGetString(context, "gamemode", null);
+		if(gamemodeID != null)
+		{
+			//TeamsMod.MANAGER.validate
+		}
 
 		return -1;
 	}
@@ -279,7 +294,25 @@ public class CommandConstruct
 		}
 		return -1;
 	}
+	private static int closeConstruct(@Nonnull CommandContext<CommandSourceStack> context)
+	{
+		ConstructManager constructManager = TeamsMod.MANAGER.getConstructs();
+		String mapName = tryGetString(context, "mapName", null);
+		if(mapName == null)
+			mapName = constructManager.getMapLoadedIn(context.getSource().getLevel().dimension());
 
+		if(mapName != null)
+		{
+			final String mapToClose = mapName;
+			OpResult closeResult = constructManager.beginUnload(mapToClose);
+			switch (closeResult)
+			{
+				case SUCCESS -> context.getSource().sendSuccess(() -> Component.translatable("teams.construct.close.started", mapToClose), true);
+				default -> context.getSource().sendFailure(Component.translatable("teams.construct.close.failure", mapToClose));
+			}
+		}
+		return -1;
+	}
 	private static int autoLink(@Nonnull CommandContext<CommandSourceStack> context)
 	{
 		ConstructManager constructManager = TeamsMod.MANAGER.getConstructs();

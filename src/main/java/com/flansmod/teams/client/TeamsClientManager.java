@@ -4,6 +4,7 @@ import com.flansmod.teams.api.ERoundPhase;
 import com.flansmod.teams.api.TeamsAPI;
 import com.flansmod.teams.api.admin.IPlayerLoadout;
 import com.flansmod.teams.client.gamemode.IClientGamemode;
+import com.flansmod.teams.client.gui.AbstractTeamsScreen;
 import com.flansmod.teams.client.gui.ChooseLoadoutScreen;
 import com.flansmod.teams.client.gui.ChooseTeamScreen;
 import com.flansmod.teams.client.gui.VotingScreen;
@@ -229,6 +230,12 @@ public class TeamsClientManager
 	{
 		currentState.currentPhase = msg.currentPhase;
 		currentState.ticksRemaining = (int) (msg.startedTick + msg.phaseLength - getCurrentTime());
+
+		if(Minecraft.getInstance().screen instanceof AbstractTeamsScreen teamsScreen)
+		{
+			if(!teamsScreen.canBeOpenInPhase(currentState.currentPhase))
+				Minecraft.getInstance().setScreen(null);
+		}
 	}
 	public void receiveBuilderInfo(@Nonnull BuilderAdminMessage msg)
 	{

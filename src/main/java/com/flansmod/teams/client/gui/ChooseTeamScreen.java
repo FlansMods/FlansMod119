@@ -1,5 +1,6 @@
 package com.flansmod.teams.client.gui;
 
+import com.flansmod.teams.api.ERoundPhase;
 import com.flansmod.teams.client.TeamsModClient;
 import com.flansmod.teams.common.TeamsMod;
 import net.minecraft.client.gui.GuiGraphics;
@@ -16,6 +17,9 @@ public class ChooseTeamScreen extends AbstractTeamsScreen
 	private Button[] selectButtons;
 	private static int getGuiHeight() { return 29 + 24 * getNumLines(); }
 	private static int getNumLines() { return TeamsModClient.MANAGER.getNumTeamOptions(); }
+
+	@Override
+	public boolean canBeOpenInPhase(@Nonnull ERoundPhase phase) { return phase == ERoundPhase.Gameplay; }
 
 	public ChooseTeamScreen(@Nonnull Component title)
 	{

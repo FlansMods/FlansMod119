@@ -9,6 +9,11 @@ public class TeamsModConfig
 	public static final ForgeConfigSpec generalConfig;
 
 	public static ForgeConfigSpec.DoubleValue preparingPhaseTimeout;
+	public static ForgeConfigSpec.BooleanValue restoreExternalInventory;
+	public static ForgeConfigSpec.BooleanValue optIn;
+	public static ForgeConfigSpec.BooleanValue useCustomLobbyMessage;
+	public static ForgeConfigSpec.ConfigValue<String> customLobbyMessage;
+	public static ForgeConfigSpec.BooleanValue clearInventoryInLobby;
 	public static ForgeConfigSpec.BooleanValue startInLobbyDimension;
 	public static ForgeConfigSpec.BooleanValue startInLobbyDimensionWhenTeamsInactive;
 	public static ForgeConfigSpec.BooleanValue useDimensionInstancing;
@@ -38,12 +43,19 @@ public class TeamsModConfig
 
 	private static void init(@Nonnull ForgeConfigSpec.Builder builder)
 	{
+		builder.push("Dimension Settings");
+		optIn = builder.define("opt_in", false);
+		useCustomLobbyMessage = builder.define("use_custom_lobby_message", false);
+		customLobbyMessage = builder.define("custom_lobby_message", "Welcome to the Teams Mod lobby.");
+		useDimensionInstancing = builder.define("dimension_instancing", true);
+		restoreExternalInventory = builder.define("restore_external_inventory", true);
+		clearInventoryInLobby = builder.define("clear_inventory_in_lobby", true);
+		builder.pop();
+
 		builder.push("Round Preparation Settings");
 		preparingPhaseTimeout = builder.defineInRange("preparing_timeout", 60d, 1d, 360d);
-		useDimensionInstancing = builder.define("dimension_instancing", true);
 		startInLobbyDimension = builder.define("start_in_lobby_dimenson", true);
 		startInLobbyDimensionWhenTeamsInactive = builder.define("start_in_lobby_dimension_when_teams_inactive", false);
-
 		builder.pop();
 
 
@@ -54,7 +66,6 @@ public class TeamsModConfig
 		builder.push("Score Display Settings");
 		displayScoresPhaseDuration = builder.defineInRange("display_scores_duration", 15d, 1d, 360d);
 		builder.pop();
-
 
 		builder.push("Map Vote Settings");
 		mapVoteEnabled = builder.define("map_vote_enabled", true);

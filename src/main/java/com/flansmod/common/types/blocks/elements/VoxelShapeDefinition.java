@@ -10,9 +10,9 @@ import javax.annotation.Nonnull;
 public class VoxelShapeDefinition
 {
     @JsonField
-    public Vec3 min = new Vec3(0d, 0d, 0d);
+    public Vec3 min = new Vec3(0, 0, 0);
     @JsonField
-    public Vec3 max = new Vec3(1d, 1d, 1d);
+    public Vec3 max = new Vec3(1, 1, 1);
 
     @Nonnull
     public VoxelShape Create()

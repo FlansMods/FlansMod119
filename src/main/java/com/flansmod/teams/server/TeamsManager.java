@@ -7,6 +7,7 @@ import com.flansmod.teams.common.TeamsMod;
 import com.flansmod.teams.common.TeamsModConfig;
 import com.flansmod.teams.common.info.TeamScoreInfo;
 import com.flansmod.teams.common.network.toclient.*;
+import com.flansmod.teams.common.network.toserver.SelectPresetLoadoutMessage;
 import com.flansmod.teams.server.dimension.ConstructManager;
 import com.flansmod.teams.server.dimension.DimensionInstancingManager;
 import com.flansmod.teams.common.dimension.TeamsDimensions;
@@ -27,7 +28,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.scores.Team;
 import net.minecraftforge.common.util.ITeleporter;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
@@ -107,6 +110,7 @@ public class TeamsManager implements
 
 		TeamsModPacketHandler.registerServerHandler(SelectTeamMessage.class, SelectTeamMessage::new, this::receiveSelectTeamMessage);
 		TeamsModPacketHandler.registerServerHandler(PlaceVoteMessage.class, PlaceVoteMessage::new, this::receivePlaceVoteMessage);
+		TeamsModPacketHandler.registerServerHandler(SelectPresetLoadoutMessage.class, SelectPresetLoadoutMessage::new, this::receiveSelectLoadoutMessage);
 	}
 	@Override @Nonnull
 	public ResourceKey<Level> getLobbyDimension() { return TeamsDimensions.TEAMS_LOBBY_LEVEL; }
@@ -269,7 +273,7 @@ public class TeamsManager implements
 					else
 					{
 						TeamsMod.LOGGER.error("Failed to prepare new round: " + prepResult);
-						targetPhase = ERoundPhase.Inactive;
+						targetPhase = ERoundPhase.Cleanup;
 					}
 				}
 				else
@@ -279,7 +283,7 @@ public class TeamsManager implements
 					if(!prepResult.success())
 					{
 						TeamsMod.LOGGER.error("Failed to prepare new round");
-						targetPhase = ERoundPhase.Inactive;
+						targetPhase = ERoundPhase.Cleanup;
 					}
 				}
 			}
@@ -292,23 +296,31 @@ public class TeamsManager implements
 				if(ticksInCurrentPhase >= timeoutTicks())
 				{
 					TeamsMod.LOGGER.error("Preparing phase timed out!");
-					targetPhase = ERoundPhase.Inactive;
+					targetPhase = ERoundPhase.Cleanup;
 				}
 
 				if(TeamsModConfig.useDimensionInstancing.get())
 				{
 					if(instanceManager.isLoaded(transitionTarget.mapName()))
 					{
-						TeamsMod.LOGGER.info("Successfully loaded dimension instance in " + (ticksInCurrentPhase / 20) + "s");
-						OpResult prepResult = prepareNewRound(transitionTarget, Level.OVERWORLD);
-						if(prepResult.success())
+						ResourceKey<Level> dimension = instanceManager.dimensionOf(transitionTarget.mapName());
+						if(dimension != null)
 						{
-							targetPhase = ERoundPhase.Gameplay;
+							TeamsMod.LOGGER.info("Successfully loaded dimension instance in " + (ticksInCurrentPhase / 20) + "s");
+							OpResult prepResult = prepareNewRound(transitionTarget, dimension);
+							if (prepResult.success())
+							{
+								targetPhase = ERoundPhase.Gameplay;
+							} else
+							{
+								TeamsMod.LOGGER.error("Failed to prepare new round");
+								targetPhase = ERoundPhase.Cleanup;
+							}
 						}
 						else
 						{
 							TeamsMod.LOGGER.error("Failed to prepare new round");
-							targetPhase = ERoundPhase.Inactive;
+							targetPhase = ERoundPhase.Cleanup;
 						}
 					}
 				}
@@ -324,7 +336,7 @@ public class TeamsManager implements
 			{
 				RoundInstance round = createRoundInstance(transitionTo);
 				IMapDetails map = createMapInstance(transitionTo, inDimension);
-				IGamemodeInstance gamemode = createGamemodeInstance(round);
+				IGamemodeInstance gamemode = createGamemodeInstance(round, inDimension);
 				if(gamemode == null)
 					return OpResult.FAILURE_GENERIC;
 
@@ -345,7 +357,8 @@ public class TeamsManager implements
 				return OpResult.SUCCESS;
 			}
 			@Nullable
-			public IGamemodeInstance createGamemodeInstance(@Nonnull IRoundInstance roundInstance)
+			public IGamemodeInstance createGamemodeInstance(@Nonnull IRoundInstance roundInstance,
+															@Nonnull ResourceKey<Level> inDimension)
 			{
 				ResourceLocation gamemodeID = roundInstance.getDef().gamemodeID();
 				IGamemodeFactory factory = gamemodes.get(gamemodeID);
@@ -354,7 +367,12 @@ public class TeamsManager implements
 
 				if(!factory.isValid(roundInstance.getDef()))
 					return null;
-				return factory.createInstance(roundInstance);
+
+				Level level = ServerLifecycleHooks.getCurrentServer().getLevel(inDimension);
+				if(level == null)
+					return null;
+
+				return factory.createInstance(roundInstance, level);
 			}
 			@Nonnull
 			public MapDetails createMapInstance(@Nonnull RoundInfo roundInfo, @Nonnull ResourceKey<Level> inDimension)
@@ -395,10 +413,14 @@ public class TeamsManager implements
 							// Skip builders
 							IPlayerPersistentInfo playerData = getPlayerData(player.getUUID());
 							if(playerData != null && playerData.isBuilder())
+							{
+								TeamsModPacketHandler.sendToPlayer(player, createTeamOptionsMsg(false));
+								player.sendSystemMessage(Component.translatable("teams.builder.skipped"));
 								continue;
+							}
 
 							// Move player into the lobby dimension
-							teleportSpawnPlayer(player, getLobbyDimension(), getLobbySpawnPoint());
+							sendPlayerToLobby(player);
 
 							// And send them team options
 							TeamsModPacketHandler.sendToPlayer(player, createTeamOptionsMsg(true));
@@ -408,7 +430,7 @@ public class TeamsManager implements
 				else
 				{
 					TeamsMod.LOGGER.error("Gameplay phase entered with no current round!");
-					targetPhase = ERoundPhase.Inactive;
+					targetPhase = ERoundPhase.Cleanup;
 				}
 			}
 			@Override
@@ -496,8 +518,19 @@ public class TeamsManager implements
 			private int timeoutTicks() { return (int)Math.floor(TeamsModConfig.cleanupPhaseTimeout.get() * 20d); }
 
 			@Override
+			public void enter()
+			{
+				instanceManager.beginUnloadAll();
+			}
+			@Override
 			public void tick()
 			{
+				if(instanceManager.getNumLoaded() == 0)
+				{
+					TeamsMod.LOGGER.info("Cleanup phase completed full instance unload");
+					targetPhase = ERoundPhase.Inactive;
+				}
+
 				if(ticksInCurrentPhase >= timeoutTicks())
 				{
 					TeamsMod.LOGGER.error("Cleanup phase timed out!");
@@ -555,7 +588,7 @@ public class TeamsManager implements
 	{
 		if(currentPhase != ERoundPhase.Inactive)
 		{
-			targetPhase = ERoundPhase.Inactive;
+			targetPhase = ERoundPhase.Cleanup;
 			announce(Component.translatable("teams.announce.stop"));
 			return OpResult.SUCCESS;
 		}
@@ -593,7 +626,9 @@ public class TeamsManager implements
 		if(isRotationEnabled && !mapRotation.isEmpty())
 		{
 			int index = mapRotation.indexOf(currentRound);
-			return mapRotation.get(index + 1);
+			int nextIndex = (index + 1) % mapRotation.size();
+
+			return mapRotation.get(nextIndex);
 		}
 		return nextRound;
 	}
@@ -766,35 +801,37 @@ public class TeamsManager implements
 			: TeamsModConfig.startInLobbyDimension.get());
 		if(shouldStartInLobby)
 		{
-			MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-			ServerLevel lobbyLevel = server.getLevel(TeamsDimensions.TEAMS_LOBBY_LEVEL);
-			if(lobbyLevel != null)
-			{
-				Entity teleportedPlayer = player.changeDimension(lobbyLevel, new ITeleporter()
-				{
-					@Override
-					public Entity placeEntity(Entity entity, ServerLevel currentWorld, ServerLevel destWorld, float yaw, Function<Boolean, Entity> repositionEntity)
-					{
-						return ITeleporter.super.placeEntity(entity, currentWorld, destWorld, yaw, repositionEntity);
-					}
-				});
-				if(teleportedPlayer != null)
-				{
-					player.setRespawnPosition(TeamsDimensions.TEAMS_LOBBY_LEVEL, player.getOnPos(), player.getYRot(), true, false);
-				}
-			}
+			sendPlayerToLobby(player);
+
+			//MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+			//ServerLevel lobbyLevel = server.getLevel(TeamsDimensions.TEAMS_LOBBY_LEVEL);
+			//if(lobbyLevel != null)
+			//{
+			//	Entity teleportedPlayer = player.changeDimension(lobbyLevel, new ITeleporter()
+			//	{
+			//		@Override
+			//		public Entity placeEntity(Entity entity, ServerLevel currentWorld, ServerLevel destWorld, float yaw, Function<Boolean, Entity> repositionEntity)
+			//		{
+			//			return ITeleporter.super.placeEntity(entity, currentWorld, destWorld, yaw, repositionEntity);
+			//		}
+			//	});
+			//	if(teleportedPlayer != null)
+			//	{
+			//		player.setRespawnPosition(TeamsDimensions.TEAMS_LOBBY_LEVEL, player.getOnPos(), player.getYRot(), true, false);
+			//	}
+			//}
 		}
 		TeamsModPacketHandler.sendToPlayer(player, createPhaseUpdateMsg());
 
-		if(currentRoundInstance != null)
-		{
-			ITeamInstance bestTeam = getBestTeamFor(player);
-			bestTeam.add(player);
-		}
+		//if(currentRoundInstance != null)
+		//{
+		//	ITeamInstance bestTeam = getBestTeamFor(player);
+		//	bestTeam.add(player);
+		//}
 	}
 	public void playerSelectedTeam(@Nonnull ServerPlayer player, @Nonnull ResourceLocation selection)
 	{
-		if(currentPhase != ERoundPhase.Gameplay)
+		if(currentPhase != ERoundPhase.Gameplay || currentRoundInstance == null)
 			return;
 
 		IPlayerGameplayInfo playerData = currentRoundInstance.getPlayerData(player.getUUID());
@@ -812,49 +849,35 @@ public class TeamsManager implements
 
 		// Always set the next team
 		playerData.setTeamChoice(selection);
-
-		// Then, work out if we do instant-switch
-		ITeamInstance previousTeam = currentRoundInstance.getTeamOf(player);
-		boolean instantRespawn = previousTeam == null ||
-			(getCurrentGamemode() != null && getCurrentGamemode().doInstantRespawn(previousTeam.getTeamID(), selection));
-
-		if(instantRespawn)
-		{
-			if(previousTeam != null)
-				previousTeam.remove(player);
-
-			selectedTeam.add(player);
-			forceSpawnPlayer(player);
-		}
-
-		if(selectedTeam instanceof TeamInstance teamInst)
-			TeamsModPacketHandler.sendToPlayer(player, createPresetLoadoutsMsg(teamInst, true));
+		// Then see if we should spawn or ask for loadout
+		checkReadyForRespawn(player, selectedTeam, null);
 	}
-	public void playerSelectedClass(@Nonnull ServerPlayer player, int loadoutIndex)
+	public void playerSelectedLoadout(@Nonnull ServerPlayer player, int loadoutIndex)
 	{
-		if(currentPhase != ERoundPhase.Gameplay)
+		if(currentPhase != ERoundPhase.Gameplay || currentRoundInstance == null)
 		{
 			player.sendSystemMessage(Component.translatable("teams.player_msg.invalid_phase"));
 			return;
 		}
+		IPlayerGameplayInfo playerData = currentRoundInstance.getPlayerData(player.getUUID());
+		if(playerData == null)
+		{
+			player.sendSystemMessage(Component.translatable("teams.player_msg.server_error"));
+			return;
+		}
 
-		ITeamInstance team = currentRoundInstance.getTeamOf(player);
+		ResourceLocation teamChoice = playerData.getTeamChoice();
+		ITeamInstance team = currentRoundInstance.getTeam(teamChoice);
+		//ITeamInstance team = currentRoundInstance.getTeamOf(player);
 		if(team == null)
 		{
-			player.sendSystemMessage(Component.translatable("teams.player_msg.not_on_team"));
+			player.sendSystemMessage(Component.translatable("teams.player_msg.invalid_team"));
 			return;
 		}
 
 		if(loadoutIndex >= team.getNumPresetLoadouts())
 		{
 			player.sendSystemMessage(Component.translatable("teams.player_msg.invalid_loadout"));
-			return;
-		}
-
-		IPlayerGameplayInfo playerData = currentRoundInstance.getPlayerData(player.getUUID());
-		if(playerData == null)
-		{
-			player.sendSystemMessage(Component.translatable("teams.player_msg.server_error"));
 			return;
 		}
 
@@ -865,8 +888,55 @@ public class TeamsManager implements
 			return;
 		}
 
+		IPlayerLoadout loadout = team.getPresetLoadout(loadoutIndex);
+		checkReadyForRespawn(player, team, loadout);
+
 		// TODO: Ranked handling
 		//IPlayerPersistentInfo playerSaveData = getOrCreatePlayerData(player.getUUID());
+
+	}
+
+
+	public void checkReadyForRespawn(@Nonnull ServerPlayer player,
+									 @Nullable ITeamInstance teamSelection,
+									 @Nullable IPlayerLoadout loadoutSelection)
+	{
+		if(teamSelection == null || currentRoundInstance == null)
+			return;
+
+		boolean switchingToSpectator = TeamsAPI.isSpectator(teamSelection.getTeamID());
+		boolean needsLoadout = !switchingToSpectator && teamSelection.getNumPresetLoadouts() > 0;
+		if(needsLoadout && loadoutSelection == null)
+		{
+			if(teamSelection instanceof TeamInstance teamInst)
+				TeamsModPacketHandler.sendToPlayer(player, createPresetLoadoutsMsg(teamInst, true));
+			return;
+		}
+
+		// Then, work out if we do instant-switch
+		IGamemodeInstance currentGamemode = getCurrentGamemode();
+		ITeamInstance previousTeam = currentRoundInstance.getTeamOf(player);
+		boolean switchingFromSpectator = previousTeam != null && TeamsAPI.isSpectator(previousTeam.getTeamID());
+		boolean instantRespawn =
+			previousTeam == null ||
+			switchingToSpectator ||
+			switchingFromSpectator ||
+			currentGamemode == null ||
+			currentGamemode.doInstantRespawn(previousTeam.getTeamID(), teamSelection.getTeamID());
+
+		if(instantRespawn)
+		{
+			if(previousTeam != null)
+				previousTeam.remove(player);
+
+			player.sendSystemMessage(Component.translatable("teams.player_msg.team_selected", teamSelection.getTeamID().toLanguageKey()));
+			teamSelection.add(player);
+			sendPlayerToCurrentInstance(player);
+		}
+		else
+		{
+			player.sendSystemMessage(Component.translatable("teams.player_msg.next_team_selected", teamSelection.getTeamID().toLanguageKey()));
+		}
 	}
 
 	@Nonnull
@@ -942,31 +1012,13 @@ public class TeamsManager implements
 		return new SpawnPointRef(BlockPos.ZERO);
 	}
 
-	private void forceSpawnPlayer(@Nonnull ServerPlayer player)
-	{
-		ISpawnPoint spawnPoint = getSpawnPointFor(player);
-		player.setRespawnPosition(getSpawnDimensionFor(player), spawnPoint.getPos(), 0f, true, false);
-		if(player.isAlive())
-		{
-			player.kill();
-		}
-	}
-	private void teleportSpawnPlayer(@Nonnull ServerPlayer player, @Nonnull ResourceKey<Level> dimension, @Nonnull ISpawnPoint spawn)
-	{
-		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-		if(server != null)
-		{
-			ServerLevel level = server.getLevel(dimension);
-			if(level != null)
-			{
-				player.teleportTo(level, spawn.getPos().getX(), spawn.getPos().getY(), spawn.getPos().getZ(), 0f, 0f);
-			}
-		}
-	}
-
 	public void receiveSelectTeamMessage(@Nonnull SelectTeamMessage msg, @Nonnull ServerPlayer from)
 	{
 		playerSelectedTeam(from, currentRound.teams().get(msg.getSelection()));
+	}
+	public void receiveSelectLoadoutMessage(@Nonnull SelectPresetLoadoutMessage msg, @Nonnull ServerPlayer from)
+	{
+		playerSelectedLoadout(from, msg.loadoutIndex);
 	}
 	public void receivePlaceVoteMessage(@Nonnull PlaceVoteMessage msg, @Nonnull ServerPlayer from)
 	{
@@ -986,6 +1038,8 @@ public class TeamsManager implements
 		{
 			for(ITeamInstance team : round.getTeams())
 				msg.teamOptions.add(team.getTeamID());
+
+			msg.teamOptions.add(TeamsAPI.spectatorTeam);
 		}
 		return msg;
 	}
@@ -994,7 +1048,7 @@ public class TeamsManager implements
 	{
 		PresetLoadoutOptionsMessage msg = new PresetLoadoutOptionsMessage();
 		msg.andOpenGUI = andOpenGUI;
-		msg.loadoutOptions.addAll(team.presetLoadouts);
+		msg.loadoutOptions.addAll(team.getPresetLoadouts());
 		return msg;
 	}
 	@Nonnull
@@ -1020,6 +1074,133 @@ public class TeamsManager implements
 		if(server != null)
 		{
 			server.getPlayerList().broadcastSystemMessage(msg, true);
+		}
+	}
+
+
+	// ------------------------------------------------------------------------------
+	//  Good practice here is to request dimension changes, then to listen for
+	//  Forge events. That way, any other teleportation effects will be accounted for
+	// ------------------------------------------------------------------------------
+	public void sendPlayerTo(@Nonnull ServerPlayer player,
+							 @Nonnull ResourceKey<Level> levelID,
+							 @Nonnull BlockPos pos)
+	{
+		ServerLevel level = ServerLifecycleHooks.getCurrentServer().getLevel(levelID);
+		if(level != null)
+			player.teleportTo(level, pos.getX(), pos.getY(), pos.getZ(), 0f, 0f);
+	}
+	public void sendPlayerTo(@Nonnull ServerPlayer player,
+							 @Nonnull ResourceKey<Level> levelID,
+							 @Nonnull ISpawnPoint spawnPoint)
+	{
+		sendPlayerTo(player, levelID, spawnPoint.getPos());
+	}
+
+	public void sendPlayerToLobby(@Nonnull ServerPlayer player)
+	{
+		sendPlayerTo(player, TeamsDimensions.TEAMS_LOBBY_LEVEL, lobbySpawnPoint);
+	}
+	public void sendPlayerToCurrentInstance(@Nonnull ServerPlayer player)
+	{
+		if(currentRoundInstance != null)
+		{
+			ResourceKey<Level> instanceLevelID = getInstances().dimensionOf(getCurrentMapName());
+			if(instanceLevelID != null)
+			{
+				ISpawnPoint spawnPoint = getSpawnPointFor(player);
+				sendPlayerTo(player, instanceLevelID, spawnPoint);
+			}
+			else
+				TeamsMod.LOGGER.warn("Failed to find current instance dimension");
+		}
+		else
+			TeamsMod.LOGGER.warn("Failed to send player "+player.getName().getString()+" to current instance");
+	}
+	public void sendPlayerToConstruct(@Nonnull ServerPlayer player)
+	{
+		IPlayerPersistentInfo playerData = getPlayerData(player.getUUID());
+		if(playerData != null && playerData.isBuilder())
+		{
+			ResourceKey<Level> constructLevel = getConstructs().getFirstActiveInstance();
+			if(constructLevel != null)
+				sendPlayerTo(player, constructLevel, BlockPos.ZERO);
+		}
+	}
+	public void sendPlayerToVanillaSpawn(@Nonnull ServerPlayer player)
+	{
+		if(player.getRespawnPosition() != null)
+			sendPlayerTo(player, player.getRespawnDimension(), player.getRespawnPosition());
+		else
+		{
+			ServerLevel respawnLevel = ServerLifecycleHooks.getCurrentServer().getLevel(player.getRespawnDimension());
+			if(respawnLevel != null)
+				sendPlayerTo(player, player.getRespawnDimension(), respawnLevel.getSharedSpawnPos());
+		}
+	}
+
+
+	public void onPlayerReturnedToOtherDimension(@Nonnull ServerPlayer player)
+	{
+		player.setGameMode(GameType.SURVIVAL);
+
+		IPlayerPersistentInfo playerData = getPlayerData(player.getUUID());
+		if(playerData != null && playerData.isBuilder())
+			player.sendSystemMessage(Component.translatable("teams.exit_teams.builder"));
+		else
+			player.sendSystemMessage(Component.translatable("teams.exit_teams.not_builder"));
+	}
+	public void onPlayerEnteredLobby(@Nonnull ServerPlayer player)
+	{
+		if(TeamsModConfig.clearInventoryInLobby.get())
+		{
+			player.getInventory().clearContent();
+		}
+		player.setGameMode(GameType.ADVENTURE);
+
+		if(TeamsModConfig.useCustomLobbyMessage.get())
+		{
+			player.sendSystemMessage(Component.literal(TeamsModConfig.customLobbyMessage.get()));
+		}
+		else
+		{
+			IPlayerPersistentInfo playerData = getPlayerData(player.getUUID());
+			if(playerData != null && playerData.isBuilder())
+				player.sendSystemMessage(Component.translatable("teams.enter_lobby.builder"));
+			else
+				player.sendSystemMessage(Component.translatable("teams.enter_lobby.not_builder"));
+		}
+	}
+	public void onPlayerEnteredConstruct(@Nonnull ServerPlayer player)
+	{
+		IPlayerPersistentInfo playerData = getPlayerData(player.getUUID());
+		if(playerData != null && playerData.isBuilder())
+		{
+			player.sendSystemMessage(Component.translatable("teams.enter_construct.builder"));
+			player.setGameMode(GameType.CREATIVE);
+		}
+		else
+		{
+			player.sendSystemMessage(Component.translatable("teams.enter_construct.not_builder"));
+			player.setGameMode(GameType.SPECTATOR);
+		}
+	}
+	public void onPlayerEnteredCurrentInstance(@Nonnull ServerPlayer player)
+	{
+		player.getInventory().clearContent();
+
+		IPlayerGameplayInfo playerData = currentRoundInstance.getPlayerData(player.getUUID());
+		if (playerData != null)
+		{
+			ResourceLocation teamID = playerData.getTeamChoice();
+			if(TeamsAPI.isSpectator(teamID))
+			{
+				player.setGameMode(GameType.SPECTATOR);
+			}
+			else
+			{
+				player.setGameMode(GameType.ADVENTURE);
+			}
 		}
 	}
 }

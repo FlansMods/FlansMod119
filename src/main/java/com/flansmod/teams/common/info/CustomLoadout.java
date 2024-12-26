@@ -11,6 +11,7 @@ import com.flansmod.common.types.teams.elements.LoadoutItemModifierDefinition;
 import com.flansmod.common.types.teams.elements.LoadoutOptionDefinition;
 import com.flansmod.common.types.teams.elements.LoadoutSkinModifierDefinition;
 import com.flansmod.teams.api.admin.IPlayerLoadout;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
@@ -25,6 +26,7 @@ import java.util.function.Function;
 
 public class CustomLoadout implements IPlayerLoadout
 {
+	public String name;
 	public ResourceLocation loadoutPoolDef;
 	public Map<Integer, Integer> hashedLoadoutChoices = new HashMap<>();
 	public Map<String, Integer> loadoutChoices = new HashMap<>();
@@ -34,6 +36,8 @@ public class CustomLoadout implements IPlayerLoadout
 		loadoutPoolDef = def;
 	}
 
+	@Override @Nonnull
+	public Component getName() { return Component.literal(name); }
 	@Nonnull
 	public LoadoutPoolDefinition getDef()
 	{

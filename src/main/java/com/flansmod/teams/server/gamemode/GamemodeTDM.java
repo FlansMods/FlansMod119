@@ -8,6 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nonnull;
 
@@ -18,9 +19,10 @@ public class GamemodeTDM extends Gamemode
 	public int scoreLimit = 50;
 	public int autoBalanceIntervalTicks = 1200;
 
-	public GamemodeTDM(@Nonnull IRoundInstance roundInstance)
+	public GamemodeTDM(@Nonnull IRoundInstance roundInstance,
+					   @Nonnull Level dim)
 	{
-		super(roundInstance);
+		super(roundInstance, dim);
 	}
 
 	@Override
@@ -51,9 +53,8 @@ public class GamemodeTDM extends Gamemode
 	@Override @Nonnull
 	public ISpawnPoint getSpawnPoint(@Nonnull IMapDetails map, @Nonnull Player forPlayer)
 	{
-		return null;
+		return defaultSpawnHandler(map, forPlayer);
 	}
-
 	@Override
 	public void playerDamaged(@Nonnull ServerPlayer damaged, @Nonnull DamageSource damage, float amount)
 	{

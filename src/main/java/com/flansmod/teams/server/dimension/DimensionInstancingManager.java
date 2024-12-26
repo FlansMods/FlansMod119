@@ -196,6 +196,14 @@ public class DimensionInstancingManager implements IDimensionInstancer
 		}
 		return OpResult.FAILURE_NO_INSTANCES_AVAILABLE;
 	}
+	public int getNumLoaded()
+	{
+		int numLoaded = 0;
+		for(Instance instance : instances)
+			if(instance.isLoaded())
+				numLoaded++;
+		return numLoaded;
+	}
 	@Override
 	public boolean isLoaded(@Nonnull String mapName)
 	{
@@ -230,6 +238,22 @@ public class DimensionInstancingManager implements IDimensionInstancer
 				return instance.tryStartUnload(server, this::unload, mapName);
 		}
 		return OpResult.FAILURE_ALREADY_COMPLETE;
+	}
+	@Nonnull
+	public OpResult beginUnloadAll()
+	{
+		OpResult result = OpResult.SUCCESS;
+		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+		for(Instance instance : instances)
+		{
+			if(instance.isLoaded())
+			{
+				OpResult unloadResult = instance.tryStartUnload(server, this::unload, instance.currentMap);
+				if(unloadResult.failure())
+					result = unloadResult;
+			}
+		}
+		return result;
 	}
 	@Override @Nonnull
 	public List<String> printDebug()

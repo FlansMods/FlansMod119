@@ -95,7 +95,15 @@ public class RoundInstance implements IRoundInstance
 		return OpResult.SUCCESS;
 	}
 
+	@Override
+	public boolean isParticipating(@Nonnull UUID playerID)
+	{
+		for(IPlayerGameplayInfo playerInfo : players)
+			if(playerInfo.getID().equals(playerID))
+				return true;
 
+		return false;
+	}
 	@Override @Nonnull
 	public List<IPlayerGameplayInfo> getParticipatingPlayers()
 	{

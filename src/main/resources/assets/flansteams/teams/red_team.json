@@ -1,0 +1,15 @@
+{
+	"loadouts": [
+		"flansteams:sword_and_shield"
+	],
+	"flagColour": {
+		"red": 0.0,
+		"green": 0.0,
+		"blue": 0.5019608
+	},
+	"textColour": "1",
+	"hat": {},
+	"chest": {},
+	"legs": {},
+	"shoes": {}
+}

@@ -1,11 +1,31 @@
 {
   "teams.select_team.title": "Select Team",
   "teams.select_loadout.title": "Select Loadout",
+  "teams.select_loadout.button": "Select",
+  "teams.select_loadout.back": "Back",
+
+  "teams.builder.skipped": "You were not automatically added to the current round. Type '/teams join' to manually join, or remove the builder role.",
+
+  "teams.enter_construct.builder": "You have entered the construct and creative mode has been activated. You can use '/construct exit' to leave",
+  "teams.enter_construct.not_builder": "You have entered the construct, but do not have build permissions. If you are an op, you can use '/teams builders add <yourName>'",
+  "teams.enter_lobby.builder": "Welcome to the Teams Mod lobby. You are a builder, and may use the '/construct' command.",
+  "teams.enter_lobby.not_builder": "Welcome to the Teams Mod lobby.",
+  "teams.exit_teams.builder": "You have left the Teams Mod area. You can re-enter with '/teams join' or you can build with the '/construct' command.",
+  "teams.exit_teams.not_builder": "You have left the Teams Mod area. You can re-enter with '/teams join'.",
+
+  "teams.player_msg.team_selected": "You have joined {0}",
+  "teams.player_msg.next_team_selected": "You will respawn on {0}",
+  "teams.player_msg.invalid_phase": "You can't do that right now",
+  "teams.player_msg.server_error": "TeamsMod encountered a server-side error",
+  "teams.player_msg.invalid_loadout": "Your loadout selection is invalid",
+  "teams.player_msg.invalid_team": "Your team selection is invalid",
 
   "teams.announce.start": "TeamsMod is now running",
   "teams.announce.load_map": "Loading map \"{0}\"...",
   "teams.announce.stop": "TeamsMod is shutting down",
 
+  "teams.command.add_builder.success": "Added builder role to {0}",
+  "teams.command.remove_builder.success": "Removed builder role from {0}",
   "teams.command.admin_not_found": "TeamsAPI: TeamsAdmin not initialized yet, check your log.",
   "teams.command.runtime_not_found": "TeamsAPI: TeamsRuntime not initialized yet, check your log.",
   "teams.command.listMaps.count": "Found {0} maps.",
@@ -50,6 +70,8 @@
   "teams.construct.load.map_already_loaded": "Load Construct Failed: This map is already loaded in this construct",
   "teams.construct.load.failure_bad_level": "Load Construct Failed: Source level was invalid",
   "teams.construct.load.failure": "Load {0} -> Construct Failed: Unknown reason",
+  "teams.construct.close.started": "Close Construct Started",
+  "teams.construct.close.failure": "Close Construct Failed",
   "teams.construct.create.success": "Create Map Succeeded",
   "teams.construct.create.failure_map_name_invalid": "Create Map Failed: {0} is an invalid map name",
   "teams.construct.create.failure": "Create Map Failed",

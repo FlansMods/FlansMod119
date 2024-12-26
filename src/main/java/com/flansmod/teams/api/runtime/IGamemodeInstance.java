@@ -9,12 +9,14 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 public interface IGamemodeInstance
 {
+	@Nonnull Level getDimension();
 	void init(@Nonnull ISettings settings);
 	void tick();
 	default boolean allowSpectators() { return true; }

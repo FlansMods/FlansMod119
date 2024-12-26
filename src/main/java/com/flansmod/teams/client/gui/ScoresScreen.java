@@ -1,5 +1,6 @@
 package com.flansmod.teams.client.gui;
 
+import com.flansmod.teams.api.ERoundPhase;
 import com.flansmod.teams.client.TeamsClientManager;
 import com.flansmod.teams.client.TeamsModClient;
 import com.flansmod.teams.common.info.GameplayInfo;
@@ -19,6 +20,11 @@ public abstract class ScoresScreen extends AbstractTeamsScreen
 	public static final ResourceLocation texture2 = new ResourceLocation("flansmod", "gui/teamsScores2.png");
 
 	public final boolean isRoundOver;
+	@Override
+	public boolean canBeOpenInPhase(@Nonnull ERoundPhase phase)
+	{
+		return phase == ERoundPhase.DisplayScores || phase == ERoundPhase.Gameplay;
+	}
 
 	public ScoresScreen(@Nonnull Component title, int guiWidth, int guiHeight, boolean isOver)
 	{

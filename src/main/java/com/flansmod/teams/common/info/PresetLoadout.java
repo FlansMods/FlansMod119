@@ -2,8 +2,9 @@ package com.flansmod.teams.common.info;
 
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.types.elements.ItemStackDefinition;
-import com.flansmod.common.types.teams.ClassDefinition;
+import com.flansmod.common.types.teams.LoadoutDefinition;
 import com.flansmod.teams.api.admin.IPlayerLoadout;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -13,8 +14,10 @@ import javax.annotation.Nonnull;
 
 public record PresetLoadout(@Nonnull ResourceLocation classDef) implements IPlayerLoadout
 {
+	@Override @Nonnull
+	public Component getName() { return Component.translatable(classDef.toLanguageKey()); }
 	@Nonnull
-	public ClassDefinition getDef() { return FlansMod.CLASSES.Get(classDef); }
+	public LoadoutDefinition getDef() { return FlansMod.LOADOUTS.Get(classDef); }
 	@Override @Nullable
 	public ResourceLocation getSkinOverride() { return getDef().playerSkinOverride; }
 	@Override @Nonnull

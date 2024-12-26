@@ -1,5 +1,6 @@
 package com.flansmod.teams.client.gui;
 
+import com.flansmod.teams.api.ERoundPhase;
 import com.flansmod.teams.client.TeamsClientManager;
 import com.flansmod.teams.client.TeamsModClient;
 import com.flansmod.teams.client.gamemode.IClientGamemode;
@@ -20,6 +21,9 @@ public class VotingScreen extends AbstractTeamsScreen
 
 	public Button[] voteButtons;
 	public int myVote = 0;
+
+	@Override
+	public boolean canBeOpenInPhase(@Nonnull ERoundPhase phase) { return phase == ERoundPhase.MapVote; }
 
 	public VotingScreen(@Nonnull Component title)
 	{

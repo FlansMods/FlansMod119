@@ -1,5 +1,6 @@
 package com.flansmod.teams.client.gui;
 
+import com.flansmod.teams.api.ERoundPhase;
 import com.flansmod.teams.common.TeamsMod;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -18,6 +19,8 @@ public class AbstractTeamsScreen extends Screen
 	protected int yOrigin;
 	protected int imageWidth;
 	protected int imageHeight;
+
+	public boolean canBeOpenInPhase(@Nonnull ERoundPhase phase) { return true; }
 
 	protected AbstractTeamsScreen(@Nonnull Component title, int guiWidth, int guiHeight)
 	{

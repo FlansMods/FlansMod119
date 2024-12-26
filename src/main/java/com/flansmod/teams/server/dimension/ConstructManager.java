@@ -56,6 +56,16 @@ public class ConstructManager extends DimensionInstancingManager
 		super.serverTick();
 	}
 
+	@Nullable
+	public ResourceKey<Level> getFirstActiveInstance()
+	{
+		for(Instance instance : instances)
+		{
+			if (instance.isLoaded())
+				return instance.dimension;
+		}
+		return null;
+	}
 
 	@Nonnull
 	public OpResult saveChangesInInstance(@Nonnull ResourceKey<Level> dimension, @Nullable String saveAsMapName)

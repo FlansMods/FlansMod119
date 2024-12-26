@@ -1,24 +1,33 @@
 package com.flansmod.teams.server.command;
 
 import com.flansmod.teams.api.*;
+import com.flansmod.teams.api.admin.IPlayerPersistentInfo;
 import com.flansmod.teams.api.admin.ITeamsAdmin;
 import com.flansmod.teams.api.admin.RoundInfo;
 import com.flansmod.teams.api.runtime.ITeamsRuntime;
+import com.flansmod.teams.common.TeamsMod;
+import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.DoubleArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.GameProfileArgument;
 import net.minecraft.commands.arguments.coordinates.BlockPosArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraftforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -66,6 +75,18 @@ public class CommandTeams
 					.then(Commands.literal("remove")
 						.then(Commands.argument("index", IntegerArgumentType.integer())
 							.executes(ctx -> removeMapFromRotation(ctx.getSource(), IntegerArgumentType.getInteger(ctx, "index")))
+						)
+					)
+				)
+				.then(Commands.literal("builders")
+					.then(Commands.literal("add")
+						.then(Commands.argument("targets", GameProfileArgument.gameProfile())
+							.executes(CommandTeams::addPlayerToBuilders)
+						)
+					)
+					.then(Commands.literal("remove")
+						.then(Commands.argument("targets", GameProfileArgument.gameProfile())
+							.executes(CommandTeams::removePlayerFromBuilders)
 						)
 					)
 				)
@@ -138,6 +159,31 @@ public class CommandTeams
 			}
 			src.sendSystemMessage(Component.translatable("teams.command.listMaps.count", admin.getAllMaps().size()));
 		});
+	}
+	private static int addPlayerToBuilders(@Nonnull CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException
+	{
+		Collection<GameProfile> profiles = GameProfileArgument.getGameProfiles(ctx, "targets");
+		for(GameProfile profile : profiles)
+		{
+			IPlayerPersistentInfo playerInfo = TeamsMod.MANAGER.getOrCreatePlayerData(profile.getId());
+			playerInfo.setBuilder(true);
+			ctx.getSource().sendSuccess(() -> Component.translatable("teams.command.add_builder.success", profile.getName()), true);
+		}
+		return -1;
+	}
+	private static int removePlayerFromBuilders(@Nonnull CommandContext<CommandSourceStack> ctx) throws CommandSyntaxException
+	{
+		Collection<GameProfile> profiles = GameProfileArgument.getGameProfiles(ctx, "targets");
+		for(GameProfile profile : profiles)
+		{
+			IPlayerPersistentInfo playerInfo = TeamsMod.MANAGER.getOrCreatePlayerData(profile.getId());
+			playerInfo.setBuilder(false);
+			ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(profile.getId());
+			if(player != null)
+				TeamsMod.MANAGER.onPlayerLogin(player);
+			ctx.getSource().sendSuccess(() -> Component.translatable("teams.command.remove_builder.success", profile.getName()), true);
+		}
+		return -1;
 	}
 	private static int addMapToRotation(@Nonnull CommandContext<CommandSourceStack> ctx)
 	{

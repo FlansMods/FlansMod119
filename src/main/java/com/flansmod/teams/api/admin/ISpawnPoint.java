@@ -10,6 +10,12 @@ import javax.annotation.Nullable;
 
 public interface ISpawnPoint
 {
+	ISpawnPoint zero = new ISpawnPoint()
+	{
+		@Override @Nonnull
+		public BlockPos getPos() { return BlockPos.ZERO; }
+	};
+
 	@Nonnull BlockPos getPos();
 	@Nullable default AABB getBoundingBoxCheckArea() { return null; }
 }

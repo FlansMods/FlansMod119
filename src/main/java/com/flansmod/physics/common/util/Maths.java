@@ -96,6 +96,14 @@ public class Maths
     public static double sqrt(double f) { return Math.sqrt(f); }
     public static double atan(double f) { return Math.atan(f); }
     public static double atan2(double a, double b) { return Math.atan2(a, b); }
+    public static double fastInvSqrt(double d) {
+        double xhalf = 0.5d * d;
+        long i = Double.doubleToLongBits(d);
+        i = 0x5fe6ec85e7de30daL - (i >> 1);
+        d = Double.longBitsToDouble(i);
+        d *= (1.5d - xhalf * d * d);
+        return d;
+    }
 
     public static float sinF(float f) { return (float)Math.sin(f); }
     public static float cosF(float f) { return (float)Math.cos(f); }

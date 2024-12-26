@@ -20,7 +20,7 @@ public class TeamInstance implements ITeamInstance
 	private final LazyDefinition<TeamDefinition> teamDef;
 	private final Map<UUID, Player> teamMembers = new HashMap<>();
 	private final Map<String, Integer> scores = new HashMap<>();
-	public final List<PresetLoadout> presetLoadouts = new ArrayList<>();
+	private final List<PresetLoadout> presetLoadouts = new ArrayList<>();
 
 	public TeamInstance(@Nonnull ResourceLocation id)
 	{
@@ -33,18 +33,23 @@ public class TeamInstance implements ITeamInstance
 	@Nonnull
 	public TeamDefinition getDef() { return teamDef.DefGetter().get(); }
 	@Override
-	public int getNumPresetLoadouts() { return getDef().classes.length; }
-	@Override @Nonnull
-	public IPlayerLoadout getPresetLoadout(int index)
+	public int getNumPresetLoadouts() { return getDef().loadouts.length; }
+	@Nonnull
+	public List<PresetLoadout> getPresetLoadouts()
 	{
 		if(presetLoadouts.size() == 0)
 		{
-			for(int i = 0; i < getDef().classes.length; i++)
+			for(int i = 0; i < getDef().loadouts.length; i++)
 			{
-				presetLoadouts.add(new PresetLoadout(getDef().classes[i]));
+				presetLoadouts.add(new PresetLoadout(getDef().loadouts[i]));
 			}
 		}
-		return presetLoadouts.get(index);
+		return presetLoadouts;
+	}
+	@Override @Nonnull
+	public IPlayerLoadout getPresetLoadout(int index)
+	{
+		return getPresetLoadouts().get(index);
 	}
 
 	@Override

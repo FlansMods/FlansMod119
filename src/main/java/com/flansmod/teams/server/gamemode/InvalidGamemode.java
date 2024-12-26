@@ -7,15 +7,16 @@ import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.runtime.IRoundInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 
 import javax.annotation.Nonnull;
 
 public class InvalidGamemode extends Gamemode
 {
 	public static final ResourceLocation INVALID = TeamsAPI.invalidGamemode;
-	public InvalidGamemode(@Nonnull IRoundInstance round)
+	public InvalidGamemode(@Nonnull IRoundInstance round, @Nonnull Level level)
 	{
-		super(round);
+		super(round, level);
 	}
 	@Override
 	public void init(@Nonnull ISettings settings) {}

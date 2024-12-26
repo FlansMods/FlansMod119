@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import javax.annotation.Nonnull;
@@ -16,23 +17,20 @@ import java.util.UUID;
 
 public interface IRoundInstance
 {
-	@Nonnull
-	RoundInfo getDef();
+	@Nonnull RoundInfo getDef();
 
 	@Nonnull List<ITeamInstance> getTeams();
-	@Nonnull
-	OpResult assignTeams(@Nonnull List<ITeamInstance> teams);
+	@Nonnull OpResult assignTeams(@Nonnull List<ITeamInstance> teams);
 
 	@Nullable IGamemodeInstance getGamemode();
 	@Nonnull OpResult assignGamemode(@Nonnull IGamemodeInstance gamemode);
 
-	@Nullable
-	IMapDetails getMap();
+	@Nullable IMapDetails getMap();
 	@Nonnull OpResult assignMap(@Nonnull IMapDetails map);
 
+	boolean isParticipating(@Nonnull UUID playerID);
 	@Nonnull List<IPlayerGameplayInfo> getParticipatingPlayers();
-	@Nullable
-	IPlayerGameplayInfo getPlayerData(@Nonnull UUID playerID);
+	@Nullable IPlayerGameplayInfo getPlayerData(@Nonnull UUID playerID);
 	@Nonnull OpResult addPlayer(@Nonnull UUID playerID, @Nonnull IPlayerGameplayInfo playerData);
 	@Nonnull OpResult removePlayer(@Nonnull UUID playerID);
 

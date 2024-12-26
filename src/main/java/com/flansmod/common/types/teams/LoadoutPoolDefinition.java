@@ -37,8 +37,8 @@ public class LoadoutPoolDefinition extends JsonDefinition
 	@JsonField
 	public int xpForMultikill = 10;
 
-	@JsonField
-	public LoadoutDefinition[] defaultLoadouts = new LoadoutDefinition[0];
+	//
+	//public LoadoutDefinition[] defaultLoadouts = new LoadoutDefinition[0];
 	@JsonField
 	public String[] availableRewardBoxes = new String[0];
 	@JsonField(Docs = "Level 0 will be unlocked automatically. Put starter gear in there.")

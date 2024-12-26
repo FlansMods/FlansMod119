@@ -21,7 +21,7 @@ public class TeamDefinition extends JsonDefinition
 	}
 
 	@JsonField
-	public ResourceLocation[] classes = new ResourceLocation[0];
+	public ResourceLocation[] loadouts = new ResourceLocation[0];
 
 	@JsonField
 	public ColourDefinition flagColour = new ColourDefinition();
