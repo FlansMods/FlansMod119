@@ -1,5 +1,6 @@
 package com.flansmod.teams.server.dimension;
 
+import com.flansmod.physics.common.util.Maths;
 import com.flansmod.teams.api.OpResult;
 import com.flansmod.teams.api.admin.IControlPointRef;
 import com.flansmod.teams.api.admin.IMapDetails;
@@ -223,6 +224,20 @@ public class ConstructManager extends DimensionInstancingManager
 				//		listener.sendFailure(Component.translatable("teams.construct.clone.failure_bad_level"));
 				//}
 
+				MapDetails mapDetails = new MapDetails(levelID);
+				mapDetails.setWorldBorder(
+					(min.getMinBlockX() + max.getMaxBlockX())*0.5d,
+					(min.getMinBlockZ() + max.getMaxBlockZ())*0.5d,
+					Maths.max(Maths.abs(max.getMaxBlockX() - min.getMinBlockX()), Maths.abs(max.getMaxBlockZ() - min.getMinBlockZ())));
+
+				for(int i = min.x; i <= max.x; i++)
+				{
+					for(int k = min.z; k <= max.z; k++)
+					{
+						mapDetails.getChunkLoadTickets().add(new ChunkPos(i, k));
+					}
+				}
+
 				File srcRegionsDir = new File(srcDir.getPath() + "/region/");
 				if (srcRegionsDir.exists() && srcRegionsDir.isDirectory())
 				{
@@ -232,6 +247,8 @@ public class ConstructManager extends DimensionInstancingManager
 					int regionMinZ = min.getRegionZ();
 					int regionMaxX = max.getRegionX();
 					int regionMaxZ = max.getRegionZ();
+
+
 
 					int regionCount = (regionMaxX - regionMinX + 1) * (regionMaxZ - regionMinZ + 1);
 					int completedCount = 0;
@@ -269,6 +286,8 @@ public class ConstructManager extends DimensionInstancingManager
 
 						}
 					}
+
+					TeamsMod.MANAGER.saveMapData(mapDetails);
 
 					TeamsMod.LOGGER.warn("[cloneRegions] Level cloned from '"+srcDir+"' to '"+dstDir+"'");
 					for(var listener : listeners)

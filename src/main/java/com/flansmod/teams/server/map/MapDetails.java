@@ -4,11 +4,13 @@ import com.flansmod.teams.api.admin.IControlPointRef;
 import com.flansmod.teams.api.runtime.IControlPointInstance;
 import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.admin.ISpawnPoint;
+import com.mojang.serialization.Dynamic;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.border.WorldBorder;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -21,6 +23,7 @@ public class MapDetails implements IMapDetails
 	private final List<ChunkPos> chunks = new ArrayList<>();
 	private final List<ISpawnPoint> spawnPoints = new ArrayList<>();
 	private final List<IControlPointRef> controlPoints = new ArrayList<>();
+	private final WorldBorder worldBorder = new WorldBorder();
 
 	public MapDetails(@Nonnull String name)
 	{
@@ -56,6 +59,17 @@ public class MapDetails implements IMapDetails
 	public List<ISpawnPoint> getSpawnPoints() { return spawnPoints; }
 	@Override @Nonnull
 	public List<IControlPointRef> getControlPoints() { return controlPoints; }
+	public void setWorldBorder(double x, double z, double size)
+	{
+		worldBorder.setCenter(x, z);
+		worldBorder.setSize(size);
+	}
+	@Override
+	public double getWorldBorderCenterX() { return worldBorder.getCenterX(); }
+	@Override
+	public double getWorldBorderCenterZ() { return worldBorder.getCenterZ(); }
+	@Override
+	public double getWorldBorderSize() { return worldBorder.getSize(); }
 
 	public void loadFrom(@Nonnull CompoundTag tags)
 	{
@@ -79,6 +93,13 @@ public class MapDetails implements IMapDetails
 			CompoundTag controlPointTag = controlPointsTag.getCompound(i);
 			controlPoints.add(ControlPointRef.of(controlPointTag));
 		}
+
+		CompoundTag worldBorderTags = tags.getCompound("border");
+		double centerX = worldBorderTags.getDouble("centerX");
+		double centerZ = worldBorderTags.getDouble("centerZ");
+		double size = worldBorderTags.getDouble("size");
+		worldBorder.setCenter(centerX, centerZ);
+		worldBorder.setSize(size);
 	}
 	public void saveTo(@Nonnull CompoundTag tags)
 	{
@@ -115,5 +136,11 @@ public class MapDetails implements IMapDetails
 			controlPointsTag.add(controlPointTag);
 		}
 		tags.put("controlPoints", controlPointsTag);
+
+		CompoundTag worldBorderTags = new CompoundTag();
+		worldBorderTags.putDouble("centerX", worldBorder.getCenterX());
+		worldBorderTags.putDouble("centerZ", worldBorder.getCenterZ());
+		worldBorderTags.putDouble("size", worldBorder.getSize());
+		tags.put("border", worldBorderTags);
 	}
 }

@@ -290,6 +290,8 @@ public class CommandConstruct
 		switch(loadResult)
 		{
 			case SUCCESS -> context.getSource().sendSuccess(() -> Component.translatable("teams.construct.load.started", mapName), true);
+			case FAILURE_ALREADY_COMPLETE -> context.getSource().sendFailure(Component.translatable("teams.construct.load.map_already_loaded"));
+			case FAILURE_NO_INSTANCES_AVAILABLE -> context.getSource().sendFailure(Component.translatable("teams.construct.load.failure_instance_not_empty"));
 			default -> context.getSource().sendFailure(Component.translatable("teams.construct.load.failure", mapName));
 		}
 		return -1;

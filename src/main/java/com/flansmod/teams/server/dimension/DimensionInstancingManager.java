@@ -1,6 +1,7 @@
 package com.flansmod.teams.server.dimension;
 
 import com.flansmod.teams.api.OpResult;
+import com.flansmod.teams.api.admin.IMapDetails;
 import com.flansmod.teams.api.runtime.IDimensionInstancer;
 import com.flansmod.teams.common.TeamsMod;
 import com.google.common.io.Files;
@@ -147,7 +148,7 @@ public class DimensionInstancingManager implements IDimensionInstancer
 		@Override
 		public String toString()
 		{
-			return "["+dimension+"]="+currentMap+" ("+currentState+" for "+ticksInState+" ticks)";
+			return "["+dimension.location()+"]="+currentMap+" ("+currentState+" for "+ticksInState+" ticks)";
 		}
 	}
 
@@ -308,7 +309,7 @@ public class DimensionInstancingManager implements IDimensionInstancer
 	}
 	public boolean exitInstance(@Nonnull ServerPlayer player)
 	{
-		player.respawn();
+		TeamsMod.MANAGER.sendPlayerToLobby(player);
 		return true;
 	}
 
@@ -328,6 +329,7 @@ public class DimensionInstancingManager implements IDimensionInstancer
 			File serverDir = server.getServerDirectory();
 			Path levelRoot = server.getWorldPath(LevelResource.ROOT);
 			Path dimRoot = DimensionType.getStorageFolder(instance.dimension, levelRoot);
+
 
 			File dstDir = dimRoot.toFile();
 			if (dstDir.exists() && dstDir.isDirectory())
@@ -438,6 +440,8 @@ public class DimensionInstancingManager implements IDimensionInstancer
 	}
 	protected void closeInstance(@Nonnull ResourceKey<Level> dimension)
 	{
+		kickAllPlayersFrom(dimension, fallbackDimension, fallbackSpawn);
+
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 		ServerLevel level = server.getLevel(dimension);
 		if(level != null)

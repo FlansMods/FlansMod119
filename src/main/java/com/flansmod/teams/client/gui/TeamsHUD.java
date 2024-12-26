@@ -2,6 +2,7 @@ package com.flansmod.teams.client.gui;
 
 import com.flansmod.physics.common.util.MinecraftHelpers;
 import com.flansmod.teams.api.TeamsAPI;
+import com.flansmod.teams.client.TeamsKeyMappings;
 import com.flansmod.teams.client.TeamsModClient;
 import com.flansmod.teams.client.gamemode.IClientGamemode;
 import com.flansmod.teams.common.TeamsMod;
@@ -29,6 +30,18 @@ public class TeamsHUD
 {
 	public static final ResourceLocation hudTexture = new ResourceLocation(TeamsMod.MODID, "gui/teams_scores.png");
 	private static final Map<UUID, GameProfile> profileCache = new HashMap<>();
+
+	public void renderTeamMenuHint(@Nonnull RenderGuiOverlayEvent event)
+	{
+		GuiGraphics graphics = event.getGuiGraphics();
+		Font font = Minecraft.getInstance().font;
+
+		int i = MinecraftHelpers.getClient().getWindow().getGuiScaledWidth();
+		int j = MinecraftHelpers.getClient().getWindow().getGuiScaledHeight();
+
+		Component text = Component.translatable("teams.hint.press_to_open_team_menu", TeamsKeyMappings.TEAMS_MENU_MAPPING.get().getKey().getDisplayName().getString());
+		graphics.drawString(font, text, i/2 - font.width(text)/2, j - 100, 0xffffff);
+	}
 
 	public void renderTeamHeader(@Nonnull RenderGuiOverlayEvent event)
 	{

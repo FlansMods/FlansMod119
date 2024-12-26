@@ -67,7 +67,18 @@ public class ServerEventHooks
 	public void onPlayerLogin(@Nonnull PlayerEvent.PlayerLoggedInEvent event)
 	{
 		if(event.getEntity() instanceof ServerPlayer serverPlayer)
+		{
 			manager.onPlayerLogin(serverPlayer);
+
+			EDimensionSet enterIntoDimType = categorizeDimension(serverPlayer.level().dimension());
+			switch(enterIntoDimType)
+			{
+				case Construct, Instance -> {
+					TeamsMod.MANAGER.sendPlayerToLobby(serverPlayer);
+				}
+			}
+		}
+
 	}
 	@SubscribeEvent
 	public void onPlayerLogout(@Nonnull PlayerEvent.PlayerLoggedOutEvent event)

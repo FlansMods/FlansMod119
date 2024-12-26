@@ -9,6 +9,7 @@ import com.flansmod.teams.client.gui.ChooseLoadoutScreen;
 import com.flansmod.teams.client.gui.ChooseTeamScreen;
 import com.flansmod.teams.client.gui.VotingScreen;
 import com.flansmod.teams.common.TeamsMod;
+import com.flansmod.teams.common.dimension.TeamsDimensions;
 import com.flansmod.teams.common.info.*;
 import com.flansmod.teams.common.network.TeamsModPacketHandler;
 import com.flansmod.teams.common.network.toclient.*;
@@ -60,6 +61,19 @@ public class TeamsClientManager
 
 		TeamsModPacketHandler.registerClientHandler(
 			BuilderAdminMessage.class, BuilderAdminMessage::new, () -> this::receiveBuilderInfo);
+	}
+
+	public boolean isMenuHintAvailable()
+	{
+		switch(currentState.currentPhase)
+		{
+			case Gameplay -> {
+				Player player = Minecraft.getInstance().player;
+				if(player != null)
+					return Minecraft.getInstance().player.level().dimension().equals(TeamsDimensions.TEAMS_LOBBY_LEVEL);
+			}
+		}
+		return false;
 	}
 
 	public void registerClientGamemode(@Nonnull String gamemodeID, @Nonnull IClientGamemode clientGamemode)

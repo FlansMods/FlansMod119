@@ -1,6 +1,7 @@
 package com.flansmod.teams.client.gui;
 
 import com.flansmod.teams.client.TeamsModClient;
+import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.RenderGuiOverlayEvent;
 import net.minecraftforge.client.event.RenderNameTagEvent;
 import net.minecraftforge.client.event.RenderPlayerEvent;
@@ -51,6 +52,12 @@ public class TeamsRenderHooks
 					builderHud.render(event);
 				else
 					hud.renderTeamHeader(event);
+
+				if(Minecraft.getInstance().screen == null &&
+					TeamsModClient.MANAGER.isMenuHintAvailable())
+				{
+					hud.renderTeamMenuHint(event);
+				}
 			}
 		}
 	}

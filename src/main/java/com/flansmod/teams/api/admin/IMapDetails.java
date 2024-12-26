@@ -16,6 +16,9 @@ public interface IMapDetails
 	@Nonnull List<IControlPointRef> getControlPoints();
 	@Nonnull List<ISpawnPoint> getSpawnPoints();
 	@Nullable IControlPointInstance tryResolve(@Nonnull Level level, @Nonnull IControlPointRef ref, boolean loadChunks);
+	double getWorldBorderCenterX();
+	double getWorldBorderCenterZ();
+	double getWorldBorderSize();
 
 	@Nonnull default ISpawnPoint getDefaultSpawnPoint() {
 		if(getSpawnPoints().size() > 0)

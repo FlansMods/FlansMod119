@@ -205,7 +205,7 @@ public class TeamsManager implements
 			mapInst.loadFrom(rootTag);
 		}
 	}
-	private void saveMapData(@Nonnull MapDetails mapInst) throws IOException
+	public void saveMapData(@Nonnull MapDetails mapInst) throws IOException
 	{
 		MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
 		File serverDir = server.getServerDirectory();
@@ -306,6 +306,18 @@ public class TeamsManager implements
 						ResourceKey<Level> dimension = instanceManager.dimensionOf(transitionTarget.mapName());
 						if(dimension != null)
 						{
+							IMapDetails currentMapDetails = getMapData(transitionTarget.mapName());
+							MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+							if(server != null && currentMapDetails != null)
+							{
+								ServerLevel level = server.getLevel(dimension);
+								if(level != null)
+								{
+									level.getWorldBorder().setCenter(currentMapDetails.getWorldBorderCenterX(), currentMapDetails.getWorldBorderCenterZ());
+									level.getWorldBorder().setSize(currentMapDetails.getWorldBorderSize());
+								}
+							}
+
 							TeamsMod.LOGGER.info("Successfully loaded dimension instance in " + (ticksInCurrentPhase / 20) + "s");
 							OpResult prepResult = prepareNewRound(transitionTarget, dimension);
 							if (prepResult.success())

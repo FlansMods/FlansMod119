@@ -4,6 +4,7 @@
   "teams.select_loadout.button": "Select",
   "teams.select_loadout.back": "Back",
 
+  "teams.hint.press_to_open_team_menu": "Press {0} to open the Teams Mod menu.",
   "teams.builder.skipped": "You were not automatically added to the current round. Type '/teams join' to manually join, or remove the builder role.",
 
   "teams.enter_construct.builder": "You have entered the construct and creative mode has been activated. You can use '/construct exit' to leave",
