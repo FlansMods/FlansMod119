@@ -5,9 +5,11 @@ import com.flansmod.physics.common.collision.TransformedBBCollection;
 import com.flansmod.physics.common.util.Maths;
 import com.flansmod.physics.common.util.ProjectedRange;
 import com.flansmod.physics.common.util.ProjectionUtil;
+import com.flansmod.physics.common.util.Transform;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
@@ -159,5 +161,26 @@ public interface ISeparationAxis
         ProjectedRange bProjection = projectOBBsMinMax(b);
         double projectedMotionB = project(motionB);
         return ProjectionUtil.GetSeparationDistanceWithMotion(aProjection, projectedMotionA, bProjection, projectedMotionB);
+    }
+    default double getMaximumProjectedMotion(@Nonnull TransformedBB start, @Nonnull Transform endPos)
+    {
+        return ProjectionUtil.ProjectMaxVertexDelta(
+            getNormal(),
+            start.HalfExtents(),
+            start.GetCenter(),
+            start.Loc().oriMatrix(),
+            endPos.positionVec3(),
+            endPos.oriMatrix());
+    }
+    default double getMaximumProjectedMotion(@Nonnull TransformedBBCollection start, @Nonnull Transform endPos)
+    {
+        double max = 0d;
+        for(int i = 0; i < start.getCount(); i++)
+        {
+            double motion = getMaximumProjectedMotion(start.getColliderBB(i), endPos);
+            if(motion > max)
+                max = motion;
+        }
+        return max;
     }
 }

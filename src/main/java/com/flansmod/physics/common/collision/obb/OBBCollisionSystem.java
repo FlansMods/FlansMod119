@@ -5,6 +5,7 @@ import com.flansmod.physics.common.FlansPhysicsMod;
 import com.flansmod.physics.common.collision.*;
 import com.flansmod.physics.common.collision.threading.CollisionTaskResolveDynamic;
 import com.flansmod.physics.common.units.*;
+import com.flansmod.physics.common.util.Maths;
 import com.flansmod.physics.common.util.ProjectedRange;
 import com.flansmod.physics.common.util.ProjectionUtil;
 import com.flansmod.physics.common.util.Transform;
@@ -250,7 +251,7 @@ public class OBBCollisionSystem implements ICollisionSystem
 	{
 		DynamicObject dyn = Dynamics.get(handle);
 		if(dyn != null)
-			return dyn.NextFrameLinearMotion;
+			return dyn.getLinearVelocity();
 		return LinearVelocity.Zero;
 	}
 	@Override @Nonnull
@@ -258,7 +259,7 @@ public class OBBCollisionSystem implements ICollisionSystem
 	{
 		DynamicObject dyn = Dynamics.get(handle);
 		if(dyn != null)
-			return dyn.NextFrameAngularMotion;
+			return dyn.getAngularVelocity();
 		return AngularVelocity.Zero;
 	}
 	@Override
@@ -266,7 +267,7 @@ public class OBBCollisionSystem implements ICollisionSystem
 	{
 		doAfterPhysics(() -> {
 			DynamicObject dyn = Dynamics.get(handle);
-			if(dyn != null)
+			if(dyn != null && !FlansPhysicsMod.PAUSE_PHYSICS)
 				dyn.setLinearVelocity(linearVelocity);
 		});
 	}
@@ -275,7 +276,7 @@ public class OBBCollisionSystem implements ICollisionSystem
 	{
 		doAfterPhysics(() -> {
 			DynamicObject dyn = Dynamics.get(handle);
-			if(dyn != null)
+			if(dyn != null && !FlansPhysicsMod.PAUSE_PHYSICS)
 				dyn.setAngularVelocity(angularVelocity);
 		});
 	}
@@ -284,7 +285,7 @@ public class OBBCollisionSystem implements ICollisionSystem
 	{
 		doAfterPhysics(() -> {
 			DynamicObject dyn = Dynamics.get(handle);
-			if(dyn != null)
+			if(dyn != null && !FlansPhysicsMod.PAUSE_PHYSICS)
 			{
 				dyn.teleportTo(to);
 			}
@@ -296,7 +297,7 @@ public class OBBCollisionSystem implements ICollisionSystem
 	{
 		doAfterPhysics(() -> {
 			DynamicObject dyn = Dynamics.get(handle);
-			if(dyn != null)
+			if(dyn != null && !FlansPhysicsMod.PAUSE_PHYSICS)
 				dyn.addLinearAcceleration(force.actingOn(dyn.getMass()));
 		});
 	}
@@ -305,7 +306,7 @@ public class OBBCollisionSystem implements ICollisionSystem
 	{
 		doAfterPhysics(() -> {
 			DynamicObject dyn = Dynamics.get(handle);
-			if(dyn != null)
+			if(dyn != null && !FlansPhysicsMod.PAUSE_PHYSICS)
 				dyn.addAngularAcceleration(torque.actingOnInertiaTensor(dyn.InertiaTensor));
 		});
 	}
@@ -314,7 +315,7 @@ public class OBBCollisionSystem implements ICollisionSystem
 	{
 		doAfterPhysics(() -> {
 			DynamicObject dyn = Dynamics.get(handle);
-			if(dyn != null)
+			if(dyn != null && !FlansPhysicsMod.PAUSE_PHYSICS)
 				dyn.addLinearAcceleration(linearAcceleration);
 		});
 	}
@@ -322,7 +323,7 @@ public class OBBCollisionSystem implements ICollisionSystem
 	{
 		doAfterPhysics(() -> {
 			DynamicObject dyn = Dynamics.get(handle);
-			if(dyn != null)
+			if(dyn != null && !FlansPhysicsMod.PAUSE_PHYSICS)
 				dyn.addAngularAcceleration(angularAcceleration);
 		});
 	}
@@ -362,19 +363,17 @@ public class OBBCollisionSystem implements ICollisionSystem
 	{
 		DynamicObject obj = Dynamics.get(handle);
 		if(obj != null) {
-			if (FlansPhysicsMod.PAUSE_PHYSICS) {
-				receiver.updateLocation(obj.getCurrentLocation());
-			}
-			else
+
+			receiver.updateLocation(obj.getPendingLocation());
+			receiver.updateLinearVelocity(obj.getLinearVelocity());
+			receiver.updateAngularVelocity(obj.getAngularVelocity());
+
+			if (!FlansPhysicsMod.PAUSE_PHYSICS)
 			{
 				for (StaticCollisionEvent collision : obj.StaticCollisions)
 					receiver.handleStaticCollision(collision);
 				for (DynamicCollisionEvent collision : obj.DynamicCollisions)
 					receiver.handleDynamicCollision(collision);
-				receiver.updateLocation(obj.getPendingLocation());
-				receiver.updateLinearVelocity(obj.getNextFrameLinearVelocity());
-				receiver.updateAngularVelocity(obj.getNextFrameAngularVelocity());
-				receiver.updateReactionForce(obj.Reactions);
 			}
 		}
 	}
@@ -433,7 +432,8 @@ public class OBBCollisionSystem implements ICollisionSystem
 					Dynamics.remove(handle);
 				}
 
-				if(SINGLE_THREAD_DEBUG)
+				//if(SINGLE_THREAD_DEBUG)
+				// TODO: Threaded physics
 				{
 					// Run separation logic
 					physicsStep_createSeparationTasks();
@@ -447,10 +447,6 @@ public class OBBCollisionSystem implements ICollisionSystem
 
 					// And done
 					physicsStep_commitFrame();
-				}
-				else
-				{
-					// TODO: Threaded physics
 				}
 
 				while(!DoAfterPhysics.isEmpty())
@@ -478,7 +474,7 @@ public class OBBCollisionSystem implements ICollisionSystem
 			if(objectA == null)
 				continue;
 
-			boolean movingA = !objectA.NextFrameLinearMotion.isApproxZero() || !objectA.NextFrameAngularMotion.isApproxZero();
+			boolean movingA = !objectA.getLinearVelocity().isApproxZero() || !objectA.getAngularVelocity().isApproxZero();
 
 			// Check against the static objects
 			AABB sweepTestAABB = objectA.getSweepTestAABB();
@@ -511,7 +507,7 @@ public class OBBCollisionSystem implements ICollisionSystem
 				DynamicObject objectB = Dynamics.get(handleB);
 				if(objectB == null)
 					continue;
-				boolean movingB = !objectB.NextFrameLinearMotion.isApproxZero() || !objectB.NextFrameAngularMotion.isApproxZero();
+				boolean movingB = !objectB.getLinearVelocity().isApproxZero() || !objectB.getAngularVelocity().isApproxZero();
 
 				if (movingA || movingB)
 				{
@@ -658,7 +654,7 @@ public class OBBCollisionSystem implements ICollisionSystem
 		{
 			ColliderHandle handle = kvp.getKey();
 			DynamicObject dyn = kvp.getValue();
-			if(dyn.NextFrameTeleport.isPresent())
+			if(dyn.pendingFrameIsTeleport())
 				continue;
 			if (dyn.StaticCollisions.isEmpty() && dyn.DynamicCollisions.isEmpty())
 				continue;
@@ -686,9 +682,14 @@ public class OBBCollisionSystem implements ICollisionSystem
 			DynamicObject dyn = Dynamics.get(task.Handle);
 			if(dyn != null && task.getResult() != null)
 			{
-				dyn.extrapolateNextFrame(task.getResult().ResolvedLocation(), task.getResult().ResolvedVelocity());
-				//dyn.Reactions = task.getResult().ResolvedLocation();
-				//dyn.extrapolateNextFrameWithReaction();
+				// First re-resolve the frame up to the time of the first collision
+				//if(!Maths.approx(task.getResult().resolvedPartialTick(), 1d))
+				//	dyn.extrapolatePendingFrame(task.getResult().resolvedPartialTick());
+
+				// Then set the velocity components for next frame
+				dyn.setPendingLocation(task.getResult().ResolvedLocation());
+				dyn.setPendingLinearVelocity(task.getResult().ResolvedVelocity().linear());
+				dyn.setPendingAngularVelocity(task.getResult().ResolvedVelocity().angular());
 			}
 		}
 		ResolverTasks.clear();
@@ -699,12 +700,12 @@ public class OBBCollisionSystem implements ICollisionSystem
 		if(FlansPhysicsMod.PAUSE_PHYSICS)
 		{
 			for (DynamicObject dyn : Dynamics.values())
-				dyn.resetVelocity();
+				dyn.discardPendingFrame();
 		}
 		else
 		{
 			for (DynamicObject dyn : Dynamics.values())
-				dyn.commitFrame();
+				dyn.commitPendingFrame();
 		}
 	}
 

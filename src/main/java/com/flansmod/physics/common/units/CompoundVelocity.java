@@ -4,6 +4,7 @@ import com.flansmod.physics.common.util.Transform;
 import com.mojang.datafixers.util.Pair;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
+import org.checkerframework.checker.units.qual.C;
 
 import javax.annotation.Nonnull;
 
@@ -23,6 +24,10 @@ public record CompoundVelocity(@Nonnull LinearVelocity linear, @Nonnull AngularV
     public LinearVelocity linearAtPoint(@Nonnull Vec3 offset)
     {
         return angular.atOffset(offset).add(linear);
+    }
+    @Nonnull
+    public CompoundVelocity compose(@Nonnull CompoundVelocity other) {
+        return new CompoundVelocity(linear.add(other.linear), angular.compose(other.angular));
     }
 
     @Override @Nonnull
@@ -51,4 +56,17 @@ public record CompoundVelocity(@Nonnull LinearVelocity linear, @Nonnull AngularV
     }
     public boolean isApprox(@Nonnull CompoundVelocity other) { return linear.isApprox(other.linear) && angular.isApprox(other.angular); }
     public boolean isApprox(@Nonnull CompoundVelocity other, double epsilon) { return linear.isApprox(other.linear, epsilon) && angular.isApprox(other.angular, epsilon); }
+
+    @Nonnull
+    public static CompoundVelocity average(@Nonnull CompoundVelocity ... velocities)
+    {
+        LinearVelocity[] linears = new LinearVelocity[velocities.length];
+        AngularVelocity[] angulars = new AngularVelocity[velocities.length];
+        for(int i = 0; i < velocities.length; i++)
+        {
+            linears[i] = velocities[i].linear;
+            angulars[i] = velocities[i].angular;
+        }
+        return new CompoundVelocity(LinearVelocity.average(linears), AngularVelocity.average(angulars));
+    }
 }

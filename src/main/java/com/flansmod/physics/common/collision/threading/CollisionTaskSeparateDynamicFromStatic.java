@@ -4,6 +4,7 @@ import com.flansmod.physics.client.DebugRenderer;
 import com.flansmod.physics.common.FlansPhysicsMod;
 import com.flansmod.physics.common.collision.*;
 import com.flansmod.physics.common.collision.obb.FullSeparationResult;
+import com.flansmod.physics.common.collision.obb.ICollisionAccessDynamicObject;
 import com.flansmod.physics.common.collision.obb.IConstDynamicObject;
 import com.flansmod.physics.common.collision.obb.SeparationResult;
 import com.flansmod.physics.common.util.ProjectedRange;
@@ -25,8 +26,7 @@ import java.util.List;
 public class CollisionTaskSeparateDynamicFromStatic
 	implements ICollisionTask<CollisionTaskSeparateDynamicFromStatic.Input, CollisionTaskSeparateDynamicFromStatic.Output>
 {
-	public record Input(
-						@Nonnull IConstDynamicObject ObjectA,
+	public record Input(@Nonnull ICollisionAccessDynamicObject ObjectA,
 						@Nonnull ImmutableList<VoxelShape> StaticShapes,
 						@Nonnull ImmutableList<ISeparationAxis> ExistingSeparators)
 	{
@@ -41,7 +41,7 @@ public class CollisionTaskSeparateDynamicFromStatic
 
 	@Nonnull
 	public static CollisionTaskSeparateDynamicFromStatic of(@Nonnull ColliderHandle handleA,
-															@Nonnull IConstDynamicObject objectA,
+															@Nonnull ICollisionAccessDynamicObject objectA,
 															@Nonnull ImmutableList<VoxelShape> staticShapes,
 															@Nonnull ImmutableList<ISeparationAxis> existingSeparators)
 	{

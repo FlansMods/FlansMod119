@@ -8,6 +8,7 @@ import com.flansmod.physics.common.util.Transform;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import org.checkerframework.checker.units.qual.C;
 import org.joml.Quaternionf;
 
 import javax.annotation.Nonnull;
@@ -16,9 +17,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
 
-public class DynamicObject implements IConstDynamicObject
+public class DynamicObject implements
+	IConstDynamicObject,
+	ICollisionAccessDynamicObject,
+	IEditAccessDynamicObject
 {
-	public static final int MAX_HISTORY = 20;
 	public static final int KILL_VOLUME_NEGATIVE_Y = -256;
 	public static final int KILL_VOLUME_POSITIVE_Y = Short.MAX_VALUE;
 
@@ -32,9 +35,7 @@ public class DynamicObject implements IConstDynamicObject
 
 	}
 
-	@Nonnull
 	public final ImmutableList<AABB> Colliders;
-	@Nonnull
 	public final AABB LocalBounds;
 
 	public final double Mass;
@@ -44,27 +45,12 @@ public class DynamicObject implements IConstDynamicObject
 	public final double LinearDrag;
 	public final double AngularDrag;
 
+	private FrameData CurrentFrame;
+	private FrameData PendingFrame;
+	private boolean teleportedPendingFrame = false;
 
-	@Nonnull
-	private final Stack<FrameData> Frames = new Stack<>();
-	private FrameData PendingFrame = null;
-
-	// Next Frame Inputs
-
-	// In M/Tick
-	@Nonnull
-	public LinearVelocity NextFrameLinearMotion;
-	@Nonnull
-	public AngularVelocity NextFrameAngularMotion;
-	@Nonnull
-	public List<IAcceleration> Reactions;
-	@Nonnull
-	public Optional<Transform> NextFrameTeleport;
-	@Nonnull
 	public final List<DynamicCollisionEvent> DynamicCollisions;
-	@Nonnull
 	public final List<StaticCollisionEvent> StaticCollisions;
-
 
 	public static class Builder
 	{
@@ -206,11 +192,8 @@ public class DynamicObject implements IConstDynamicObject
 		ImmutableList.Builder<AABB> builder = ImmutableList.builder();
 		Colliders = builder.addAll(localColliders).build();
 		LocalBounds = getLocalBounds();
-		Frames.add(new FrameData(Transform.copy(initialLocation), LinearVelocity.Zero, AngularVelocity.Zero));
-		NextFrameLinearMotion = LinearVelocity.Zero;
-		NextFrameAngularMotion = AngularVelocity.Zero;
-		Reactions = List.of();
-		NextFrameTeleport = Optional.empty();
+		CurrentFrame = new FrameData(Transform.copy(initialLocation), LinearVelocity.Zero, AngularVelocity.Zero);
+		PendingFrame = null;
 		DynamicCollisions = new ArrayList<>();
 		StaticCollisions = new ArrayList<>();
 		Mass = mass;
@@ -224,6 +207,32 @@ public class DynamicObject implements IConstDynamicObject
 	@Nonnull
 	public static Builder builder() { return new Builder(); }
 
+	public void preTick()
+	{
+		StaticCollisions.clear();
+		DynamicCollisions.clear();
+		extrapolatePendingFrame();
+	}
+	public boolean isInvalid()
+	{
+		if(PendingFrame != null)
+		{
+			if(PendingFrame.Location.hasNaN())
+				return true;
+			Vec3 pos = PendingFrame.Location.positionVec3();
+			if(pos.y < KILL_VOLUME_NEGATIVE_Y || pos.y > KILL_VOLUME_POSITIVE_Y)
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+
+
+	// -----------------------------------------------------------------------------------------------------------------
+	// IConstDynamicObject
+	//  - This should be a fairly safe interface to give out at any time on any thread
 	@Override
 	public double getMass() { return Mass; }
 	@Override
@@ -236,36 +245,24 @@ public class DynamicObject implements IConstDynamicObject
 	public double getLinearDrag() { return LinearDrag; }
 	@Override
 	public double getAngularDrag() { return AngularDrag; }
-	public double getLinearDecayPerTick() { return 1.0d - LinearDrag; }
-	public double getAngularDecayPerTick() { return 1.0d - AngularDrag; }
 	@Override @Nonnull
-	public Optional<Transform> getNextFrameTeleport() { return NextFrameTeleport; }
-	@Override @Nonnull
-	public LinearVelocity getNextFrameLinearVelocity() { return NextFrameLinearMotion; }
-	@Override @Nonnull
-	public AngularVelocity getNextFrameAngularVelocity() { return NextFrameAngularMotion; }
-
-	@Nonnull
 	public AABB getCurrentWorldBounds()
 	{
-		FrameData frame = getFrameNTicksAgo(0);
-		return frame.Location.localToGlobalBounds(getLocalBounds());
+		return CurrentFrame.Location.localToGlobalBounds(getLocalBounds());
 	}
-	@Nonnull
+	@Override @Nonnull
 	public AABB getPendingWorldBounds()
 	{
 		FrameData frame = PendingFrame;
 		return frame.Location.localToGlobalBounds(getLocalBounds());
 	}
-	@Nonnull
+	@Override @Nonnull
 	public AABB getSweepTestAABB()
 	{
-		FrameData frame = getFrameNTicksAgo(0);
-		AABB globalAABB = frame.Location.localToGlobalBounds(getLocalBounds());
-		return globalAABB.expandTowards(NextFrameLinearMotion.applyOneTick()).inflate(LocalBounds.getSize());
+		AABB globalAABB = CurrentFrame.Location.localToGlobalBounds(getLocalBounds());
+		return globalAABB.expandTowards(CurrentFrame.linearVelocity.applyOneTick()).inflate(LocalBounds.getSize());
 	}
-
-	@Nonnull
+	@Override @Nonnull
 	public AABB getLocalBounds()
 	{
 		double xMin = Double.MAX_VALUE;
@@ -285,182 +282,135 @@ public class DynamicObject implements IConstDynamicObject
 		}
 		return new AABB(xMin, yMin, zMin, xMax, yMax, zMax);
 	}
-
-	public void setLinearVelocity(@Nonnull LinearVelocity linearVelocity)
-	{
-		NextFrameLinearMotion = linearVelocity;
-	}
-	public void addLinearAcceleration(@Nonnull LinearAcceleration linearAcceleration)
-	{
-		NextFrameLinearMotion = NextFrameLinearMotion.add(linearAcceleration.applyOneTick());
-	}
-	//public void AddOneTickOfLinearAcceleration(@Nonnull LinearAcceleration linearMotionDelta)
-	//{
-	//	NextFrameLinearMotion = Maths.Clamp(
-	//		NextFrameLinearMotion.add(linearMotionDelta),
-	//		-OBBCollisionSystem.MAX_LINEAR_BLOCKS_PER_TICK,
-	//		OBBCollisionSystem.MAX_LINEAR_BLOCKS_PER_TICK);
-	//}
-
-	public void setAngularVelocity(@Nonnull AngularVelocity angularVelocity)
-	{
-		NextFrameAngularMotion = angularVelocity;
-	}
-	public void addAngularAcceleration(@Nonnull AngularAcceleration angularAcceleration)
-	{
-		NextFrameAngularMotion = NextFrameAngularMotion.compose(angularAcceleration.applyOneTick());
-	}
-	//public void AddAngularAccelerationPerTick(@Nonnull AxisAngle4f angularMotionDelta)
-	//{
-	//	Quaternionf nextFrameQ = new Quaternionf().set(NextFrameAngularMotion);
-	//	Quaternionf deltaQ = new Quaternionf().set(angularMotionDelta);
-	//	nextFrameQ.mul(deltaQ);
-	//	// TODO: If AngularMotion.angle > Pi, does quaternion composition not have the chance of going backwards?
-	//	nextFrameQ.get(NextFrameAngularMotion);
-	//}
-	public void teleportTo(@Nonnull Transform location)
-	{
-		NextFrameTeleport = Optional.of(location);
-	}
-
-	@Nonnull
-	private FrameData getFrameNTicksAgo(int n)
-	{
-		return Frames.get(Frames.size() - n - 1);
-	}
-	@Nonnull
+	@Override @Nonnull
 	public TransformedBBCollection getCurrentColliders()
 	{
-		return new TransformedBBCollection(getFrameNTicksAgo(0).Location, Colliders);
+		return new TransformedBBCollection(CurrentFrame.Location, Colliders);
 	}
-	@Nonnull
+	@Override @Nonnull
 	public TransformedBB getCurrentBB()
 	{
-		return TransformedBB.Of(getFrameNTicksAgo(0).Location, LocalBounds);
+		return TransformedBB.Of(CurrentFrame.Location, LocalBounds);
 	}
-	@Nonnull
+	@Override @Nonnull
 	public Transform getCurrentLocation()
 	{
-		return getFrameNTicksAgo(0).Location;
+		return CurrentFrame.Location;
 	}
-	@Nonnull
+	@Override @Nonnull
+	public LinearVelocity getLinearVelocity() { return CurrentFrame.linearVelocity; }
+	@Override @Nonnull
+	public AngularVelocity getAngularVelocity() { return CurrentFrame.angularVelocity; }
+	// -----------------------------------------------------------------------------------------------------------------
+
+
+	// -----------------------------------------------------------------------------------------------------------------
+	// IEditAccessDynamicObject
+	//  - This interface should only be offered to one thread at a time
+	@Override
+	public void setLinearVelocity(@Nonnull LinearVelocity linearVelocity)
+	{
+		CurrentFrame = new FrameData(CurrentFrame.Location, linearVelocity, CurrentFrame.angularVelocity);
+	}
+	@Override
+	public void addLinearAcceleration(@Nonnull LinearAcceleration linearAcceleration)
+	{
+		CurrentFrame = new FrameData(CurrentFrame.Location, CurrentFrame.linearVelocity.add(linearAcceleration.applyOneTick()), CurrentFrame.angularVelocity);
+	}
+	@Override
+	public void setAngularVelocity(@Nonnull AngularVelocity angularVelocity)
+	{
+		CurrentFrame = new FrameData(CurrentFrame.Location, CurrentFrame.linearVelocity, angularVelocity);
+	}
+	@Override
+	public void addAngularAcceleration(@Nonnull AngularAcceleration angularAcceleration)
+	{
+		CurrentFrame = new FrameData(CurrentFrame.Location, CurrentFrame.linearVelocity, CurrentFrame.angularVelocity.compose(angularAcceleration.applyOneTick()));
+	}
+	@Override
+	public void teleportTo(@Nonnull Transform location)
+	{
+		CurrentFrame = new FrameData(location, CurrentFrame.linearVelocity, CurrentFrame.angularVelocity);
+		teleportedPendingFrame = true;
+	}
+	// -----------------------------------------------------------------------------------------------------------------
+
+	// -----------------------------------------------------------------------------------------------------------------
+	// ICollisionAccessDynamicObject
+	//  - This interface is intended only for physics thread and collision resolving
+	@Override
+	public boolean isPendingFrameEvaluated() { return PendingFrame != null; }
+	@Override @Nonnull
 	public TransformedBBCollection getPendingColliders()
 	{
 		if(PendingFrame != null)
 			return new TransformedBBCollection(PendingFrame.Location, Colliders);
 		return getCurrentColliders();
 	}
-	@Nonnull
+	@Override @Nonnull
 	public TransformedBB getPendingBB()
 	{
 		if(PendingFrame != null)
 			return TransformedBB.Of(PendingFrame.Location, LocalBounds);
 		return getCurrentBB();
 	}
-	@Nonnull
+	@Override @Nonnull
 	public Transform getPendingLocation()
 	{
 		if(PendingFrame != null)
 			return PendingFrame.Location;
 		return getCurrentLocation();
 	}
-	public void preTick()
+	@Override
+	public void extrapolatePendingFrame(double parametricTicks)
 	{
-		StaticCollisions.clear();
-		DynamicCollisions.clear();
-		extrapolateNextFrame();
-	}
-	public boolean isInvalid()
-	{
-		if(PendingFrame != null)
-		{
-			if(PendingFrame.Location.hasNaN())
-				return true;
-			Vec3 pos = PendingFrame.Location.positionVec3();
-			if(pos.y < KILL_VOLUME_NEGATIVE_Y || pos.y > KILL_VOLUME_POSITIVE_Y)
-			{
-				return true;
-			}
-		}
-		return false;
-	}
-
-	// An alternative to commitFrame that basically undoes any changes to this dynamic
-	public void resetVelocity()
-	{
-		NextFrameLinearMotion = getFrameNTicksAgo(0).linearVelocity;
-		NextFrameAngularMotion = getFrameNTicksAgo(0).angularVelocity;
-	}
-	public void commitFrame()
-	{
-		if (Frames.size() >= MAX_HISTORY)
-			Frames.remove(0);
-
-		// If we are teleporting, double push so the "last" frame is the same
-		if(NextFrameTeleport.isPresent())
-		{
-			Frames.push(PendingFrame);
-			Frames.push(PendingFrame);
-		}
-		else //if(!VehicleEntity.PAUSE_PHYSICS)
-		{
-			Frames.push(PendingFrame);
-		}
-
-		NextFrameLinearMotion = PendingFrame.linearVelocity;
-		NextFrameAngularMotion = PendingFrame.angularVelocity;
-		NextFrameTeleport = Optional.empty();
-	}
-	public void extrapolateNextFrame(boolean withReactionForce)
-	{
-		if(NextFrameTeleport.isPresent())
-		{
-			PendingFrame = new FrameData(NextFrameTeleport.get(), NextFrameLinearMotion, NextFrameAngularMotion);
-		}
-		else
-		{
-			if(withReactionForce)
-			{
-				LinearVelocity reactionaryLinearV = NextFrameLinearMotion.scale(getLinearDecayPerTick());
-				AngularVelocity reactionaryAngularV = NextFrameAngularMotion.scale(getAngularDecayPerTick());
-				for(IAcceleration acceleration : Reactions)
-				{
-					reactionaryLinearV = reactionaryLinearV.add(acceleration.getLinearComponent(getPendingLocation()).applyOneTick());
-					reactionaryAngularV = reactionaryAngularV.compose(acceleration.getAngularComponent(getPendingLocation()).applyOneTick());
-				}
-				extrapolateNextFrame(reactionaryLinearV, reactionaryAngularV);
-			}
-			else
-			{
-				extrapolateNextFrame(
-						NextFrameLinearMotion.scale(getLinearDecayPerTick()),
-						NextFrameAngularMotion.scale(getAngularDecayPerTick()));
-			}
-		}
-	}
-	public void extrapolateNextFrame(@Nonnull CompoundVelocity motion)
-	{
-		extrapolateNextFrame(motion.linear(), motion.angular());
-	}
-	public void extrapolateNextFrame(@Nonnull LinearVelocity linearMotion, @Nonnull AngularVelocity angularMotion)
-	{
-		Vec3 deltaPos = linearMotion.applyOneTick();
-		Quaternionf deltaRot = angularMotion.applyOneTick();
-
-		FrameData currentFrame = getFrameNTicksAgo(0);
+		LinearVelocity linearV = CurrentFrame.linearVelocity.scale(getLinearDecayPerTick());
+		AngularVelocity angularV = CurrentFrame.angularVelocity.scale(getAngularDecayPerTick());
+		Vec3 deltaPos = linearV.applyOverTicks(parametricTicks);
+		Quaternionf deltaRot = angularV.applyOverTicks(parametricTicks);
 		Transform newLoc = Transform.fromPosAndQuat(
-				currentFrame.Location.positionVec3().add(deltaPos),
-				currentFrame.Location.Orientation.mul(deltaRot, new Quaternionf()));
-		extrapolateNextFrame(newLoc, linearMotion, angularMotion);
+			CurrentFrame.Location.positionVec3().add(deltaPos),
+			CurrentFrame.Location.Orientation.mul(deltaRot, new Quaternionf()));
+		PendingFrame = new FrameData(newLoc, linearV, angularV);
 	}
-	public void extrapolateNextFrame(@Nonnull Transform location, @Nonnull CompoundVelocity motion)
+	@Override
+	public void setPendingLocation(@Nonnull Transform location)
 	{
-		PendingFrame = new FrameData(location, motion.linear(), motion.angular());
+		if(PendingFrame == null)
+			extrapolatePendingFrame();
+
+		PendingFrame = new FrameData(location, PendingFrame.linearVelocity, PendingFrame.angularVelocity);
 	}
-	public void extrapolateNextFrame(@Nonnull Transform location, @Nonnull LinearVelocity linearMotion, @Nonnull AngularVelocity angularMotion)
+	@Override
+	public void setPendingLinearVelocity(@Nonnull LinearVelocity linearVelocity)
 	{
-		PendingFrame = new FrameData(location, linearMotion, angularMotion);
+		if(PendingFrame == null)
+			extrapolatePendingFrame();
+
+		PendingFrame = new FrameData(PendingFrame.Location, linearVelocity, PendingFrame.angularVelocity);
 	}
-	public void extrapolateNextFrame() { extrapolateNextFrame(false); }
-	public void extrapolateNextFrameWithReaction() { extrapolateNextFrame(true); }
+	@Override
+	public void setPendingAngularVelocity(@Nonnull AngularVelocity angularVelocity)
+	{
+		if(PendingFrame == null)
+			extrapolatePendingFrame();
+
+		PendingFrame = new FrameData(PendingFrame.Location, PendingFrame.linearVelocity, angularVelocity);
+	}
+	@Override
+	public void commitPendingFrame()
+	{
+ 		CurrentFrame = PendingFrame;
+		PendingFrame = null;
+		teleportedPendingFrame = false;
+	}
+	@Override
+	public void discardPendingFrame()
+	{
+		PendingFrame = null;
+		teleportedPendingFrame = false;
+	}
+	@Override
+	public boolean pendingFrameIsTeleport() { return teleportedPendingFrame; }
+	// -----------------------------------------------------------------------------------------------------------------
 }

@@ -23,22 +23,15 @@ public interface IConstDynamicObject
     @Nonnull Vec3 getInertiaTensor();
 
     double getLinearDrag();
-
+    default double getLinearDecayPerTick() { return 1.0d - getLinearDrag(); }
     double getAngularDrag();
+    default double getAngularDecayPerTick() { return 1.0d - getAngularDrag(); }
 
+    @Nonnull AABB getSweepTestAABB();
     @Nonnull Transform getCurrentLocation();
-    @Nonnull
-	TransformedBB getCurrentBB();
-    @Nonnull
-	TransformedBBCollection getCurrentColliders();
+    @Nonnull TransformedBB getCurrentBB();
+    @Nonnull TransformedBBCollection getCurrentColliders();
     @Nonnull AABB getCurrentWorldBounds();
-
-    @Nonnull Optional<Transform> getNextFrameTeleport();
-    @Nonnull LinearVelocity getNextFrameLinearVelocity();
-    @Nonnull AngularVelocity getNextFrameAngularVelocity();
-
-    @Nonnull Transform getPendingLocation();
-    @Nonnull TransformedBB getPendingBB();
-    @Nonnull TransformedBBCollection getPendingColliders();
-    @Nonnull AABB getPendingWorldBounds();
+    @Nonnull LinearVelocity getLinearVelocity();
+    @Nonnull AngularVelocity getAngularVelocity();
 }

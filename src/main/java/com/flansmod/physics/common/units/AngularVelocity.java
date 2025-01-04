@@ -120,6 +120,17 @@ public record AngularVelocity(@Nonnull Vec3 Axis, double Magnitude) implements I
 		//return fromQuatPerTick(composed);
 	}
 	@Nonnull
+	public static AngularVelocity average(@Nonnull AngularVelocity ... velocities)
+	{
+		if(velocities.length == 0)
+			return AngularVelocity.Zero;
+
+		Vec3 angleAxisSum = Vec3.ZERO;
+		for(AngularVelocity v : velocities)
+			angleAxisSum = angleAxisSum.add(v.Axis.scale(v.Magnitude));
+		return AngularVelocity.radiansPerTick(angleAxisSum.scale(1d/velocities.length));
+	}
+	@Nonnull
 	public AngularVelocity lerp(@Nonnull AngularVelocity other, float t)
 	{
 		Quaternionf angularA = new Quaternionf().setAngleAxis(Magnitude, Axis.x, Axis.y, Axis.z);

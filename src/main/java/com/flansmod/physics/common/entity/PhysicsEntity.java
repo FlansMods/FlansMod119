@@ -124,6 +124,13 @@ public abstract class PhysicsEntity extends Entity implements ITransformEntity
         unregisterAllPhysics();
         super.remove(reason);
     }
+    @Override
+    public void onRemovedFromWorld()
+    {
+        stopPhysics();
+        unregisterAllPhysics();
+        super.onRemovedFromWorld();
+    }
 
     protected abstract void tickPhysics();
     protected abstract void tickOutsidePhysicsRange();
@@ -167,6 +174,7 @@ public abstract class PhysicsEntity extends Entity implements ITransformEntity
         {
             physics.unregisterDynamic(component.getPhysicsHandle());
         }
+        physicsComponents.clear();
     }
 
     @Override

@@ -498,7 +498,7 @@ public class CollisionTasks
 		return Pair.of(j.applyTo(vA, inverseMassA), j.applyTo(vB, inverseMassB));
 	}
 	@Nonnull
-	public static Pair<CompoundVelocity, CompoundVelocity> resolveByImpulse(
+	public static Pair<CompoundVelocity, CompoundVelocity> findResponseByImpulse(
 			@Nonnull CompoundVelocity vA, @Nonnull Vec3 centerA, double inverseMassA, @Nonnull Vec3 inertiaTensorA,
 			@Nonnull CompoundVelocity vB, @Nonnull Vec3 centerB, double inverseMassB, @Nonnull Vec3 inertiaTensorB,
 			@Nonnull Vec3 collisionPoint, @Nonnull Vec3 collisionNormal,
@@ -509,16 +509,16 @@ public class CollisionTasks
 				vB, centerB, inverseMassB, inertiaTensorB,
 				collisionPoint, collisionNormal, coefficientOfRestitution);
 
-		LinearVelocity linearA = impulse.applyTo(vA.linear(), inverseMassA);
-		AngularVelocity angularA = impulse.applyTo(vA.angular(), centerA, inertiaTensorA, collisionPoint);
-		LinearVelocity linearB = impulse.applyTo(vB.linear(), inverseMassB);
-		AngularVelocity angularB = impulse.applyTo(vB.angular(), centerB, inertiaTensorB, collisionPoint);
+		LinearVelocity linearA = impulse.applyTo(inverseMassA);
+		AngularVelocity angularA = impulse.applyTo(centerA, inertiaTensorA, collisionPoint);
+		LinearVelocity linearB = impulse.applyTo(inverseMassB);
+		AngularVelocity angularB = impulse.applyTo(centerB, inertiaTensorB, collisionPoint);
 
 		return Pair.of(CompoundVelocity.of(linearA, angularA), CompoundVelocity.of(linearB, angularB));
 	}
 
 	@Nonnull
-	public static CompoundVelocity resolveByImpulseAgainstStatic(
+	public static CompoundVelocity findResponseByImpulseAgainstStatic(
 			@Nonnull CompoundVelocity vA, @Nonnull Vec3 centerA, double inverseMassA, @Nonnull Vec3 inertiaTensorA,
 			@Nonnull Vec3 collisionPoint, @Nonnull Vec3 collisionNormal,
 			double coefficientOfRestitution)
@@ -527,8 +527,8 @@ public class CollisionTasks
 				vA, centerA, inverseMassA, inertiaTensorA,
 				collisionPoint, collisionNormal, coefficientOfRestitution);
 
-		LinearVelocity linearA = impulse.applyTo(vA.linear(), inverseMassA);
-		AngularVelocity angularA = impulse.applyTo(vA.angular(), centerA, inertiaTensorA, collisionPoint);
+		LinearVelocity linearA = impulse.applyTo(inverseMassA);
+		AngularVelocity angularA = impulse.applyTo(centerA, inertiaTensorA, collisionPoint);
 
 		return CompoundVelocity.of(linearA, angularA);
 	}

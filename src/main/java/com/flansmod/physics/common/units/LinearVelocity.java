@@ -35,6 +35,17 @@ public record LinearVelocity(@Nonnull Vec3 Velocity) implements IVelocity
 	{
 		return new LinearVelocity(a.Velocity.lerp(b.Velocity, t));
 	}
+	@Nonnull
+	public static LinearVelocity average(@Nonnull LinearVelocity ... velocities)
+	{
+		if(velocities.length == 0)
+			return LinearVelocity.Zero;
+
+		Vec3 sum = Vec3.ZERO;
+		for(LinearVelocity v : velocities)
+			sum = sum.add(v.Velocity);
+		return new LinearVelocity(sum.scale(1d/velocities.length));
+	}
 
 	@Nonnull
 	public Units.Speed getDefaultUnits() { return Units.Speed.BlocksPerTick; }

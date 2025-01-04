@@ -1,6 +1,7 @@
 package com.flansmod.physics.common.collision.threading;
 
 import com.flansmod.physics.common.collision.*;
+import com.flansmod.physics.common.collision.obb.ICollisionAccessDynamicObject;
 import com.flansmod.physics.common.collision.obb.IConstDynamicObject;
 import com.flansmod.physics.common.collision.obb.SeparationResult;
 import com.flansmod.physics.common.util.shapes.ISeparationAxis;
@@ -15,8 +16,8 @@ import java.util.Optional;
 public class CollisionTaskSeparateDynamicPair
 	implements ICollisionTask<CollisionTaskSeparateDynamicPair.Input, CollisionTaskSeparateDynamicPair.Output>
 {
-	public record Input(@Nonnull IConstDynamicObject ObjectA,
-						@Nonnull IConstDynamicObject ObjectB,
+	public record Input(@Nonnull ICollisionAccessDynamicObject ObjectA,
+						@Nonnull ICollisionAccessDynamicObject ObjectB,
 						@Nonnull ImmutableList<ISeparationAxis> ExistingSeparators)
 	{
 
@@ -30,9 +31,9 @@ public class CollisionTaskSeparateDynamicPair
 
 	@Nonnull
 	public static CollisionTaskSeparateDynamicPair of(@Nonnull ColliderHandle handleA,
-													  @Nonnull IConstDynamicObject objectA,
+													  @Nonnull ICollisionAccessDynamicObject objectA,
 													  @Nonnull ColliderHandle handleB,
-													  @Nonnull IConstDynamicObject objectB,
+													  @Nonnull ICollisionAccessDynamicObject objectB,
 													  @Nonnull ImmutableList<ISeparationAxis> existingSeparators)
 	{
 		CollisionTaskSeparateDynamicPair task = new CollisionTaskSeparateDynamicPair(handleA, handleB);
@@ -79,9 +80,9 @@ public class CollisionTaskSeparateDynamicPair
 			{
 				if (separator.separatesWithMotion(
 					boundsA,
-					Input.ObjectA.getNextFrameLinearVelocity().applyOneTick(),
+					Input.ObjectA.getLinearVelocity().applyOneTick(),
 					boundsB,
-					Input.ObjectB.getNextFrameLinearVelocity().applyOneTick()))
+					Input.ObjectB.getLinearVelocity().applyOneTick()))
 				{
 					// We are separated easily, done.
 					Output = new Output(ImmutableList.of(), ImmutableList.of(), null);

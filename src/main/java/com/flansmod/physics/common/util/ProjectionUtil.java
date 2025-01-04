@@ -10,8 +10,7 @@ import org.joml.Vector3f;
 
 import javax.annotation.Nonnull;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
+import static java.lang.Math.*;
 
 public class ProjectionUtil
 {
@@ -136,6 +135,24 @@ public class ProjectionUtil
         double minProjZ = min(projPosZ + orientedHalfZ, projPosZ - orientedHalfZ); // <- Pick the best vMin.z
 
         return ProjectedRange.preSorted(minProjX + minProjY + minProjZ, maxProjX + maxProjY + maxProjZ);
+    }
+    public static double ProjectMaxVertexDelta(@Nonnull Vec3 projAxis,
+                                               @Nonnull Vector3f halfExtents,
+                                               @Nonnull Vec3 boxCenterA,
+                                               @Nonnull Matrix3f oriA,
+                                               @Nonnull Vec3 boxCenterB,
+                                               @Nonnull Matrix3f oriB)
+    {
+        double linearProjection =
+              (boxCenterB.x - boxCenterA.x) * projAxis.x
+            + (boxCenterB.y - boxCenterA.y) * projAxis.y
+            + (boxCenterB.z - boxCenterA.z) * projAxis.z;
+        double angularProjection =
+              halfExtents.x * (projAxis.x * (oriB.m00 - oriA.m00) + projAxis.y * (oriB.m10 - oriA.m10) + projAxis.z * (oriB.m20 - oriA.m20))
+            + halfExtents.y * (projAxis.x * (oriB.m01 - oriA.m01) + projAxis.y * (oriB.m11 - oriA.m11) + projAxis.z * (oriB.m21 - oriA.m21))
+            + halfExtents.z * (projAxis.x * (oriB.m02 - oriA.m02) + projAxis.y * (oriB.m12 - oriA.m12) + projAxis.z * (oriB.m22 - oriA.m22));
+
+        return linearProjection + angularProjection;
     }
     @Nonnull
     public static VertexIndex SelectCornerOBBMin(@Nonnull Vec3 projAxis,

@@ -11,11 +11,32 @@ import javax.annotation.Nonnull;
 public record Impulse(@Nonnull Vec3 momentumDelta) implements IForce
 {
     @Nonnull
+    public LinearVelocity applyTo(double inverseMass)
+    {
+        return new LinearVelocity(momentumDelta.scale(inverseMass));
+    }
+    @Nonnull
     public LinearVelocity applyTo(@Nonnull LinearVelocity v, double inverseMass)
     {
         return new LinearVelocity(v.Velocity().add(momentumDelta.scale(inverseMass)));
     }
+    @Nonnull
+    public AngularVelocity applyAtOffset(@Nonnull Vec3 offset, @Nonnull Vec3 inertiaTensor)
+    {
+        // Both the axis and the angle (magnitude)
+        Vec3 angleAxis = momentumDelta.cross(offset);
 
+        angleAxis = angleAxis.multiply(inertiaTensor);
+        if(Maths.approx(angleAxis, Vec3.ZERO))
+            return AngularVelocity.Zero;
+
+        return AngularVelocity.radiansPerTick(angleAxis);
+    }
+    @Nonnull
+    public AngularVelocity applyTo(@Nonnull Vec3 center, @Nonnull Vec3 inertiaTensor, @Nonnull Vec3 applyAtPoint)
+    {
+        return applyAtOffset(center.subtract(applyAtPoint), inertiaTensor);
+    }
     @Nonnull
     public AngularVelocity applyAtOffset(@Nonnull AngularVelocity v, @Nonnull Vec3 offset, @Nonnull Vec3 inertiaTensor)
     {
@@ -78,6 +99,8 @@ public record Impulse(@Nonnull Vec3 momentumDelta) implements IForce
         //Vec3 thetaB = inertiaTensorB.multiply(tangentB);
 
         double impulseMagnitude = collisionSpeedLinear / (inverseMassA + thetaA.dot(normal));
+        impulseMagnitude = Maths.max(impulseMagnitude, 0d);
+
         return new Impulse(normal.scale(impulseMagnitude));
     }
     @Nonnull
