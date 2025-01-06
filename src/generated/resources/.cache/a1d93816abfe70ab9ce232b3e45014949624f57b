@@ -1,0 +1,15 @@
+// 1.20.1	2025-01-06T16:31:52.5495889	Tags for minecraft:item mod id flanstinkers
+8a067d85c96901f0c4333097cd878173fb7338af data/flanstinkers/tags/items/casts/multi_use/barrel.json
+784ea48855d552d068d3311d62bdee392c6a0a38 data/flanstinkers/tags/items/casts/multi_use/grip.json
+0b028f4f50ea635603c129d0bbb79329b63fcf6b data/flanstinkers/tags/items/casts/multi_use/lower_receiver.json
+5f269845ed297005e50923fba0c9c79b258526d6 data/flanstinkers/tags/items/casts/multi_use/stock.json
+97ac3ee293eb7071d8563bec321d45690649132d data/flanstinkers/tags/items/casts/multi_use/upper_receiver.json
+33f540853f3a330eea0d5c6ecb1330a148cb8534 data/flanstinkers/tags/items/casts/single_use/barrel.json
+2aaf35f3d5cad254d369c601f384453bf27c1dda data/flanstinkers/tags/items/casts/single_use/grip.json
+2b555a32cd46ec1e5e619cd0ddfaab1b37c3e98f data/flanstinkers/tags/items/casts/single_use/lower_receiver.json
+083cc6b0c819691b80826ea48a714e6af140a612 data/flanstinkers/tags/items/casts/single_use/stock.json
+6e442a0f80c4fa01d6bdb3c9de3fa4ff4711bf09 data/flanstinkers/tags/items/casts/single_use/upper_receiver.json
+8a55da742aa90cdab19b8425de99d2553a279780 data/tconstruct/tags/items/modifiable/interactable/right.json
+8a55da742aa90cdab19b8425de99d2553a279780 data/tconstruct/tags/items/modifiable/melee.json
+8a55da742aa90cdab19b8425de99d2553a279780 data/tconstruct/tags/items/modifiable/multipart.json
+2916d74d8c120aa66d31a021de002c9e3f37969d data/tconstruct/tags/items/parts.json

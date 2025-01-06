@@ -1,0 +1,16 @@
+{
+  "type": "tconstruct:part_builder",
+  "cost": 2,
+  "pattern": "flanstinkers:lower_receiver",
+  "pattern_item": [
+    {
+      "tag": "tconstruct:patterns/default"
+    },
+    {
+      "item": "flanstinkers:lower_receiver_cast"
+    }
+  ],
+  "result": {
+    "item": "flanstinkers:lower_receiver"
+  }
+}

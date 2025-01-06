@@ -1,0 +1,46 @@
+{
+  "icon": {
+    "item": "flanstinkers:rifle",
+    "nbt": "{Damage:0,tic_broken:0b,tic_display:1b,tic_materials:[\"tconstruct:ui_render#head\",\"tconstruct:ui_render#handle\",\"tconstruct:ui_render#extra\",\"tconstruct:ui_render#large\",\"tconstruct:ui_render#extra_large\"]}"
+  },
+  "input_slots": [
+    {
+      "filter": {
+        "item": "flanstinkers:upper_receiver"
+      },
+      "icon": "flanstinkers:upper_receiver",
+      "translation_key": "item.flanstinkers.upper_receiver",
+      "x": 20,
+      "y": 45
+    },
+    {
+      "filter": {
+        "item": "flanstinkers:lower_receiver"
+      },
+      "icon": "flanstinkers:lower_receiver",
+      "translation_key": "item.flanstinkers.lower_receiver",
+      "x": 20,
+      "y": 25
+    },
+    {
+      "filter": {
+        "item": "flanstinkers:stock"
+      },
+      "icon": "flanstinkers:stock",
+      "translation_key": "item.flanstinkers.stock",
+      "x": 35,
+      "y": 35
+    },
+    {
+      "filter": {
+        "item": "flanstinkers:barrel"
+      },
+      "icon": "flanstinkers:barrel",
+      "translation_key": "item.flanstinkers.barrel",
+      "x": 5,
+      "y": 35
+    }
+  ],
+  "sortIndex": 8,
+  "translation_key": "item.flanstinkers.rifle"
+}

@@ -1,0 +1,8 @@
+{
+  "type": "tconstruct:item_part_builder",
+  "pattern": "flanstinkers:stock",
+  "pattern_item": {
+    "tag": "tconstruct:casts/sand"
+  },
+  "result": "flanstinkers:stock_sand_cast"
+}

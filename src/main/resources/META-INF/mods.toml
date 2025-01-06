@@ -61,6 +61,17 @@ license="All rights reserved"
         '''
 
 [[mods]] #mandatory
+modId="flanstinkers"
+version="${file.jarVersion}"
+displayName="Flan's Tinker's Construct Parts"
+logoFile="flansmod.png"
+credits="jamioflan"
+authors="jamioflan"
+description='''
+        Flan's Mod: Reloaded with Tinker's Construct
+        '''
+
+[[mods]] #mandatory
     modId="flansteams"
     version="${file.jarVersion}"
     displayName="Flan's Teams Mod"

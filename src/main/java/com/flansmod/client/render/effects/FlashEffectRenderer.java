@@ -24,6 +24,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.data.loading.DatagenModLoader;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
 import javax.annotation.Nonnull;
@@ -33,6 +34,9 @@ public class FlashEffectRenderer
 {
 	public FlashEffectRenderer()
 	{
+		if(DatagenModLoader.isRunningDataGen())
+			return;
+
 		MinecraftForge.EVENT_BUS.register(this);
 	}
 

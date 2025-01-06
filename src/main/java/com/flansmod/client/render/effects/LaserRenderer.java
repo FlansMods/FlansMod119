@@ -28,6 +28,7 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderHandEvent;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.data.loading.DatagenModLoader;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.joml.Vector4f;
 
@@ -41,6 +42,9 @@ public class LaserRenderer
 {
 	public LaserRenderer()
 	{
+		if(DatagenModLoader.isRunningDataGen())
+			return;
+
 		MinecraftForge.EVENT_BUS.register(this);
 	}
 

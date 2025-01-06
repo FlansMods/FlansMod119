@@ -23,6 +23,7 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.data.loading.DatagenModLoader;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.registries.ForgeRegistries;
 import org.joml.Quaternionf;
@@ -38,6 +39,9 @@ public class ShotRenderer
 
 	public ShotRenderer()
 	{
+		if(DatagenModLoader.isRunningDataGen())
+			return;
+
 		MinecraftForge.EVENT_BUS.addListener(this::RenderTick);
 		MinecraftForge.EVENT_BUS.addListener(this::ClientTick);
 	}

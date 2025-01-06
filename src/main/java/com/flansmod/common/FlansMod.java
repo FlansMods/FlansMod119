@@ -102,8 +102,6 @@ import net.minecraftforge.registries.RegisterEvent;
 import net.minecraftforge.registries.RegistryObject;
 import org.slf4j.Logger;
 
-import com.flansmod.plugins.tinkers.FlansModTinkersConstructIntegration;
-
 import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.function.Consumer;
@@ -346,23 +344,10 @@ public class FlansMod
         return itemRegister.register(name, () -> new AttachmentItem(loc, new Item.Properties()));
     }
 
-    private record PartItemFactory(@Nonnull ResourceLocation loc)
-    {
-        @Nonnull
-        public Item create()
-        {
-            var tinkers = FlansModTinkersConstructIntegration.get();
-            if(tinkers != null)
-            {
-                return tinkers.createPartItem(loc);
-            }
-            return new PartItem(loc, new Item.Properties());
-        }
-    }
     public static RegistryObject<Item> Part(DeferredRegister<Item> itemRegister, String modID, String name)
     {
         ResourceLocation loc = new ResourceLocation(modID, name);
-        return itemRegister.register(name, new PartItemFactory(loc)::create);
+        return itemRegister.register(name, () -> new PartItem(loc, new Item.Properties()));
     }
 
     public static RegistryObject<Item> BulletBag(DeferredRegister<Item> itemRegister, String modID, String name)
@@ -472,12 +457,6 @@ public class FlansMod
 
     public FlansMod()
     {
-        var tinkers = FlansModTinkersConstructIntegration.get();
-        if(tinkers != null)
-            LOGGER.info("Flan's Mod found Tinker's Construct");
-        else
-            LOGGER.info("Flan's Mod did not find Tinker's Construct");
-
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, FlansModConfig.GeneralConfig, "flans-general.toml");
 
         MinecraftForge.EVENT_BUS.register(this);

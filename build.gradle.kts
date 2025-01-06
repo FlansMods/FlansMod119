@@ -195,6 +195,16 @@ minecraft.runs.create("server") {
 }
 
 
+minecraft.runs.create("data") {
+
+    workingDirectory = "run-data"
+    // Specify the modid for data generation, where to output the resulting resource, and where to look for existing resources.
+    setArgs(
+        listOf("--mod", "flanstinkers", "--all", "--output", file("src/generated/resources/"), "--existing", file("src/main/resources/"))
+    )
+
+}
+
 tasks.withType<Jar> {
     // this will ensure that this task is redone when the versions change.
     inputs.property("version", project.version)

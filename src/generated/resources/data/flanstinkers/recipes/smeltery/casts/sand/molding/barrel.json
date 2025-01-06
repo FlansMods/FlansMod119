@@ -1,0 +1,11 @@
+{
+  "type": "tconstruct:molding_table",
+  "material": {
+    "tag": "tconstruct:casts/sand"
+  },
+  "pattern": {
+    "type": "tconstruct:material",
+    "item": "flanstinkers:barrel"
+  },
+  "result": "flanstinkers:barrel_sand_cast"
+}

@@ -38,6 +38,7 @@ import net.minecraft.world.phys.Vec2;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.*;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.data.loading.DatagenModLoader;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.joml.Vector3f;
@@ -52,6 +53,9 @@ public class ClientRenderHooks
 	private RandomSource RNG;
 	public ClientRenderHooks()
 	{
+		if(DatagenModLoader.isRunningDataGen())
+			return;
+
 		MC = Minecraft.getInstance();
 		RNG = new LegacyRandomSource(0x19393939292L);
 		MinecraftForge.EVENT_BUS.register(this);

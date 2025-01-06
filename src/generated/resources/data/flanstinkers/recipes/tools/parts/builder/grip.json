@@ -1,0 +1,16 @@
+{
+  "type": "tconstruct:part_builder",
+  "cost": 2,
+  "pattern": "flanstinkers:grip",
+  "pattern_item": [
+    {
+      "tag": "tconstruct:patterns/default"
+    },
+    {
+      "item": "flanstinkers:grip_cast"
+    }
+  ],
+  "result": {
+    "item": "flanstinkers:grip"
+  }
+}

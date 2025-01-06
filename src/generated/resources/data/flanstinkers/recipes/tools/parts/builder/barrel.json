@@ -1,0 +1,16 @@
+{
+  "type": "tconstruct:part_builder",
+  "cost": 2,
+  "pattern": "flanstinkers:barrel",
+  "pattern_item": [
+    {
+      "tag": "tconstruct:patterns/default"
+    },
+    {
+      "item": "flanstinkers:barrel_cast"
+    }
+  ],
+  "result": {
+    "item": "flanstinkers:barrel"
+  }
+}

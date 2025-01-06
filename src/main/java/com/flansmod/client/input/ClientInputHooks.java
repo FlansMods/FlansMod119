@@ -13,6 +13,7 @@ import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RegisterKeyMappingsEvent;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.common.util.Lazy;
+import net.minecraftforge.data.loading.DatagenModLoader;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -206,6 +207,9 @@ public class ClientInputHooks
 
 	public ClientInputHooks()
 	{
+		if(DatagenModLoader.isRunningDataGen())
+			return;
+
 		IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 		modEventBus.addListener(this::OnKeyMappings);
 

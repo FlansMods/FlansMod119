@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "flanstinkers:item/lower_receiver_red_sand_cast"
+  }
+}

@@ -43,6 +43,7 @@ import net.minecraftforge.client.event.ModelEvent;
 import net.minecraftforge.client.event.RegisterClientReloadListenersEvent;
 import net.minecraftforge.client.event.RegisterShadersEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.data.loading.DatagenModLoader;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.level.LevelEvent;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -96,20 +97,19 @@ public class FlansModClient
 
 	static
 	{
-		FlansModelRegistry.PreRegisterRenderer(new ResourceLocation(FlansMod.MODID, "effects/muzzle_flash_small"), new EffectRenderer());
-		FlansModelRegistry.PreRegisterRenderer(new ResourceLocation(FlansMod.MODID, "effects/muzzle_flash_medium"), new EffectRenderer());
-		FlansModelRegistry.PreRegisterRenderer(new ResourceLocation(FlansMod.MODID, "effects/muzzle_flash_large"), new EffectRenderer());
+		if(!DatagenModLoader.isRunningDataGen())
+		{
+			FlansModelRegistry.PreRegisterRenderer(new ResourceLocation(FlansMod.MODID, "effects/muzzle_flash_small"), new EffectRenderer());
+			FlansModelRegistry.PreRegisterRenderer(new ResourceLocation(FlansMod.MODID, "effects/muzzle_flash_medium"), new EffectRenderer());
+			FlansModelRegistry.PreRegisterRenderer(new ResourceLocation(FlansMod.MODID, "effects/muzzle_flash_large"), new EffectRenderer());
+		}
 	}
 
 	@SubscribeEvent
 	public static void ClientInit(final FMLClientSetupEvent event)
 	{
-		IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-		ACTIONS_CLIENT.HookClient(modEventBus);
-		MODEL_REGISTRATION.Hook(modEventBus);
-		modEventBus.register(ANIMATIONS);
-		MAGAZINE_ATLAS.Init();
-		InitReflection();
+		if(DatagenModLoader.isRunningDataGen())
+			return;
 
 		// Screens
 		MenuScreens.register(FlansMod.WORKBENCH_MENU_GUN_CRAFTING.get(), WorkbenchScreenTabGunCrafting::new);
@@ -121,6 +121,15 @@ public class FlansModClient
 
 		// Entity Renderers
 		EntityRenderers.register(FlansMod.ENT_TYPE_BULLET.get(), BulletEntityRenderer::new);
+
+
+
+		IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+		ACTIONS_CLIENT.HookClient(modEventBus);
+		MODEL_REGISTRATION.Hook(modEventBus);
+		modEventBus.register(ANIMATIONS);
+		MAGAZINE_ATLAS.Init();
+		InitReflection();
 
 		MinecraftForge.EVENT_BUS.addListener(FlansModClient::RenderTick);
 		MinecraftForge.EVENT_BUS.addListener(FlansModClient::OnLevelLoad);

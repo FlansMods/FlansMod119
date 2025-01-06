@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "flanstinkers:item/barrel_sand_cast"
+  }
+}

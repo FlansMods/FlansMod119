@@ -1,0 +1,9 @@
+{
+  "type": "tconstruct:table_casting_material",
+  "cast": {
+    "tag": "flanstinkers:casts/single_use/upper_receiver"
+  },
+  "cast_consumed": true,
+  "item_cost": 2,
+  "result": "flanstinkers:upper_receiver"
+}

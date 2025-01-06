@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
+import net.minecraftforge.data.loading.DatagenModLoader;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -29,6 +30,13 @@ public class MagazineTextureAtlas implements PreparableReloadListener
 
 	public MagazineTextureAtlas()
 	{
+		if(DatagenModLoader.isRunningDataGen())
+		{
+			Atlas = null;
+			Sprites = null;
+			return;
+		}
+
 		Atlas = new TextureAtlas(ATLAS_LOCATION);
 		Sprites = new HashMap<>();
 	}

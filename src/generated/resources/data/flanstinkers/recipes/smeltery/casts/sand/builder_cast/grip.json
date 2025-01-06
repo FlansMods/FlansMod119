@@ -1,0 +1,8 @@
+{
+  "type": "tconstruct:item_part_builder",
+  "pattern": "flanstinkers:grip",
+  "pattern_item": {
+    "tag": "tconstruct:casts/sand"
+  },
+  "result": "flanstinkers:grip_sand_cast"
+}

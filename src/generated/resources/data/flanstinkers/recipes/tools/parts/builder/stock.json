@@ -1,0 +1,16 @@
+{
+  "type": "tconstruct:part_builder",
+  "cost": 2,
+  "pattern": "flanstinkers:stock",
+  "pattern_item": [
+    {
+      "tag": "tconstruct:patterns/default"
+    },
+    {
+      "item": "flanstinkers:stock_cast"
+    }
+  ],
+  "result": {
+    "item": "flanstinkers:stock"
+  }
+}

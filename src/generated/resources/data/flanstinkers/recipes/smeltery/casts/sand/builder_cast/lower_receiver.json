@@ -1,0 +1,8 @@
+{
+  "type": "tconstruct:item_part_builder",
+  "pattern": "flanstinkers:lower_receiver",
+  "pattern_item": {
+    "tag": "tconstruct:casts/sand"
+  },
+  "result": "flanstinkers:lower_receiver_sand_cast"
+}

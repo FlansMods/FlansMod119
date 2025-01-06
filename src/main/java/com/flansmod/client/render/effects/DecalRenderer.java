@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.client.event.RenderLevelStageEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.data.loading.DatagenModLoader;
 import net.minecraftforge.event.TickEvent;
 import org.joml.Quaternionf;
 import org.joml.Vector4f;
@@ -31,6 +32,9 @@ public class DecalRenderer
 
 	public DecalRenderer()
 	{
+		if(DatagenModLoader.isRunningDataGen())
+			return;
+
 		textureManager = Minecraft.getInstance().textureManager;
 
 		MinecraftForge.EVENT_BUS.addListener(this::RenderTick);

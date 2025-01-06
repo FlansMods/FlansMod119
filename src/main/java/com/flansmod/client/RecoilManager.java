@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.phys.Vec2;
 import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.data.loading.DatagenModLoader;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 
@@ -25,6 +26,8 @@ public class RecoilManager
 
 	public RecoilManager()
 	{
+		if(DatagenModLoader.isRunningDataGen())
+			return;
 		MinecraftForge.EVENT_BUS.register(this);
 	}
 
