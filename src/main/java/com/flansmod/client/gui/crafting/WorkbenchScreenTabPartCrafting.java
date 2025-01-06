@@ -5,7 +5,7 @@ import com.flansmod.common.crafting.AbstractWorkbench;
 import com.flansmod.common.crafting.ingredients.StackedIngredient;
 import com.flansmod.common.crafting.recipes.PartFabricationRecipe;
 import com.flansmod.common.crafting.menus.WorkbenchMenuPartCrafting;
-import com.flansmod.common.item.PartItem;
+import com.flansmod.common.item.IPartItem;
 import com.flansmod.common.types.crafting.EMaterialType;
 import com.flansmod.common.types.crafting.MaterialDefinition;
 import com.flansmod.physics.common.util.Maths;
@@ -674,7 +674,7 @@ public class WorkbenchScreenTabPartCrafting extends WorkbenchScreenTab<Workbench
 		for(int i = 0; i < allRecipes.size(); i++)
 		{
 			PartFabricationRecipe recipe = allRecipes.get(i);
-			if(recipe.getResultItem(RegistryAccess.EMPTY).getItem() instanceof PartItem partItem)
+			if(recipe.getResultItem(RegistryAccess.EMPTY).getItem() instanceof IPartItem partItem)
 			{
 				MaterialDefinition material = partItem.Def().GetMaterial();
 

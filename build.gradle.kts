@@ -136,6 +136,11 @@ repositories {
         name = "Jared's maven"
         setUrl("https://maven.blamejared.com/")
     }
+    maven {
+        // Tinkers Maven
+        name = "DVS1 Maven FS"
+        setUrl("https://dvs1.progwml6.com/files/maven")
+    }
 }
 
 dependencies {
@@ -147,6 +152,9 @@ dependencies {
     compileOnly(fg.deobf("mezz.jei:jei-${mcVersion}-forge-api:${jeiVersion}"))
     // at runtime, use the full JEI jar for Forge
     runtimeOnly(fg.deobf("mezz.jei:jei-${mcVersion}-forge:${jeiVersion}"))
+
+    implementation(fg.deobf("slimeknights.mantle:Mantle:1.20.1-1.11.29"))
+    implementation(fg.deobf("slimeknights.tconstruct:TConstruct:1.20.1-3.9.0.9"))
 }
 
 // processResources
@@ -199,17 +207,17 @@ tasks.withType<Jar> {
     filesMatching(listOf("*/flansmod.toml", "*/flansvendersgame.toml", "*/flansbasicparts.toml"))
     {
         expand(
-            mapOf(
-                    "fmlrange" to fmlRange,
-                    "flansmodversion" to modVersionNoBuild,
-                    "flansvendersgameversion" to vendersVersion,
-                    "flansbasicpartsversion" to basicsVersion,
-                    "mcversionrange" to mcVersionRange,
-                    "forgeversionrange" to forgeVersionRange,
-                    "flansmodversionrange" to packModVersionRange,
-                    "jeiversionrange" to jeiVersionRange,
+                mapOf(
+                        "fmlrange" to fmlRange,
+                        "flansmodversion" to modVersionNoBuild,
+                        "flansvendersgameversion" to vendersVersion,
+                        "flansbasicpartsversion" to basicsVersion,
+                        "mcversionrange" to mcVersionRange,
+                        "forgeversionrange" to forgeVersionRange,
+                        "flansmodversionrange" to packModVersionRange,
+                        "jeiversionrange" to jeiVersionRange,
 
-        ))
+                        ))
     }
 }
 
@@ -483,7 +491,7 @@ val expandDevTask: Copy = expandJarTask(reobfTask, expandedDevDir)
 fun CreateAllPackTasks(modID: String, modNamespace: String): Pair<Jar, Jar>
 {
     return Pair(jarPackTask(modID, modNamespace, "sources", expandSourceTask, expandedSourceDir),
-                jarPackTask(modID, modNamespace, "dev", expandDevTask, expandedDevDir))
+            jarPackTask(modID, modNamespace, "dev", expandDevTask, expandedDevDir))
 }
 
 
@@ -687,7 +695,7 @@ fun createCurseForgeUploadTask(curseForgeID: String, main: Jar, src: Jar): Curse
 
 
 //if (curseforgeProject != null) {
-   // notificationTask.dependsOn("curseforge")
+// notificationTask.dependsOn("curseforge")
 //}
 
 val modUploadTask            = createCurseForgeUploadTask(modCurseForgeID, modDevTask, modSourceTask)

@@ -1,15 +1,13 @@
 package com.flansmod.common.types.elements;
 
 import com.flansmod.common.item.FlanItem;
-import com.flansmod.common.item.PartItem;
-import com.flansmod.common.types.Definitions;
+import com.flansmod.common.item.IPartItem;
 import com.flansmod.common.types.JsonDefinition;
 import com.flansmod.common.types.JsonField;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.registries.ForgeRegistries;
 
 import javax.annotation.Nonnull;
-import javax.json.Json;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,7 +63,7 @@ public class ItemCollectionDefinition
 						break;
 					}
 				}
-				if(item instanceof PartItem partItem)
+				if(item instanceof IPartItem partItem)
 				{
 					for(MaterialFilterDefinition matFilter : materialFilters)
 					{
@@ -87,7 +85,7 @@ public class ItemCollectionDefinition
 				for(LocationFilterDefinition tagFilter : itemTagFilters)
 					if(item.builtInRegistryHolder().tags().anyMatch((itemTag) -> { return tagFilter.Disallows(itemTag.location()); }))
 						return;
-				if(item instanceof PartItem partItem)
+				if(item instanceof IPartItem partItem)
 					for(MaterialFilterDefinition matFilter : materialFilters)
 						if(matFilter.Disallows(partItem.Def().GetMaterial()))
 							return;

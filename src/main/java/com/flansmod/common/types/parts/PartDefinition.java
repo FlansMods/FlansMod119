@@ -1,7 +1,7 @@
 package com.flansmod.common.types.parts;
 
 import com.flansmod.common.FlansMod;
-import com.flansmod.common.item.PartItem;
+import com.flansmod.common.item.IPartItem;
 import com.flansmod.common.types.JsonDefinition;
 import com.flansmod.common.types.JsonField;
 import com.flansmod.common.types.abilities.elements.CraftingTraitProviderDefinition;
@@ -66,7 +66,7 @@ public class PartDefinition extends JsonDefinition
 	@Nonnull
 	public static MaterialDefinition GetMaterialOfPart(ItemStack stack)
 	{
-		if(stack.getItem() instanceof PartItem partItem)
+		if(stack.getItem() instanceof IPartItem partItem)
 			return partItem.Def().GetMaterial();
 		return MaterialDefinition.INVALID;
 	}

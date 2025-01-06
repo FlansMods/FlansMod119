@@ -18,8 +18,9 @@ import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Map;
 
-public class PartItem extends FlanItem
+public class PartItem extends FlanItem implements IPartItem
 {
+	@Override @Nonnull
 	public PartDefinition Def() { return FlansMod.PARTS.Get(DefinitionLocation); }
 
 	public PartItem(@Nonnull ResourceLocation defLoc, @Nonnull Properties props)
@@ -90,7 +91,7 @@ public class PartItem extends FlanItem
 	}
 
 	@Override
-	protected void CollectAbilities(@Nonnull ItemStack stack, @Nonnull Map<CraftingTraitDefinition, Integer> abilityMap)
+	public void CollectAbilities(@Nonnull ItemStack stack, @Nonnull Map<CraftingTraitDefinition, Integer> abilityMap)
 	{
 		for(CraftingTraitProviderDefinition provider : Def().traits)
 			abilityMap.put(provider.GetAbility(), provider.level);

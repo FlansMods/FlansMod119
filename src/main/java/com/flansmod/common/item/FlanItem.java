@@ -320,9 +320,9 @@ public abstract class FlanItem extends Item implements IForgeItem
         {
             if(partStack.isEmpty())
                 continue;
-            if(partStack.getItem() instanceof PartItem part)
+            if(partStack.getItem() instanceof IPartItem part)
             {
-                craftingTags.putString(Integer.toString(index), part.DefinitionLocation.toString());
+                craftingTags.putString(Integer.toString(index), part.Def().GetLocation().toString());
             }
             index++;
         }
@@ -336,9 +336,9 @@ public abstract class FlanItem extends Item implements IForgeItem
         {
             if(partStack.isEmpty())
                 continue;
-            if(partStack.getItem() instanceof PartItem part)
+            if(partStack.getItem() instanceof IPartItem part)
             {
-                craftingTags.putString(Integer.toString(index), part.DefinitionLocation.toString());
+                craftingTags.putString(Integer.toString(index), part.Def().GetLocation().toString());
             }
             index++;
         }

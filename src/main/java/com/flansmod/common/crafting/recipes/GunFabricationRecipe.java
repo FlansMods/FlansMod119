@@ -2,15 +2,12 @@ package com.flansmod.common.crafting.recipes;
 
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.crafting.AbstractWorkbench;
-import com.flansmod.common.crafting.WorkbenchBlockEntity;
 import com.flansmod.common.crafting.ingredients.IExtraIngredientTooltip;
-import com.flansmod.common.crafting.ingredients.TieredPartIngredient;
 import com.flansmod.common.item.FlanItem;
-import com.flansmod.common.item.PartItem;
+import com.flansmod.common.item.IPartItem;
 import com.flansmod.common.types.crafting.ERecipePart;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import net.minecraft.client.player.Input;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
@@ -135,7 +132,7 @@ public class GunFabricationRecipe implements Recipe<AbstractWorkbench>
 		for(int slot = 0; slot < workbench.GunCraftingInputContainer.getContainerSize(); slot++)
 		{
 			ItemStack inputStack = workbench.GunCraftingInputContainer.getItem(slot);
-			if(inputStack.getItem() instanceof PartItem part)
+			if(inputStack.getItem() instanceof IPartItem part)
 				craftingInputs.add(inputStack);
 		}
 

@@ -2,7 +2,7 @@ package com.flansmod.common.entity.vehicle.save;
 
 import com.flansmod.common.entity.vehicle.IVehicleSaveNode;
 import com.flansmod.common.entity.vehicle.VehicleEntity;
-import com.flansmod.common.item.PartItem;
+import com.flansmod.common.item.IPartItem;
 import com.flansmod.common.types.parts.PartDefinition;
 import com.flansmod.common.types.parts.elements.EngineDefinition;
 import com.flansmod.physics.common.util.Maths;
@@ -64,7 +64,7 @@ public class EngineSyncState implements IVehicleSaveNode
 	@Nonnull
 	public PartDefinition GetPart()
 	{
-		return (!EngineStack.isEmpty() && EngineStack.getItem() instanceof PartItem part) ? part.Def() : PartDefinition.INVALID;
+		return (!EngineStack.isEmpty() && EngineStack.getItem() instanceof IPartItem part) ? part.Def() : PartDefinition.INVALID;
 	}
 
 	public float GetEngineThrottle() { return Throttle; }
