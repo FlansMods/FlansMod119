@@ -1,6 +1,8 @@
 package com.flansmod.packs.tinkers;
 
+import com.flansmod.client.render.guns.GunItemClientExtension;
 import com.flansmod.common.item.GunItem;
+import com.flansmod.packs.tinkers.client.TinkerGunItemClientExtension;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
 import net.minecraft.core.BlockPos;
@@ -20,6 +22,9 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 import net.minecraftforge.common.ToolAction;
 import net.minecraftforge.common.capabilities.ICapabilityProvider;
 import slimeknights.mantle.client.SafeClientAccess;
@@ -66,15 +71,15 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 	/* Enchanting */
 
 	@Override
-	public boolean isEnchantable(ItemStack stack) {
+	public boolean isEnchantable(@Nonnull ItemStack stack) {
 		return false;
 	}
 	@Override
-	public boolean isBookEnchantable(ItemStack stack, ItemStack book) {
+	public boolean isBookEnchantable(@Nonnull ItemStack stack, @Nonnull ItemStack book) {
 		return false;
 	}
 	@Override
-	public boolean canApplyAtEnchantingTable(ItemStack stack, Enchantment enchantment) {
+	public boolean canApplyAtEnchantingTable(@Nonnull ItemStack stack, @Nonnull Enchantment enchantment) {
 		return enchantment.isCurse() && super.canApplyAtEnchantingTable(stack, enchantment);
 	}
 	@Override
@@ -82,11 +87,11 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 		return 0;
 	}
 	@Override
-	public int getEnchantmentLevel(ItemStack stack, Enchantment enchantment) {
+	public int getEnchantmentLevel(@Nonnull ItemStack stack, @Nonnull Enchantment enchantment) {
 		return EnchantmentModifierHook.getEnchantmentLevel(stack, enchantment);
 	}
 	@Override
-	public Map<Enchantment,Integer> getAllEnchantments(ItemStack stack) {
+	public Map<Enchantment,Integer> getAllEnchantments(@Nonnull ItemStack stack) {
 		return EnchantmentModifierHook.getAllEnchantments(stack);
 	}
 
@@ -94,28 +99,28 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 
 	@Nullable
 	@Override
-	public ICapabilityProvider initCapabilities(ItemStack stack, @Nullable CompoundTag nbt) {
+	public ICapabilityProvider initCapabilities(@Nonnull ItemStack stack, @Nullable CompoundTag nbt) {
 		return new ToolCapabilityProvider(stack);
 	}
 	@Override
-	public void verifyTagAfterLoad(CompoundTag nbt) {
+	public void verifyTagAfterLoad(@Nonnull CompoundTag nbt) {
 		ToolStack.verifyTag(this, nbt, getToolDefinition());
 	}
 	@Override
-	public void onCraftedBy(ItemStack stack, Level worldIn, Player playerIn) {
+	public void onCraftedBy(@Nonnull ItemStack stack, @Nonnull Level worldIn, @Nonnull Player playerIn) {
 		ToolStack.ensureInitialized(stack, getToolDefinition());
 	}
 
 	/* Display */
 
 	@Override
-	public boolean isFoil(ItemStack stack) {
+	public boolean isFoil(@Nonnull ItemStack stack) {
 		// we use enchantments to handle some modifiers, so don't glow from them
 		// however, if a modifier wants to glow let them
 		return ModifierUtil.checkVolatileFlag(stack, SHINY);
 	}
-	@Override
-	public Rarity getRarity(ItemStack stack) {
+	@Override @Nonnull
+	public Rarity getRarity(@Nonnull ItemStack stack) {
 		int rarity = ModifierUtil.getVolatileInt(stack, RARITY);
 		return Rarity.values()[Mth.clamp(rarity, 0, 3)];
 	}
@@ -123,11 +128,11 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 	/* Indestructible items */
 
 	@Override
-	public boolean hasCustomEntity(ItemStack stack) {
+	public boolean hasCustomEntity(@Nonnull ItemStack stack) {
 		return IndestructibleItemEntity.hasCustomEntity(stack);
 	}
 	@Override
-	public Entity createEntity(Level world, Entity original, ItemStack stack) {
+	public Entity createEntity(@Nonnull Level world, @Nonnull Entity original, @Nonnull ItemStack stack) {
 		return IndestructibleItemEntity.createFrom(world, original, stack);
 	}
 
@@ -135,7 +140,7 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 	/* Damage/Durability */
 
 	@Override
-	public boolean isRepairable(ItemStack stack) {
+	public boolean isRepairable(@Nonnull ItemStack stack) {
 		// handle in the tinker station
 		return false;
 	}
@@ -144,7 +149,7 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 		return true;
 	}
 	@Override
-	public int getMaxDamage(ItemStack stack) {
+	public int getMaxDamage(@Nonnull ItemStack stack) {
 		if (!canBeDepleted()) {
 			return 0;
 		}
@@ -154,20 +159,20 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 		return tool.isBroken() ? durability + 1 : durability;
 	}
 	@Override
-	public int getDamage(ItemStack stack) {
+	public int getDamage(@Nonnull ItemStack stack) {
 		if (!canBeDepleted()) {
 			return 0;
 		}
 		return ToolStack.from(stack).getDamage();
 	}
 	@Override
-	public void setDamage(ItemStack stack, int damage) {
+	public void setDamage(@Nonnull ItemStack stack, int damage) {
 		if (canBeDepleted()) {
 			ToolStack.from(stack).setDamage(damage);
 		}
 	}
 	@Override
-	public <T extends LivingEntity> int damageItem(ItemStack stack, int amount, T damager, Consumer<T> onBroken) {
+	public <T extends LivingEntity> int damageItem(@Nonnull ItemStack stack, int amount, T damager, Consumer<T> onBroken) {
 		ToolDamageUtil.handleDamageItem(stack, amount, damager, onBroken);
 		return 0;
 	}
@@ -176,17 +181,17 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 	/* Durability display */
 
 	@Override
-	public boolean isBarVisible(ItemStack pStack) {
+	public boolean isBarVisible(@Nonnull ItemStack pStack) {
 		return DurabilityDisplayModifierHook.showDurabilityBar(pStack);
 	}
 
 	@Override
-	public int getBarColor(ItemStack pStack) {
+	public int getBarColor(@Nonnull ItemStack pStack) {
 		return DurabilityDisplayModifierHook.getDurabilityRGB(pStack);
 	}
 
 	@Override
-	public int getBarWidth(ItemStack pStack) {
+	public int getBarWidth(@Nonnull ItemStack pStack) {
 		return DurabilityDisplayModifierHook.getDurabilityWidth(pStack);
 	}
 
@@ -194,7 +199,8 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 	/* Modifier interactions */
 
 	@Override
-	public void inventoryTick(ItemStack stack, Level worldIn, Entity entityIn, int itemSlot, boolean isSelected) {
+	public void inventoryTick(@Nonnull ItemStack stack, @Nonnull Level worldIn, @Nonnull Entity entityIn, int itemSlot, boolean isSelected) {
+		super.inventoryTick(stack, worldIn, entityIn, itemSlot, isSelected);
 		InventoryTickModifierHook.heldInventoryTick(stack, worldIn, entityIn, itemSlot, isSelected);
 	}
 
@@ -228,22 +234,26 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 
 	/* Tooltips */
 
-	@Override
-	public Component getName(ItemStack stack) {
+	@Override @Nonnull
+	public Component getName(@Nonnull ItemStack stack) {
 		return TooltipUtil.getDisplayName(stack, getToolDefinition());
 	}
 	@Override
-	public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
+	public void appendHoverText(@Nonnull ItemStack stack,
+								@Nullable Level level,
+								@Nonnull List<Component> tooltip,
+								@Nonnull TooltipFlag flag)
+	{
 		TooltipUtil.addInformation(this, stack, level, tooltip, SafeClientAccess.getTooltipKey(), flag);
 	}
 	@Override
-	public int getDefaultTooltipHideFlags(ItemStack stack) {
+	public int getDefaultTooltipHideFlags(@Nonnull ItemStack stack) {
 		return TooltipUtil.getModifierHideFlags(getToolDefinition());
 	}
 
 	/* Display items */
 
-	@Override
+	@Override @Nonnull
 	public ItemStack getRenderTool() {
 		if (toolForRendering == null) {
 			toolForRendering = ToolBuildHandler.buildToolForRendering(this, this.getToolDefinition());
@@ -255,12 +265,12 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 	/* Misc */
 
 	@Override
-	public boolean shouldCauseBlockBreakReset(ItemStack oldStack, ItemStack newStack) {
+	public boolean shouldCauseBlockBreakReset(@Nonnull ItemStack oldStack, @Nonnull ItemStack newStack) {
 		return shouldCauseReequipAnimation(oldStack, newStack, false);
 	}
 
 	@Override
-	public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
+	public boolean shouldCauseReequipAnimation(@Nonnull ItemStack oldStack, @Nonnull ItemStack newStack, boolean slotChanged) {
 		return ModifiableItem.shouldCauseReequip(oldStack, newStack, slotChanged);
 	}
 
@@ -268,19 +278,22 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 	/* Harvest logic, mostly used by modifiers but technically would let you make a pickaxe bow */
 
 	@Override
-	public boolean isCorrectToolForDrops(ItemStack stack, BlockState state) {
+	public boolean isCorrectToolForDrops(@Nonnull ItemStack stack, @Nonnull BlockState state) {
 		return IsEffectiveToolHook.isEffective(ToolStack.from(stack), state);
 	}
 	@Override
-	public boolean mineBlock(ItemStack stack, Level worldIn, BlockState state, BlockPos pos, LivingEntity entityLiving) {
-		return ToolHarvestLogic.mineBlock(stack, worldIn, state, pos, entityLiving);
-	}
-	@Override
-	public float getDestroySpeed(ItemStack stack, BlockState state) {
+	public float getDestroySpeed(@Nonnull ItemStack stack, @Nonnull BlockState state) {
 		return MiningSpeedToolHook.getDestroySpeed(stack, state);
 	}
 	@Override
-	public boolean onBlockStartBreak(ItemStack stack, BlockPos pos, Player player) {
+	public boolean onBlockStartBreak(@Nonnull ItemStack stack, @Nonnull BlockPos pos, @Nonnull Player player) {
 		return ToolHarvestLogic.handleBlockBreak(stack, pos, player);
+	}
+
+	@Override
+	@OnlyIn(Dist.CLIENT)
+	public void initializeClient(@Nonnull Consumer<IClientItemExtensions> consumer)
+	{
+		consumer.accept(TinkerGunItemClientExtension.of(this));
 	}
 }

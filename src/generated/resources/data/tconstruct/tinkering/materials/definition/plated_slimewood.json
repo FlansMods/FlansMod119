@@ -1,0 +1,29 @@
+{
+  "condition": {
+    "type": "forge:or",
+    "values": [
+      {
+        "type": "tconstruct:config",
+        "prop": "force_integration_materials"
+      },
+      {
+        "type": "forge:not",
+        "value": {
+          "type": "forge:tag_empty",
+          "tag": "forge:ingots/brass"
+        }
+      },
+      {
+        "type": "forge:not",
+        "value": {
+          "type": "forge:tag_empty",
+          "tag": "forge:ingots/zinc"
+        }
+      }
+    ]
+  },
+  "craftable": false,
+  "hidden": false,
+  "sortOrder": 8,
+  "tier": 3
+}

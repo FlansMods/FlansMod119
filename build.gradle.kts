@@ -50,6 +50,13 @@ plugins {
 }
 apply(plugin = "org.spongepowered.mixin")
 
+sourceSets.main {
+    resources {
+        srcDir("src/generated/resources")
+        exclude(".cache")
+    }
+}
+
 val Project.mixin: MixinExtension
     get() = extensions.getByType()
 mixin.run {

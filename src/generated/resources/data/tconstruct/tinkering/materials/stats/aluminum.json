@@ -1,0 +1,50 @@
+{
+  "stats": {
+    "flansmod:gun_handle": {
+      "durability": 210,
+      "impact_damage": 4.0,
+      "rate_of_fire": 1.0
+    },
+    "flansmod:gun_internal": {
+      "durability": 210,
+      "impact_damage": 4.0,
+      "rate_of_fire": 1.0
+    },
+    "tconstruct:grip": {
+      "accuracy": 0.15,
+      "durability": -0.15,
+      "melee_damage": 2.0
+    },
+    "tconstruct:limb": {
+      "accuracy": -0.05,
+      "draw_speed": 0.15,
+      "durability": 225,
+      "velocity": -0.15
+    },
+    "tconstruct:maille": {},
+    "tconstruct:plating_boots": {
+      "armor": 1.0,
+      "durability": 169,
+      "knockback_resistance": 0.1
+    },
+    "tconstruct:plating_chestplate": {
+      "armor": 4.0,
+      "durability": 208,
+      "knockback_resistance": 0.1
+    },
+    "tconstruct:plating_helmet": {
+      "armor": 1.0,
+      "durability": 143,
+      "knockback_resistance": 0.1
+    },
+    "tconstruct:plating_leggings": {
+      "armor": 3.0,
+      "durability": 195,
+      "knockback_resistance": 0.1
+    },
+    "tconstruct:plating_shield": {
+      "durability": 234,
+      "knockback_resistance": 0.1
+    }
+  }
+}

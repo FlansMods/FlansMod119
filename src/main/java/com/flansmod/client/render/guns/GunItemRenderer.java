@@ -25,6 +25,7 @@ import net.minecraft.world.item.ItemStack;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import java.util.function.Function;
 
 public class GunItemRenderer extends FlanItemModelRenderer
 {
@@ -33,6 +34,12 @@ public class GunItemRenderer extends FlanItemModelRenderer
         super(gunItem, true);
     }
 
+    @Nonnull
+    protected Function<String, ResourceLocation> getSkinFunc(@Nonnull ItemStack stack)
+    {
+        ResourceLocation skin = getSkin(stack);
+        return (partName) -> skin;
+    }
     @Override
     protected void doRender(@Nullable Entity heldByEntity, @Nullable ItemStack stack, @Nonnull RenderContext renderContext)
     {
@@ -58,16 +65,11 @@ public class GunItemRenderer extends FlanItemModelRenderer
             // Find our animation set
             FlanimationDefinition animationSet = FlansModClient.ANIMATIONS.Get(new ResourceLocation(gunContext.CacheGunDefinition().animationSet));
 
-            // Find our skin
-            ResourceLocation skin = getSkin(stack);
-
             renderSectionIteratively(
                 renderContext,
                 "body",
                 // Texture Func
-                (partName) -> {
-                    return skin;
-                },
+                getSkinFunc(stack),
                 // Pre-Func
                 (partName, innerRenderContext) -> {
                     innerRenderContext.Transforms.push();

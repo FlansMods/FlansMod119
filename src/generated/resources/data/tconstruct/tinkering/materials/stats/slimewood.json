@@ -1,0 +1,34 @@
+{
+  "stats": {
+    "flansmod:gun_handle": {
+      "durability": 3000,
+      "impact_damage": 1.0,
+      "rate_of_fire": 0.125
+    },
+    "tconstruct:binding": {},
+    "tconstruct:grip": {
+      "accuracy": -0.2,
+      "durability": 0.4,
+      "melee_damage": 1.0
+    },
+    "tconstruct:handle": {
+      "durability": 0.3,
+      "melee_damage": -0.15,
+      "melee_speed": 0.0,
+      "mining_speed": -0.15
+    },
+    "tconstruct:head": {
+      "durability": 375,
+      "melee_attack": 1.0,
+      "mining_speed": 4.0,
+      "mining_tier": "minecraft:iron"
+    },
+    "tconstruct:limb": {
+      "accuracy": 0.1,
+      "draw_speed": 0.0,
+      "durability": 375,
+      "velocity": -0.05
+    },
+    "tconstruct:shield_core": {}
+  }
+}

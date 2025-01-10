@@ -1,0 +1,16 @@
+{
+  "stats": {
+    "tconstruct:grip": {
+      "accuracy": 0.05,
+      "durability": -0.05,
+      "melee_damage": 0.75
+    },
+    "tconstruct:limb": {
+      "accuracy": -0.05,
+      "draw_speed": 0.1,
+      "durability": 70,
+      "velocity": -0.05
+    },
+    "tconstruct:shield_core": {}
+  }
+}

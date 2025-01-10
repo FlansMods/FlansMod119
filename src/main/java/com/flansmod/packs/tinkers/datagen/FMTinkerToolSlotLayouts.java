@@ -20,10 +20,10 @@ public class FMTinkerToolSlotLayouts extends AbstractStationSlotLayoutProvider
 		// Rifle
 		defineModifiable(FMTinkerResources.RIFLE)
 			.sortIndex(SORT_RANGED)
-			.addInputItem(FMTinkerResources.UPPER_RECEIVER, 20, 45)
-			.addInputItem(FMTinkerResources.LOWER_RECEIVER, 20, 25)
-			.addInputItem(FMTinkerResources.STOCK, 35, 35)
-			.addInputItem(FMTinkerResources.BARREL, 5, 35)
+			.addInputItem(FMTinkerResources.UPPER_RECEIVER, 27, 65)
+			.addInputItem(FMTinkerResources.LOWER_RECEIVER, 27, 25)
+			.addInputItem(FMTinkerResources.STOCK, 44, 45)
+			.addInputItem(FMTinkerResources.BARREL, 10, 45)
 			.build();
 	}
 

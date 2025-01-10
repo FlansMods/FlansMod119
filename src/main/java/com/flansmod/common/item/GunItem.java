@@ -49,7 +49,6 @@ import net.minecraftforge.common.TierSortingRegistry;
 import net.minecraftforge.common.ToolAction;
 import net.minecraftforge.common.ToolActions;
 import net.minecraftforge.event.entity.living.LivingEntityUseItemEvent;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -71,7 +70,7 @@ public class GunItem extends FlanItem
     @Override
     public void appendHoverText(@Nonnull ItemStack stack,
                                 @Nullable Level level,
-                                @NotNull List<Component> tooltips,
+                                @Nonnull List<Component> tooltips,
                                 @Nonnull TooltipFlag flags)
     {
         GunContext gunContext = GunContext.of(stack, EContextSide.of(level));

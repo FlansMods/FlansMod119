@@ -10,8 +10,8 @@
       },
       "icon": "flanstinkers:upper_receiver",
       "translation_key": "item.flanstinkers.upper_receiver",
-      "x": 20,
-      "y": 45
+      "x": 27,
+      "y": 65
     },
     {
       "filter": {
@@ -19,7 +19,7 @@
       },
       "icon": "flanstinkers:lower_receiver",
       "translation_key": "item.flanstinkers.lower_receiver",
-      "x": 20,
+      "x": 27,
       "y": 25
     },
     {
@@ -28,8 +28,8 @@
       },
       "icon": "flanstinkers:stock",
       "translation_key": "item.flanstinkers.stock",
-      "x": 35,
-      "y": 35
+      "x": 44,
+      "y": 45
     },
     {
       "filter": {
@@ -37,8 +37,8 @@
       },
       "icon": "flanstinkers:barrel",
       "translation_key": "item.flanstinkers.barrel",
-      "x": 5,
-      "y": 35
+      "x": 10,
+      "y": 45
     }
   ],
   "sortIndex": 8,

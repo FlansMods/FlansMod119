@@ -1,0 +1,7 @@
+{
+  "parent": "forge:item/default",
+  "loader": "tconstruct:material",
+  "textures": {
+    "texture": "flanstinkers:item/tool/parts/barrel"
+  }
+}

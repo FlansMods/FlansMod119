@@ -1,0 +1,38 @@
+{
+  "stats": {
+    "flansmod:gun_handle": {
+      "durability": 357,
+      "impact_damage": 4.0,
+      "rate_of_fire": 3.0
+    },
+    "flansmod:gun_internal": {
+      "durability": 357,
+      "impact_damage": 4.0,
+      "rate_of_fire": 3.0
+    },
+    "tconstruct:binding": {},
+    "tconstruct:grip": {
+      "accuracy": 0.15,
+      "durability": -0.2,
+      "melee_damage": 2.75
+    },
+    "tconstruct:handle": {
+      "durability": -0.2,
+      "melee_damage": 0.1,
+      "melee_speed": 0.15,
+      "mining_speed": 0.0
+    },
+    "tconstruct:head": {
+      "durability": 357,
+      "melee_attack": 2.75,
+      "mining_speed": 4.0,
+      "mining_tier": "minecraft:diamond"
+    },
+    "tconstruct:limb": {
+      "accuracy": -0.05,
+      "draw_speed": 0.15,
+      "durability": 357,
+      "velocity": -0.1
+    }
+  }
+}

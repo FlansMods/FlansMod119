@@ -1,7 +1,9 @@
 package com.flansmod.packs.tinkers.datagen;
 
 import com.flansmod.packs.tinkers.FlansTinkersMod;
-import com.flansmod.packs.tinkers.GunPartMaterialStats;
+import com.flansmod.packs.tinkers.materialstats.GunHandleMaterialStats;
+import com.flansmod.packs.tinkers.materialstats.GunInternalMaterialStats;
+import net.minecraft.resources.ResourceLocation;
 import slimeknights.tconstruct.library.client.data.material.AbstractPartSpriteProvider;
 
 import javax.annotation.Nonnull;
@@ -20,11 +22,18 @@ public class FMTinkerPartTextures extends AbstractPartSpriteProvider
 	protected void addAllSpites()
 	{
 		buildTool("rifle")
-			.addPart("barrel", GunPartMaterialStats.ID)
-			.addPart("stock", GunPartMaterialStats.ID)
-			.addPart("upper_receiver", GunPartMaterialStats.ID)
-			.addPart("lower_receiver", GunPartMaterialStats.ID);
+			.addPart("barrel", GunInternalMaterialStats.ID)
+			.addPart("stock", GunHandleMaterialStats.ID)
+			.addPart("grip", GunHandleMaterialStats.ID)
+			.addPart("upper_receiver", GunInternalMaterialStats.ID)
+			.addPart("lower_receiver", GunInternalMaterialStats.ID);
 
+		addPart("upper_receiver", GunInternalMaterialStats.ID);
+		addPart("lower_receiver", GunInternalMaterialStats.ID);
+		addPart("barrel", GunInternalMaterialStats.ID);
+		addPart("stock", GunHandleMaterialStats.ID);
+		addPart("grip", GunHandleMaterialStats.ID);
 
+		addTexture(new ResourceLocation(FlansTinkersMod.MODID, "skins/rifle"), GunHandleMaterialStats.ID, GunInternalMaterialStats.ID);
 	}
 }

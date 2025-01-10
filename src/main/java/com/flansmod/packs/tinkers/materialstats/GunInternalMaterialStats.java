@@ -1,6 +1,7 @@
-package com.flansmod.packs.tinkers;
+package com.flansmod.packs.tinkers.materialstats;
 
 import com.flansmod.common.FlansMod;
+import com.flansmod.packs.tinkers.FMToolStats;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import net.minecraft.network.chat.Component;
@@ -16,18 +17,18 @@ import slimeknights.tconstruct.library.tools.stat.ToolStats;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public record GunPartMaterialStats(int durability, float impactDamage, float rateOfFire)
+public record GunInternalMaterialStats(int durability, float impactDamage, float rateOfFire)
 	implements IRepairableMaterialStats
 {
-	public static final MaterialStatsId ID = new MaterialStatsId(new ResourceLocation(FlansMod.MODID, "gun_part"));
-	public static final MaterialStatType<GunPartMaterialStats> TYPE =
+	public static final MaterialStatsId ID = new MaterialStatsId(new ResourceLocation(FlansMod.MODID, "gun_internal"));
+	public static final MaterialStatType<GunInternalMaterialStats> TYPE =
 		new MaterialStatType<>(ID,
-			new GunPartMaterialStats(1, 1f, 1f),
+			new GunInternalMaterialStats(1, 1f, 1f),
 			RecordLoadable.create(
 				IRepairableMaterialStats.DURABILITY_FIELD,
-				FloatLoadable.FROM_ZERO.defaultField("impact_damage", 1f, true, GunPartMaterialStats::impactDamage),
-				FloatLoadable.FROM_ZERO.defaultField("rate_of_fire", 1f, true, GunPartMaterialStats::rateOfFire),
-				GunPartMaterialStats::new));
+				FloatLoadable.FROM_ZERO.defaultField("impact_damage", 1f, true, GunInternalMaterialStats::impactDamage),
+				FloatLoadable.FROM_ZERO.defaultField("rate_of_fire", 1f, true, GunInternalMaterialStats::rateOfFire),
+				GunInternalMaterialStats::new));
 	private static final List<Component> DESCRIPTION =
 		ImmutableList.of(
 			ToolStats.DURABILITY.getDescription(),

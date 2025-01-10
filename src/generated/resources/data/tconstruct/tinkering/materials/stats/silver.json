@@ -1,0 +1,63 @@
+{
+  "stats": {
+    "flansmod:gun_handle": {
+      "durability": 900,
+      "impact_damage": 5.0,
+      "rate_of_fire": 1.0
+    },
+    "flansmod:gun_internal": {
+      "durability": 900,
+      "impact_damage": 5.0,
+      "rate_of_fire": 1.0
+    },
+    "tconstruct:binding": {},
+    "tconstruct:grip": {
+      "accuracy": -0.05,
+      "durability": -0.1,
+      "melee_damage": 2.25
+    },
+    "tconstruct:handle": {
+      "durability": -0.1,
+      "melee_damage": 0.0,
+      "melee_speed": 0.1,
+      "mining_speed": 0.05
+    },
+    "tconstruct:head": {
+      "durability": 300,
+      "melee_attack": 2.25,
+      "mining_speed": 5.5,
+      "mining_tier": "minecraft:iron"
+    },
+    "tconstruct:limb": {
+      "accuracy": -0.1,
+      "draw_speed": -0.15,
+      "durability": 300,
+      "velocity": 0.1
+    },
+    "tconstruct:maille": {},
+    "tconstruct:plating_boots": {
+      "armor": 1.0,
+      "durability": 234,
+      "knockback_resistance": 0.05
+    },
+    "tconstruct:plating_chestplate": {
+      "armor": 5.0,
+      "durability": 288,
+      "knockback_resistance": 0.05
+    },
+    "tconstruct:plating_helmet": {
+      "armor": 2.0,
+      "durability": 198,
+      "knockback_resistance": 0.05
+    },
+    "tconstruct:plating_leggings": {
+      "armor": 4.0,
+      "durability": 270,
+      "knockback_resistance": 0.05
+    },
+    "tconstruct:plating_shield": {
+      "durability": 324,
+      "knockback_resistance": 0.05
+    }
+  }
+}

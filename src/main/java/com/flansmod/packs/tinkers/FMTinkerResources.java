@@ -1,5 +1,6 @@
 package com.flansmod.packs.tinkers;
 
+import com.flansmod.packs.tinkers.materialstats.GunInternalMaterialStats;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.Item;
@@ -7,15 +8,11 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraftforge.registries.DeferredRegister;
 import net.minecraftforge.registries.ForgeRegistries;
-import net.minecraftforge.registries.RegistryObject;
 import slimeknights.mantle.registration.object.ItemObject;
 import slimeknights.tconstruct.common.registration.CastItemObject;
 import slimeknights.tconstruct.common.registration.ItemDeferredRegisterExtension;
 import slimeknights.tconstruct.library.tools.definition.ToolDefinition;
-import slimeknights.tconstruct.library.tools.item.ModifiableItem;
 import slimeknights.tconstruct.library.tools.part.ToolPartItem;
-
-import java.util.function.Supplier;
 
 public class FMTinkerResources
 {
@@ -28,23 +25,23 @@ public class FMTinkerResources
 
 	public static final CastItemObject UPPER_RECEIVER_CAST = ITEMS_EXTENDED.registerCast("upper_receiver", new Item.Properties());
 	public static final ItemObject<ToolPartItem> UPPER_RECEIVER = ITEMS_EXTENDED.register("upper_receiver",
-		() -> new TCPartItem(new ResourceLocation(FlansTinkersMod.MODID, "upper_receiver"), GunPartMaterialStats.ID, new Item.Properties()));
+		() -> new TCPartItem(new ResourceLocation(FlansTinkersMod.MODID, "upper_receiver"), GunInternalMaterialStats.ID, new Item.Properties()));
 
 	public static final CastItemObject LOWER_RECEIVER_CAST = ITEMS_EXTENDED.registerCast("lower_receiver", new Item.Properties());
 	public static final ItemObject<ToolPartItem> LOWER_RECEIVER = ITEMS_EXTENDED.register("lower_receiver",
-		() -> new TCPartItem(new ResourceLocation(FlansTinkersMod.MODID, "lower_receiver"), GunPartMaterialStats.ID, new Item.Properties()));
+		() -> new TCPartItem(new ResourceLocation(FlansTinkersMod.MODID, "lower_receiver"), GunInternalMaterialStats.ID, new Item.Properties()));
 
 	public static final CastItemObject BARREL_CAST = ITEMS_EXTENDED.registerCast("barrel", new Item.Properties());
 	public static final ItemObject<ToolPartItem> BARREL = ITEMS_EXTENDED.register("barrel",
-		() -> new TCPartItem(new ResourceLocation(FlansTinkersMod.MODID, "barrel"), GunPartMaterialStats.ID, new Item.Properties()));
+		() -> new TCPartItem(new ResourceLocation(FlansTinkersMod.MODID, "barrel"), GunInternalMaterialStats.ID, new Item.Properties()));
 
 	public static final CastItemObject STOCK_CAST = ITEMS_EXTENDED.registerCast("stock", new Item.Properties());
 	public static final ItemObject<ToolPartItem> STOCK = ITEMS_EXTENDED.register("stock",
-		() -> new TCPartItem(new ResourceLocation(FlansTinkersMod.MODID, "stock"), GunPartMaterialStats.ID, new Item.Properties()));
+		() -> new TCPartItem(new ResourceLocation(FlansTinkersMod.MODID, "stock"), GunInternalMaterialStats.ID, new Item.Properties()));
 
 	public static final CastItemObject GRIP_CAST = ITEMS_EXTENDED.registerCast("grip", new Item.Properties());
 	public static final ItemObject<ToolPartItem> GRIP = ITEMS_EXTENDED.register("grip",
-		() -> new TCPartItem(new ResourceLocation(FlansTinkersMod.MODID, "grip"), GunPartMaterialStats.ID, new Item.Properties()));
+		() -> new TCPartItem(new ResourceLocation(FlansTinkersMod.MODID, "grip"), GunInternalMaterialStats.ID, new Item.Properties()));
 
 
 

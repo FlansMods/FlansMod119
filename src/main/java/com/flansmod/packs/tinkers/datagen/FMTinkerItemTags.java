@@ -13,6 +13,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
 import net.minecraftforge.common.data.ExistingFileHelper;
+import net.minecraftforge.registries.ForgeRegistries;
+import slimeknights.tconstruct.common.registration.CastItemObject;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,10 +32,10 @@ public class FMTinkerItemTags extends ItemTagsProvider
 		super(packOutput, lookupFunc, blockLookupFunc, FlansTinkersMod.MODID, existingFileHelper);
 	}
 
-	public static final TagKey<Item> UPPER_RECIEVER_CAST = ItemTags.create(new ResourceLocation(FlansTinkersMod.MODID, "casts/multi_use/upper_receiver"));
-	public static final TagKey<Item> UPPER_RECIEVER_CAST_SINGLE = ItemTags.create(new ResourceLocation(FlansTinkersMod.MODID, "casts/single_use/upper_receiver"));
-	public static final TagKey<Item> LOWER_RECIEVER_CAST = ItemTags.create(new ResourceLocation(FlansTinkersMod.MODID, "casts/multi_use/lower_receiver"));
-	public static final TagKey<Item> LOWER_RECIEVER_CAST_SINGLE = ItemTags.create(new ResourceLocation(FlansTinkersMod.MODID, "casts/single_use/lower_receiver"));
+	public static final TagKey<Item> UPPER_RECEIVER_CAST = ItemTags.create(new ResourceLocation(FlansTinkersMod.MODID, "casts/multi_use/upper_receiver"));
+	public static final TagKey<Item> UPPER_RECEIVER_CAST_SINGLE = ItemTags.create(new ResourceLocation(FlansTinkersMod.MODID, "casts/single_use/upper_receiver"));
+	public static final TagKey<Item> LOWER_RECEIVER_CAST = ItemTags.create(new ResourceLocation(FlansTinkersMod.MODID, "casts/multi_use/lower_receiver"));
+	public static final TagKey<Item> LOWER_RECEIVER_CAST_SINGLE = ItemTags.create(new ResourceLocation(FlansTinkersMod.MODID, "casts/single_use/lower_receiver"));
 	public static final TagKey<Item> GRIP_CAST = ItemTags.create(new ResourceLocation(FlansTinkersMod.MODID, "casts/multi_use/grip"));
 	public static final TagKey<Item> GRIP_CAST_SINGLE = ItemTags.create(new ResourceLocation(FlansTinkersMod.MODID, "casts/single_use/grip"));
 	public static final TagKey<Item> STOCK_CAST = ItemTags.create(new ResourceLocation(FlansTinkersMod.MODID, "casts/multi_use/stock"));
@@ -47,16 +49,19 @@ public class FMTinkerItemTags extends ItemTagsProvider
 	@Override
 	protected void addTags(@Nonnull HolderLookup.Provider provider)
 	{
-		//tag(GOLD_CASTS).addOptional(FMTinkerResources.UPPER_RECEIVER_CAST.getName());
-		//tag(SAND_CASTS).addOptional(FMTinkerResources.UPPER_RECEIVER_CAST.getSand());
-		//tag(RED_SAND_CASTS).addOptional(FMTinkerResources.UPPER_RECEIVER_CAST.getRedSand());
+		addCastTags(FMTinkerResources.UPPER_RECEIVER_CAST);
+		addCastTags(FMTinkerResources.LOWER_RECEIVER_CAST);
+		addCastTags(FMTinkerResources.GRIP_CAST);
+		addCastTags(FMTinkerResources.STOCK_CAST);
+		addCastTags(FMTinkerResources.BARREL_CAST);
 
-		tag(UPPER_RECIEVER_CAST).add(FMTinkerResources.UPPER_RECEIVER_CAST.get());
-		tag(UPPER_RECIEVER_CAST_SINGLE).add(FMTinkerResources.UPPER_RECEIVER_CAST.getSand());
-		tag(UPPER_RECIEVER_CAST_SINGLE).add(FMTinkerResources.UPPER_RECEIVER_CAST.getRedSand());
-		tag(LOWER_RECIEVER_CAST).add(FMTinkerResources.LOWER_RECEIVER_CAST.get());
-		tag(LOWER_RECIEVER_CAST_SINGLE).add(FMTinkerResources.LOWER_RECEIVER_CAST.getSand());
-		tag(LOWER_RECIEVER_CAST_SINGLE).add(FMTinkerResources.LOWER_RECEIVER_CAST.getRedSand());
+
+		tag(UPPER_RECEIVER_CAST).add(FMTinkerResources.UPPER_RECEIVER_CAST.get());
+		tag(UPPER_RECEIVER_CAST_SINGLE).add(FMTinkerResources.UPPER_RECEIVER_CAST.getSand());
+		tag(UPPER_RECEIVER_CAST_SINGLE).add(FMTinkerResources.UPPER_RECEIVER_CAST.getRedSand());
+		tag(LOWER_RECEIVER_CAST).add(FMTinkerResources.LOWER_RECEIVER_CAST.get());
+		tag(LOWER_RECEIVER_CAST_SINGLE).add(FMTinkerResources.LOWER_RECEIVER_CAST.getSand());
+		tag(LOWER_RECEIVER_CAST_SINGLE).add(FMTinkerResources.LOWER_RECEIVER_CAST.getRedSand());
 		tag(GRIP_CAST).add(FMTinkerResources.GRIP_CAST.get());
 		tag(GRIP_CAST_SINGLE).add(FMTinkerResources.GRIP_CAST.getSand());
 		tag(GRIP_CAST_SINGLE).add(FMTinkerResources.GRIP_CAST.getRedSand());
@@ -79,6 +84,18 @@ public class FMTinkerItemTags extends ItemTagsProvider
 
 	}
 
+	public final void addCastTags(CastItemObject cast)
+	{
+		tag(GOLD_CASTS).addOptional(FMTinkerResources.UPPER_RECEIVER_CAST.getName());
+
+		ResourceLocation sandID = ForgeRegistries.ITEMS.getKey(FMTinkerResources.UPPER_RECEIVER_CAST.getSand());
+		if(sandID != null)
+			tag(SAND_CASTS).addOptional(sandID);
+
+		ResourceLocation redSandID = ForgeRegistries.ITEMS.getKey(FMTinkerResources.UPPER_RECEIVER_CAST.getRedSand());
+		if(redSandID != null)
+			tag(RED_SAND_CASTS).addOptional(redSandID);
+	}
 	@SafeVarargs
 	public final void addAllTags(ItemLike provider, TagKey<Item>... tags) {
 		Item item = provider.asItem();

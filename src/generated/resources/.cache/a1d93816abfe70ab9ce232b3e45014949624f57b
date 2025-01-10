@@ -1,4 +1,4 @@
-// 1.20.1	2025-01-06T16:31:52.5495889	Tags for minecraft:item mod id flanstinkers
+// 1.20.1	2025-01-07T13:36:04.7435284	Tags for minecraft:item mod id flanstinkers
 8a067d85c96901f0c4333097cd878173fb7338af data/flanstinkers/tags/items/casts/multi_use/barrel.json
 784ea48855d552d068d3311d62bdee392c6a0a38 data/flanstinkers/tags/items/casts/multi_use/grip.json
 0b028f4f50ea635603c129d0bbb79329b63fcf6b data/flanstinkers/tags/items/casts/multi_use/lower_receiver.json
@@ -9,6 +9,9 @@
 2b555a32cd46ec1e5e619cd0ddfaab1b37c3e98f data/flanstinkers/tags/items/casts/single_use/lower_receiver.json
 083cc6b0c819691b80826ea48a714e6af140a612 data/flanstinkers/tags/items/casts/single_use/stock.json
 6e442a0f80c4fa01d6bdb3c9de3fa4ff4711bf09 data/flanstinkers/tags/items/casts/single_use/upper_receiver.json
+df4e505c26cf1f055d5f47253173e0727358cd02 data/tconstruct/tags/items/casts/gold.json
+15ec77b07880fa06d97e8c2e9a528f885e55d9e0 data/tconstruct/tags/items/casts/red_sand.json
+fe79306b45c859bd9b4b3a2037c75dd1f4143ad1 data/tconstruct/tags/items/casts/sand.json
 8a55da742aa90cdab19b8425de99d2553a279780 data/tconstruct/tags/items/modifiable/interactable/right.json
 8a55da742aa90cdab19b8425de99d2553a279780 data/tconstruct/tags/items/modifiable/melee.json
 8a55da742aa90cdab19b8425de99d2553a279780 data/tconstruct/tags/items/modifiable/multipart.json
