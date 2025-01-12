@@ -1,6 +1,5 @@
 package com.flansmod.common.actions;
 
-import com.flansmod.common.abilities.*;
 import com.flansmod.common.actions.nodes.*;
 import com.flansmod.common.types.guns.elements.ActionDefinition;
 
@@ -29,6 +28,7 @@ public class Actions
 			case AttachEffect 		-> { return new AttachEffectAction(group, def); }
 			case Laser 				-> { return new LaserAction(group, def); }
 			case SwitchMode			-> { return new SwitchModeAction(group, def); }
+			case AbilityOnSelf 		-> { return new AbilityOnSelfAction(group, def); }
 			default					-> { return null; }
 
 

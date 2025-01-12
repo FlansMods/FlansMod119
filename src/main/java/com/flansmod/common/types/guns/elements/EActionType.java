@@ -38,4 +38,6 @@ public enum EActionType
 	AttachEffect,		// TODO:
 	Laser,				// Implemented. You need this on your gun to render a laser effect
 	SwitchMode,			// Implemented. Changes a mode on your gun
+
+	AbilityOnSelf,
 }
