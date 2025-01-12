@@ -8,6 +8,7 @@ import com.flansmod.common.types.elements.ModifierDefinition;
 import net.minecraft.world.Container;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -69,7 +70,8 @@ public class GunContextLiving extends GunContextInventoryItem
 	@Override
 	public int GetInventorySlotIndex() { return Hand == InteractionHand.MAIN_HAND ? 0 : 1; }
 	public InteractionHand GetHand() { return Hand; }
-
+	@Override @Nullable
+	public EquipmentSlot GetEquipmentSlot() { return Hand == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND; }
 	// There are no modifiers to apply right now
 	@Override
 	public void BakeModifiers(@Nonnull IModifierBaker baker) {}

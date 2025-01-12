@@ -56,25 +56,25 @@ public class ModifierCache implements IModifierBaker
 	}
 
 	@Override
-	public void Bake(@Nonnull ModifierDefinition mod, int level, int stackCount)
+	public void Bake(@Nonnull IStatModifier mod, int level, int stackCount)
 	{
 		if(!IsCurrent)
 		{
 			// Is this a float modifier?
-			if (mod.accumulators.length > 0)
+			if (mod.getAccumulators().length > 0)
 			{
-				StatAccumulator existing = ModifierFormulae.get(mod.stat);
+				StatAccumulator existing = ModifierFormulae.get(mod.getStat());
 				if(existing == null)
 				{
 					existing = new StatAccumulator();
-					ModifierFormulae.put(mod.stat, existing);
+					ModifierFormulae.put(mod.getStat(), existing);
 				}
 
-				existing.Stack(level, stackCount, mod.accumulators);
+				existing.Stack(level, stackCount, mod.getAccumulators());
 			}
-			if (!mod.setValue.isEmpty())
+			if (!mod.getSetValue().isEmpty())
 			{
-				StringOverrides.put(mod.stat, mod.setValue);
+				StringOverrides.put(mod.getStat(), mod.getSetValue());
 			}
 		}
 		else FlansMod.LOGGER.error("Can't modify a finished ModifierCache");

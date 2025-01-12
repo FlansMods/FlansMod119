@@ -1,7 +1,11 @@
 package com.flansmod.packs.tinkers;
 
 import com.flansmod.client.render.guns.GunItemClientExtension;
+import com.flansmod.common.actions.stats.IModifierBaker;
+import com.flansmod.common.actions.stats.Stats;
 import com.flansmod.common.item.GunItem;
+import com.flansmod.common.types.Constants;
+import com.flansmod.common.types.elements.ModifierDefinition;
 import com.flansmod.packs.tinkers.client.TinkerGunItemClientExtension;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Multimap;
@@ -42,6 +46,7 @@ import slimeknights.tconstruct.library.tools.helper.*;
 import slimeknights.tconstruct.library.tools.item.IModifiableDisplay;
 import slimeknights.tconstruct.library.tools.item.ModifiableItem;
 import slimeknights.tconstruct.library.tools.nbt.IToolStackView;
+import slimeknights.tconstruct.library.tools.nbt.StatsNBT;
 import slimeknights.tconstruct.library.tools.nbt.ToolStack;
 import slimeknights.tconstruct.library.tools.stat.ToolStats;
 import slimeknights.tconstruct.tools.TinkerToolActions;
@@ -87,8 +92,10 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 		return 0;
 	}
 	@Override
-	public int getEnchantmentLevel(@Nonnull ItemStack stack, @Nonnull Enchantment enchantment) {
-		return EnchantmentModifierHook.getEnchantmentLevel(stack, enchantment);
+	public int getEnchantmentLevel(@Nonnull ItemStack stack, @Nonnull Enchantment enchantment)
+	{
+		int tinkerLevel = EnchantmentModifierHook.getEnchantmentLevel(stack, enchantment);
+		return tinkerLevel + super.getEnchantmentLevel(stack, enchantment);
 	}
 	@Override
 	public Map<Enchantment,Integer> getAllEnchantments(@Nonnull ItemStack stack) {
@@ -204,6 +211,33 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 		InventoryTickModifierHook.heldInventoryTick(stack, worldIn, entityIn, itemSlot, isSelected);
 	}
 
+	@Override
+	public void BakeExtraModifiers(@Nonnull ItemStack stack, @Nonnull IModifierBaker baker)
+	{
+		IToolStackView tool = ToolStack.from(stack);
+		StatsNBT statsNBT = tool.getStats();
+		float impactMulti = statsNBT.get(FMToolStats.IMPACT_DAMAGE);
+		baker.Bake(Stats.independentMultiplier(Constants.STAT_IMPACT_DAMAGE, impactMulti));
+		float recoilMulti = statsNBT.get(FMToolStats.RECOIL);
+		baker.Bake(Stats.independentMultiplier(Constants.STAT_SHOT_VERTICAL_RECOIL, recoilMulti));
+		baker.Bake(Stats.independentMultiplier(Constants.STAT_SHOT_HORIZONTAL_RECOIL, recoilMulti));
+		float accuracyMulti = statsNBT.get(FMToolStats.ACCURACY);
+		baker.Bake(Stats.independentMultiplier(Constants.STAT_SHOT_SPREAD, 1f/accuracyMulti));
+		float rateOfFireMulti = statsNBT.get(FMToolStats.RATE_OF_FIRE);
+		baker.Bake(Stats.independentMultiplier(Constants.STAT_GROUP_REPEAT_DELAY, 1f/rateOfFireMulti));
+	}
+	@Override @Nonnull
+	public Multimap<Attribute, AttributeModifier> getAttributeModifiers(@Nonnull IToolStackView tool, @Nonnull EquipmentSlot slot) {
+		return AttributesModifierHook.getHeldAttributeModifiers(tool, slot);
+	}
+	@Override @Nonnull
+	public Multimap<Attribute, AttributeModifier> getAttributeModifiers(@Nonnull EquipmentSlot slot, @Nonnull ItemStack stack) {
+		CompoundTag nbt = stack.getTag();
+		if (nbt == null || slot.getType() != EquipmentSlot.Type.HAND) {
+			return ImmutableMultimap.of();
+		}
+		return getAttributeModifiers(ToolStack.from(stack), slot);
+	}
 
 	/* Attacking */
 
@@ -215,18 +249,7 @@ public class ModifiableGunItem extends GunItem implements IModifiableDisplay
 	//public boolean canPerformAction(ItemStack stack, ToolAction toolAction) {
 	//	return ModifierUtil.canPerformAction(ToolStack.from(stack), toolAction);
 	//}
-	//@Override
-	//public Multimap<Attribute, AttributeModifier> getAttributeModifiers(IToolStackView tool, EquipmentSlot slot) {
-	//	return AttributesModifierHook.getHeldAttributeModifiers(tool, slot);
-	//}
-	//@Override
-	//public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack) {
-	//	CompoundTag nbt = stack.getTag();
-	//	if (nbt == null || slot.getType() != EquipmentSlot.Type.HAND) {
-	//		return ImmutableMultimap.of();
-	//	}
-	//	return getAttributeModifiers(ToolStack.from(stack), slot);
-	//}
+
 	//@Override
 	//public boolean canDisableShield(ItemStack stack, ItemStack shield, LivingEntity entity, LivingEntity attacker) {
 	//	return canPerformAction(stack, TinkerToolActions.SHIELD_DISABLE);

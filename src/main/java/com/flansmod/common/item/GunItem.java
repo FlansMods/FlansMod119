@@ -6,6 +6,7 @@ import com.flansmod.common.FlansMod;
 import com.flansmod.common.abilities.AbilityEffectProvideEnchantment;
 import com.flansmod.common.actions.*;
 import com.flansmod.common.actions.contexts.*;
+import com.flansmod.common.actions.stats.IModifierBaker;
 import com.flansmod.common.projectiles.BulletGuidance;
 import com.flansmod.common.types.Constants;
 import com.flansmod.common.types.abilities.elements.EAbilityTarget;
@@ -528,6 +529,10 @@ public class GunItem extends FlanItem
         }
 
         return Maths.max(highestLevel, super.getEnchantmentLevel(stack, enchantment));
+    }
+    public void BakeExtraModifiers(@Nonnull ItemStack stack, @Nonnull IModifierBaker baker)
+    {
+
     }
     @Override
     public Multimap<Attribute, AttributeModifier> getAttributeModifiers(EquipmentSlot slot, ItemStack stack)

@@ -1,5 +1,7 @@
 package com.flansmod.common.types.elements;
 
+import com.flansmod.common.actions.stats.IStatAccumulator;
+import com.flansmod.common.actions.stats.IStatModifier;
 import com.flansmod.common.item.FlanItem;
 import com.flansmod.common.types.JsonField;
 import com.flansmod.common.types.abilities.elements.EAccumulationSource;
@@ -11,7 +13,7 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ModifierDefinition
+public class ModifierDefinition implements IStatModifier
 {
 	@JsonField
 	public String stat = "";
@@ -21,6 +23,15 @@ public class ModifierDefinition
 	public StatAccumulatorDefinition[] accumulators = new StatAccumulatorDefinition[0];
 	@JsonField
 	public String setValue = "";
+
+	@Override @Nonnull
+	public String getStat() { return stat; }
+	@Override @Nonnull
+	public String[] getMatchGroupPaths() { return matchGroupPaths; }
+	@Override @Nonnull
+	public IStatAccumulator[] getAccumulators() { return accumulators; }
+	@Override @Nonnull
+	public String getSetValue() { return setValue; }
 
 	public boolean AppliesTo(@Nonnull String groupPath)
 	{

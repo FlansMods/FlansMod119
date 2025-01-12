@@ -17,23 +17,25 @@ import slimeknights.tconstruct.library.tools.stat.ToolStats;
 import javax.annotation.Nonnull;
 import java.util.List;
 
-public record GunHandleMaterialStats(int durability, float impactDamage, float rateOfFire)
+public record GunHandleMaterialStats(int durability, float impactDamage, float rateOfFire, float recoil)
 	implements IRepairableMaterialStats
 {
 	public static final MaterialStatsId ID = new MaterialStatsId(new ResourceLocation(FlansMod.MODID, "gun_handle"));
 	public static final MaterialStatType<GunHandleMaterialStats> TYPE =
 		new MaterialStatType<>(ID,
-			new GunHandleMaterialStats(1, 1f, 1f),
+			new GunHandleMaterialStats(1, 1f, 1f, 1f),
 			RecordLoadable.create(
 				IRepairableMaterialStats.DURABILITY_FIELD,
 				FloatLoadable.FROM_ZERO.defaultField("impact_damage", 1f, true, GunHandleMaterialStats::impactDamage),
 				FloatLoadable.FROM_ZERO.defaultField("rate_of_fire", 1f, true, GunHandleMaterialStats::rateOfFire),
+				FloatLoadable.FROM_ZERO.defaultField("recoil", 1f, true, GunHandleMaterialStats::recoil),
 				GunHandleMaterialStats::new));
 	private static final List<Component> DESCRIPTION =
 		ImmutableList.of(
 			ToolStats.DURABILITY.getDescription(),
 			FMToolStats.IMPACT_DAMAGE.getDescription(),
-			FMToolStats.RATE_OF_FIRE.getDescription());
+			FMToolStats.RATE_OF_FIRE.getDescription(),
+			FMToolStats.RECOIL.getDescription());
 
 	@Override @Nonnull
 	public MaterialStatType<?> getType() {
@@ -46,6 +48,7 @@ public record GunHandleMaterialStats(int durability, float impactDamage, float r
 		info.add(ToolStats.DURABILITY.formatValue(this.durability));
 		info.add(FMToolStats.RATE_OF_FIRE.formatValue(this.rateOfFire));
 		info.add(FMToolStats.IMPACT_DAMAGE.formatValue(this.impactDamage));
+		info.add(FMToolStats.RECOIL.formatValue(this.recoil));
 		return info;
 	}
 	@Override @Nonnull
@@ -60,5 +63,6 @@ public record GunHandleMaterialStats(int durability, float impactDamage, float r
 		ToolStats.DURABILITY.update(builder, durability * scale);
 		FMToolStats.IMPACT_DAMAGE.update(builder, impactDamage * scale);
 		FMToolStats.RATE_OF_FIRE.update(builder, rateOfFire * scale);
+		FMToolStats.RECOIL.update(builder, recoil * scale);
 	}
 }

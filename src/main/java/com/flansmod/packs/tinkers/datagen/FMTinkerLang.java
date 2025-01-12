@@ -40,6 +40,10 @@ public class FMTinkerLang extends LanguageProvider
 		addItem(FMTinkerResources.RIFLE, "Rifle");
 		add("item.flanstinkers.rifle.description", "A medium power firearm");
 
+		add("tool_stat.flansmod.rate_of_fire", "Rate of Fire: ");
+		add("tool_stat.flansmod.impact_damage", "Impact Damage: ");
+		add("tool_stat.flansmod.bullet_spread", "Bullet Spread: ");
+
 	}
 
 	public void addCast(@Nonnull CastItemObject cast, @Nonnull String name)

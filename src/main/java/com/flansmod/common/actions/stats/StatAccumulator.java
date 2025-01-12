@@ -35,34 +35,34 @@ public class StatAccumulator extends FloatAccumulator<EAccumulationSource, StatF
 	// Building the formula from components
 	// ------------------------------------------------------------------------------------------------------
 	@Nonnull
-	public StatAccumulator Stack(@Nonnull ModifierDefinition... mods)
+	public StatAccumulator Stack(@Nonnull IStatModifier... mods)
 	{
-		for(ModifierDefinition mod : mods)
-			for(StatAccumulatorDefinition accumulatorDef : mod.accumulators)
+		for(IStatModifier mod : mods)
+			for(IStatAccumulator accumulatorDef : mod.getAccumulators())
 			{
-				GetFormulaFor(accumulatorDef.operation)
-					.AddTerm(accumulatorDef.GetValue(), accumulatorDef.multiplyPer);
+				GetFormulaFor(accumulatorDef.getOperation())
+					.AddTerm(accumulatorDef.getValue(), accumulatorDef.getMultipliers());
 			}
 		return this;
 	}
 	@Nonnull
-	public StatAccumulator Stack(@Nonnull StatAccumulatorDefinition... accumulators)
+	public StatAccumulator Stack(@Nonnull IStatAccumulator... accumulators)
 	{
-		for(StatAccumulatorDefinition accumulatorDef : accumulators)
+		for(IStatAccumulator accumulatorDef : accumulators)
 		{
-			GetFormulaFor(accumulatorDef.operation)
-				.AddTerm(accumulatorDef.GetValue(), accumulatorDef.multiplyPer);
+			GetFormulaFor(accumulatorDef.getOperation())
+				.AddTerm(accumulatorDef.getValue(), accumulatorDef.getMultipliers());
 		}
 
 		return this;
 	}
 	@Nonnull
-	public StatAccumulator Stack(int level, int stackCount, @Nonnull StatAccumulatorDefinition... accumulators)
+	public StatAccumulator Stack(int level, int stackCount, @Nonnull IStatAccumulator... accumulators)
 	{
-		for(StatAccumulatorDefinition accumulatorDef : accumulators)
+		for(IStatAccumulator accumulatorDef : accumulators)
 		{
-			GetFormulaFor(accumulatorDef.operation)
-				.AddTerm(accumulatorDef.GetValue(), accumulatorDef.multiplyPer)
+			GetFormulaFor(accumulatorDef.getOperation())
+				.AddTerm(accumulatorDef.getValue(), accumulatorDef.getMultipliers())
 				.BakeInput(EAccumulationSource.PerLevel, level)
 				.BakeInput(EAccumulationSource.PerStacks, stackCount);
 		}
@@ -70,10 +70,10 @@ public class StatAccumulator extends FloatAccumulator<EAccumulationSource, StatF
 		return this;
 	}
 	@Nonnull
-	public StatAccumulator Stack(int level, int stackCount, @Nonnull StatAccumulatorDefinition accumulatorDef)
+	public StatAccumulator Stack(int level, int stackCount, @Nonnull IStatAccumulator accumulatorDef)
 	{
-		GetFormulaFor(accumulatorDef.operation)
-			.AddTerm(accumulatorDef.GetValue(), accumulatorDef.multiplyPer)
+		GetFormulaFor(accumulatorDef.getOperation())
+			.AddTerm(accumulatorDef.getValue(), accumulatorDef.getMultipliers())
 			.BakeInput(EAccumulationSource.PerLevel, level)
 			.BakeInput(EAccumulationSource.PerStacks, stackCount);
 

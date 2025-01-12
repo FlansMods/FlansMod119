@@ -31,6 +31,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
@@ -316,6 +317,8 @@ public abstract class GunContext implements IStatCalculatorContext
 	public abstract boolean CanPerformTwoHandedAction();
 	// Not necessarily valid to ask for a hand, but in cases where it is valid, use this
 	public int GetInventorySlotIndex() { return Inventory.NOT_FOUND_INDEX; }
+	@Nullable
+	public EquipmentSlot GetEquipmentSlot() { return null; }
 	public abstract void BakeModifiers(@Nonnull IModifierBaker baker);
 	@Nonnull
 	public abstract ActionStack GetActionStack();
@@ -708,6 +711,10 @@ public abstract class GunContext implements IStatCalculatorContext
 		BakeModifiers(baker);
 		BakeAttachmentModifiers(baker);
 		BakeAbilityModifiers(baker);
+		if(Stack.getItem() instanceof GunItem gunItem)
+		{
+			gunItem.BakeExtraModifiers(Stack, baker);
+		}
 	}
 	private void BakeAttachmentModifiers(@Nonnull IModifierBaker baker)
 	{
@@ -722,6 +729,7 @@ public abstract class GunContext implements IStatCalculatorContext
 			for(ModifierDefinition modDef : kvp.getKey().Def.modifiers)
 				baker.Bake(modDef, kvp.getValue().Level, kvp.getValue().GetStackCount());
 	}
+
 
 
 	@Override

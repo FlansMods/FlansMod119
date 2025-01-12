@@ -16,4 +16,6 @@ public class FMToolStats
 
 	public static final FloatToolStat IMPACT_DAMAGE = ToolStats.register(new FloatToolStat(name("impact_damage"), 0xFF78A0CD, 1, 0.1f, 2048f, TinkerTags.Items.HARVEST));
 	public static final FloatToolStat RATE_OF_FIRE = ToolStats.register(new FloatToolStat(name("rate_of_fire"), 0xFF78A0CD, 1, 0.1f, 2048f, TinkerTags.Items.HARVEST));
+	public static final FloatToolStat RECOIL = ToolStats.register(new FloatToolStat(name("recoil"), 0xFF78A0CD, 1, 0.1f, 2048f, TinkerTags.Items.HARVEST));
+	public static final FloatToolStat ACCURACY = ToolStats.register(new FloatToolStat(name("accuracy"), 0xFF78A0CD, 1, 0.1f, 2048f, TinkerTags.Items.HARVEST));
 }
