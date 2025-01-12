@@ -39,7 +39,7 @@
             "autoCancelIfNotInMode": "",
             "actions": [
                 {
-                    "actionType": "SummonNpc",
+                    "actionType": "AbilityOnSelf",
                     "duration": 2.0,
                     "sounds": [],
                     "itemStack": "",
@@ -59,7 +59,31 @@
         }
     ],
     "magazines": [],
-    "staticAbilities": [],
+    "staticAbilities": [
+        {
+            "startTriggers": [
+                {
+                    "triggerType": "Instant"
+                }
+            ],
+            "targets": [
+                {
+                    "targetType": "Shooter"
+                }
+            ],
+            "effects": [
+                {
+                    "effectType": "SummonNpc",
+                    "modifiers": [
+                        {
+                            "stat": "entity_tag",
+                            "setValue": "flansvendersgame:vender"
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
     "reloads": [],
     "modes": [],
     "loopingSounds": [],

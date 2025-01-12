@@ -6,7 +6,9 @@ import com.flansmod.physics.common.util.Maths;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.mojang.serialization.Codec;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 
@@ -137,7 +139,9 @@ public class DefinitionParser
 		}
 	}
 
-	public static class EnumDeserializer<TEnum extends Enum<TEnum>> implements FieldParseMethod
+	public static class EnumDeserializer<TEnum extends Enum<TEnum>>
+		implements FieldParseMethod
+
 	{
 		private final Class<TEnum> enumRef;
 
