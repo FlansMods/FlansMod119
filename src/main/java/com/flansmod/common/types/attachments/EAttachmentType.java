@@ -20,7 +20,9 @@ public enum EAttachmentType
 	Head,
 	Shoulder,
 	Feet,
-	Hips;
+	Hips,
+
+	Charm;
 
 	public static EAttachmentType Parse(String attachType)
 	{
@@ -37,6 +39,7 @@ public enum EAttachmentType
 			case "shoulder" -> EAttachmentType.Shoulder;
 			case "feet" -> EAttachmentType.Feet;
 			case "hips" -> EAttachmentType.Hips;
+			case "charm" -> EAttachmentType.Charm;
 			default -> EAttachmentType.Generic;
 		};
 	}

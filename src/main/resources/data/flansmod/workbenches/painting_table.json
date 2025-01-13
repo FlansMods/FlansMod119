@@ -1,0 +1,14 @@
+{
+    "titleString": "workbench",
+    "bannerTextureLocation": "minecraft:null",
+    "painting": {
+        "isActive": true
+    },
+    "itemSettings": {
+        "maxStackSize": 64,
+        "tags": [
+            "minecraft:mineable/pickaxe"
+        ]
+    },
+    "sides": []
+}

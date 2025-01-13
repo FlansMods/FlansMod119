@@ -114,6 +114,7 @@ public class FlansModClient
 		// Screens
 		MenuScreens.register(FlansMod.WORKBENCH_MENU_GUN_CRAFTING.get(), WorkbenchScreenTabGunCrafting::new);
 		MenuScreens.register(FlansMod.WORKBENCH_MENU_MODIFICATION.get(), WorkbenchScreenTabModification::new);
+		MenuScreens.register(FlansMod.WORKBENCH_MENU_PAINTING.get(), WorkbenchScreenTabPainting::new);
 		MenuScreens.register(FlansMod.WORKBENCH_MENU_PART_CRAFTING.get(), WorkbenchScreenTabPartCrafting::new);
 		MenuScreens.register(FlansMod.WORKBENCH_MENU_POWER.get(), WorkbenchScreenTabPower::new);
 		MenuScreens.register(FlansMod.WORKBENCH_MENU_MATERIALS.get(), WorkbenchScreenTabMaterials::new);

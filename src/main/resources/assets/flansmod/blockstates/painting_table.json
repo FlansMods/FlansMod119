@@ -1,0 +1,20 @@
+{
+    "variants": {
+        "facing=north": {
+            "model": "flansmod:block/painting_table",
+            "y": 90
+        },
+        "facing=east": {
+            "model": "flansmod:block/painting_table",
+            "y": 180
+        },
+        "facing=south": {
+            "model": "flansmod:block/painting_table",
+            "y": 270
+        },
+        "facing=west": {
+            "model": "flansmod:block/painting_table",
+            "y": 0
+        }
+    }
+}

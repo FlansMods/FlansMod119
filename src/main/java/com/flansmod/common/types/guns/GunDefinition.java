@@ -58,6 +58,8 @@ public class GunDefinition extends JsonDefinition
 	@JsonField
 	public AttachmentSettingsDefinition genericAttachments = new AttachmentSettingsDefinition();
 	@JsonField
+	public AttachmentSettingsDefinition charmAttachments = new AttachmentSettingsDefinition();
+	@JsonField
 	public String[] modelParts = new String[0];
 	@JsonField
 	public String animationSet = "";
@@ -97,6 +99,7 @@ public class GunDefinition extends JsonDefinition
 			case Stock -> { return stockAttachments; }
 			case Barrel -> { return barrelAttachments; }
 			case Generic -> { return genericAttachments; }
+			case Charm -> { return charmAttachments; }
 			default -> { return new AttachmentSettingsDefinition(); }
 		}
 	}

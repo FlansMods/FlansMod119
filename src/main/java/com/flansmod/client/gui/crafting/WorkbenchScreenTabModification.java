@@ -7,6 +7,7 @@ import com.flansmod.common.crafting.AbstractWorkbench;
 import com.flansmod.common.crafting.menus.WorkbenchMenuModification;
 import com.flansmod.common.item.FlanItem;
 import com.flansmod.common.item.GunItem;
+import com.flansmod.common.types.attachments.EAttachmentType;
 import com.flansmod.common.types.elements.EFilterType;
 import com.flansmod.common.types.elements.LocationFilterDefinition;
 import com.flansmod.common.types.elements.ModifierDefinition;
@@ -34,24 +35,16 @@ public class WorkbenchScreenTabModification extends WorkbenchScreenTab<Workbench
 	private static final int MOD_W = 256;
 	private static final int MOD_H = 256;
 
-	private static final int ATTACHMENT_SLOTS_ORIGIN_X = 5;
-	private static final int ATTACHMENT_SLOTS_ORIGIN_Y = 26;
+	private static final int ATTACHMENT_SLOTS_ORIGIN_X = 49;
+	private static final int ATTACHMENT_SLOTS_ORIGIN_Y = 17;
 
-	private static final int PAINT_BUCKET_SLOT_ORIGIN_X = 76;
-	private static final int PAINT_BUCKET_SLOT_ORIGIN_Y = 25;
-	private static final int MAG_UPGRADE_SLOT_ORIGIN_X = 76;
-	private static final int MAG_UPGRADE_SLOT_ORIGIN_Y = 83;
+	private static final int MAG_UPGRADE_SLOT_ORIGIN_X = 7;
+	private static final int MAG_UPGRADE_SLOT_ORIGIN_Y = 93;
 
-	private static final int SKIN_SELECTOR_ORIGIN_X = 96;
-	private static final int SKIN_SELECTOR_ORIGIN_Y = 16;
-	private static final int SKINS_PER_ROW = 4;
-	private static final int SKIN_ROWS = 3;
-	private final Button[] SkinButtons = new Button[SKINS_PER_ROW * SKIN_ROWS];
-
-	private static final int MAGAZINE_SELECTOR_ORIGIN_X = 96;
-	private static final int MAGAZINE_SELECTOR_ORIGIN_Y = 74;
-	private static final int MAGAZINES_PER_ROW = 4;
-	private static final int MAGAZINE_ROWS = 2;
+	private static final int MAGAZINE_SELECTOR_ORIGIN_X = 29;
+	private static final int MAGAZINE_SELECTOR_ORIGIN_Y = 93;
+	private static final int MAGAZINES_PER_ROW = 7;
+	private static final int MAGAZINE_ROWS = 1;
 	private final Button[] MagazineButtons = new Button[MAGAZINES_PER_ROW * MAGAZINE_ROWS];
 
 	private float GunAngle = 2.0f;
@@ -72,24 +65,6 @@ public class WorkbenchScreenTabModification extends WorkbenchScreenTab<Workbench
 	{
 		if(IsTabPresent())
 		{
-			for (int i = 0; i < SKINS_PER_ROW; i++)
-			{
-				for (int j = 0; j < SKIN_ROWS; j++)
-				{
-					final int index = i + j * SKINS_PER_ROW;
-					SkinButtons[index] = Button.builder(
-							Component.empty(),
-							(t) ->
-							{
-								NetworkedButtonPress(WorkbenchMenuModification.BUTTON_SELECT_SKIN_0 + index);
-								//SelectSkin(index);
-							})
-						.bounds(xOrigin + SKIN_SELECTOR_ORIGIN_X + 18 * i, yOrigin + SKIN_SELECTOR_ORIGIN_Y + 18 * j, 18, 18)
-						.build();
-					addWidget(SkinButtons[index]);
-				}
-			}
-
 			for (int i = 0; i < MAGAZINES_PER_ROW; i++)
 			{
 				for (int j = 0; j < MAGAZINE_ROWS; j++)
@@ -119,27 +94,6 @@ public class WorkbenchScreenTabModification extends WorkbenchScreenTab<Workbench
 
 		if(IsTabPresent())
 		{
-			int numSkinButtons = 0;
-
-			if (selected && Workbench.GunContainer.getContainerSize() > 0 && Workbench.GunContainer.getItem(0).getItem() instanceof FlanItem flanItem)
-			{
-				PaintableDefinition paintableDef = flanItem.GetPaintDef();
-				if (paintableDef.IsValid())
-				{
-					numSkinButtons = paintableDef.paintjobs.length + 1;
-				}
-			}
-
-			for (int i = 0; i < SKINS_PER_ROW; i++)
-			{
-				for (int j = 0; j < SKIN_ROWS; j++)
-				{
-					final int index = i + j * SKINS_PER_ROW;
-					if (SkinButtons[index] != null)
-						SkinButtons[index].active = index < numSkinButtons;
-				}
-			}
-
 			int numMagButtons = 0;
 			if (selected && Workbench.GunContainer.getContainerSize() > 0 && Workbench.GunContainer.getItem(0).getItem() instanceof FlanItem flanItem)
 			{
@@ -174,11 +128,6 @@ public class WorkbenchScreenTabModification extends WorkbenchScreenTab<Workbench
 	@Override
 	protected boolean RenderTooltip(@Nonnull GuiGraphics graphics, int xMouse, int yMouse)
 	{
-		if(InBox(xMouse, yMouse, xOrigin + PAINT_BUCKET_SLOT_ORIGIN_X, 18, yOrigin + PAINT_BUCKET_SLOT_ORIGIN_Y, 18))
-		{
-			graphics.renderTooltip(font, Component.translatable("workbench.slot.paint_can"), xMouse, yMouse);
-			return true;
-		}
 		if(InBox(xMouse, yMouse, xOrigin + MAG_UPGRADE_SLOT_ORIGIN_X, 18, yOrigin + MAG_UPGRADE_SLOT_ORIGIN_Y, 18))
 		{
 			graphics.renderTooltip(font, Component.translatable("workbench.slot.mag_upgrade"), xMouse, yMouse);
@@ -199,45 +148,13 @@ public class WorkbenchScreenTabModification extends WorkbenchScreenTab<Workbench
 
 				for (WorkbenchMenuModification.ModSlot modSlot : WorkbenchMenuModification.ModSlot.values())
 				{
-					if(flanItem.HasAttachmentSlot(modSlot.attachType, modSlot.attachIndex))
+					boolean hasSlot = flanItem.HasAttachmentSlot(modSlot.attachType, modSlot.attachIndex);
+					if (InBox(xMouse, yMouse, xOrigin + ATTACHMENT_SLOTS_ORIGIN_X + modSlot.x * 26, 24, yOrigin + ATTACHMENT_SLOTS_ORIGIN_Y + modSlot.y * 26, 24))
 					{
-						if (InBox(xMouse, yMouse, xOrigin + ATTACHMENT_SLOTS_ORIGIN_X + modSlot.x * 26, 24, yOrigin + ATTACHMENT_SLOTS_ORIGIN_Y + modSlot.y * 26, 24))
-						{
-							graphics.renderTooltip(font, Component.translatable("workbench.slot.attachments." + modSlot.attachType.toString().toLowerCase()), xMouse, yMouse);
-							return true;
-						}
-					}
-				}
-
-				PaintableDefinition paintableDefinition = flanItem.GetPaintDef();
-				if(paintableDefinition.paintjobs.length > 0)
-				{
-					// Default skin button
-					if(InBox(xMouse, yMouse, xOrigin + SKIN_SELECTOR_ORIGIN_X, 18, yOrigin + SKIN_SELECTOR_ORIGIN_Y, 18))
-					{
-						List<FormattedCharSequence> lines = new ArrayList<>();
-						lines.add(Component.translatable("paintjob.default").getVisualOrderText());
-						lines.add(Component.translatable("paintjob.free_to_swap").getVisualOrderText());
-						graphics.renderTooltip(font, lines, xMouse, yMouse);
+						graphics.renderTooltip(font,
+							Component.translatable("workbench.slot.attachments." + modSlot.attachType.toString().toLowerCase() + (hasSlot ? "" : ".missing")),
+							xMouse, yMouse);
 						return true;
-					}
-					// Other skin buttons
-					for(int p = 0; p < paintableDefinition.paintjobs.length; p++)
-					{
-						int xIndex = (p + 1) % SKINS_PER_ROW;
-						int yIndex = (p + 1) / SKINS_PER_ROW;
-						if(InBox(xMouse, yMouse, xOrigin + SKIN_SELECTOR_ORIGIN_X + 18 * xIndex, 18, yOrigin + SKIN_SELECTOR_ORIGIN_Y + 18 * yIndex, 18))
-						{
-							List<FormattedCharSequence> lines = new ArrayList<>();
-							lines.add(Component.translatable("paintjob." + flanItem.DefinitionLocation.getNamespace() + "." + paintableDefinition.paintjobs[p].textureName).getVisualOrderText());
-							int paintCost = AbstractWorkbench.GetPaintUpgradeCost(Workbench.GunContainer, p + 1);
-							if(paintCost == 1)
-								lines.add(Component.translatable("paintjob.cost.1").getVisualOrderText());
-							else lines.add(Component.translatable("paintjob.cost", paintCost).getVisualOrderText());
-
-							graphics.renderTooltip(font, lines, xMouse, yMouse);
-							return true;
-						}
 					}
 				}
 
@@ -306,60 +223,46 @@ public class WorkbenchScreenTabModification extends WorkbenchScreenTab<Workbench
 			Render3DGun(graphics, xOrigin + imageWidth + 64, yOrigin + 64, GunAngle, -45f, Workbench.GunContainer.getItem(0));
 		}
 
-
 		graphics.blit(MOD_BG, xOrigin, yOrigin, 0, 0, imageWidth, imageHeight, MOD_W, MOD_H);
 		if (Workbench.GunContainer.getContainerSize() >= 0)
 		{
 			// Render the slot BG for the gun slot
 			graphics.blit(MOD_BG, xOrigin + ATTACHMENT_SLOTS_ORIGIN_X + 26, yOrigin + ATTACHMENT_SLOTS_ORIGIN_Y + 26, 198, 26, 22, 22, MOD_W, MOD_H);
-
-			// Paint Can Slot
-			graphics.blit(MOD_BG, xOrigin + PAINT_BUCKET_SLOT_ORIGIN_X, yOrigin + PAINT_BUCKET_SLOT_ORIGIN_Y, 208, 201, 18, 18, MOD_W, MOD_H);
 			// Mag Slot
 			graphics.blit(MOD_BG, xOrigin + MAG_UPGRADE_SLOT_ORIGIN_X, yOrigin + MAG_UPGRADE_SLOT_ORIGIN_Y, 190, 201, 18, 18, MOD_W, MOD_H);
-
 			// If we have a gun in that slot, we should render the modification slots that are allowed for this gun
 			if (!Workbench.GunContainer.isEmpty() && Workbench.GunContainer.getItem(0).getItem() instanceof FlanItem flanItem)
 			{
 				ItemStack gunStack = Workbench.GunContainer.getItem(0);
 				for (WorkbenchMenuModification.ModSlot modSlot : WorkbenchMenuModification.ModSlot.values())
 				{
+
+
 					// If this item has this slot, blit the slot BG in
 					if (flanItem.HasAttachmentSlot(modSlot.attachType, modSlot.attachIndex))
 					{
+						int srcX = 172 + 26 * modSlot.x;
+						int srcY = 26 * modSlot.y;
+
+						if(modSlot.attachType == EAttachmentType.Charm)
+						{
+							srcX = 44;
+							srcY = 218;
+						}
+						else if(modSlot.attachType == EAttachmentType.Generic)
+						{
+							srcX = 66;
+							srcY = 218;
+						}
+
 						graphics.blit(MOD_BG,
 							xOrigin + ATTACHMENT_SLOTS_ORIGIN_X + 26 * modSlot.x,
 							yOrigin + ATTACHMENT_SLOTS_ORIGIN_Y + 26 * modSlot.y,
-							172 + 26 * modSlot.x,
-							26 * modSlot.y,
+							srcX, srcY,
 							22, 22,
 							MOD_W, MOD_H);
 					}
 				}
-
-				PaintableDefinition paintableDefinition = flanItem.GetPaintDef();
-				if(paintableDefinition.paintjobs.length > 0)
-				{
-					// Default skin button
-					if(FlanItem.GetPaintjobName(gunStack).equals("default"))
-					{
-						graphics.blit(MOD_BG, xOrigin + SKIN_SELECTOR_ORIGIN_X, yOrigin + SKIN_SELECTOR_ORIGIN_Y, 172, 201, 18, 18, MOD_W, MOD_H);
-					}
-					else graphics.blit(MOD_BG, xOrigin + SKIN_SELECTOR_ORIGIN_X, yOrigin + SKIN_SELECTOR_ORIGIN_Y, 172, 165, 18, 18, MOD_W, MOD_H);
-
-					// Other skin buttons
-					for(int p = 0; p < paintableDefinition.paintjobs.length; p++)
-					{
-						int xIndex = (p + 1) % SKINS_PER_ROW;
-						int yIndex = (p + 1) / SKINS_PER_ROW;
-						if(FlanItem.GetPaintjobName(gunStack).equals(paintableDefinition.paintjobs[p].textureName))
-						{
-							graphics.blit(MOD_BG, xOrigin + SKIN_SELECTOR_ORIGIN_X + 18 * xIndex, yOrigin + SKIN_SELECTOR_ORIGIN_Y + 18 * yIndex, 172, 201, 18, 18, MOD_W, MOD_H);
-						}
-						else graphics.blit(MOD_BG, xOrigin + SKIN_SELECTOR_ORIGIN_X + 18 * xIndex, yOrigin + SKIN_SELECTOR_ORIGIN_Y + 18 * yIndex, 172, 165, 18, 18, MOD_W, MOD_H);
-					}
-				}
-
 
 				// Magazine selector
 				if(flanItem instanceof GunItem gunItem)
@@ -369,8 +272,8 @@ public class WorkbenchScreenTabModification extends WorkbenchScreenTab<Workbench
 					MagazineDefinition currentMagType = gunItem.GetMagazineType(gunStack, Actions.DefaultPrimaryActionKey, 0);
 					for(int i = 0; i < matchingMags.size(); i++)
 					{
-						int xIndex = i % SKINS_PER_ROW;
-						int yIndex = i / SKINS_PER_ROW;
+						int xIndex = i % MAGAZINES_PER_ROW;
+						int yIndex = i / MAGAZINES_PER_ROW;
 
 						if(matchingMags.get(i) == currentMagType)
 						{
@@ -392,28 +295,6 @@ public class WorkbenchScreenTabModification extends WorkbenchScreenTab<Workbench
 			if (!Workbench.GunContainer.isEmpty() && Workbench.GunContainer.getItem(0).getItem() instanceof FlanItem flanItem)
 			{
 				ItemStack gunStack = Workbench.GunContainer.getItem(0);
-
-				PaintableDefinition paintableDefinition = flanItem.GetPaintDef();
-				if (paintableDefinition.paintjobs.length > 0)
-				{
-					// Render default skin
-					{
-						ItemStack paintedStack = gunStack.copy();
-						FlanItem.SetPaintjobName(paintedStack, "default");
-						RenderGUIItem(graphics, SKIN_SELECTOR_ORIGIN_X + 1,  SKIN_SELECTOR_ORIGIN_Y + 1, paintedStack, false);
-					}
-
-					// And other skins
-					for (int p = 0; p < paintableDefinition.paintjobs.length; p++)
-					{
-						int xIndex = (p + 1) % SKINS_PER_ROW;
-						int yIndex = (p + 1) / SKINS_PER_ROW;
-						ItemStack paintedStack = gunStack.copy();
-						FlanItem.SetPaintjobName(paintedStack, paintableDefinition.paintjobs[p].textureName);
-						RenderGUIItem(graphics,SKIN_SELECTOR_ORIGIN_X + 1 + 18 * xIndex, SKIN_SELECTOR_ORIGIN_Y + 1 + 18 * yIndex, paintedStack, false);
-					}
-				}
-
 				if(flanItem.Def() instanceof GunDefinition gunDef)
 				{
 					MagazineSlotSettingsDefinition magSettings = gunDef.GetMagazineSettings(Actions.DefaultPrimaryActionKey);

@@ -103,19 +103,27 @@ public class AbstractWorkbench implements Container, Clearable, MenuProvider
 	public AbstractWorkbench(@Nonnull WorkbenchDefinition def, @Nonnull Function<Player, Boolean> stillValidFunc)
 	{
 		Def = def;
-		if(Def.gunModifying.isActive)
+		if(Def.gunModifying.isActive || Def.painting.isActive)
 		{
 			GunContainer = new RestrictedContainer(
 				1, 1, (stack) -> stack.getItem() instanceof GunItem, stillValidFunc);
+		}
+		else GunContainer = new RestrictedContainer();
+
+		if(Def.painting.isActive)
+		{
 			PaintCanContainer = new RestrictedContainer(
 				1, 64, (stack) -> stack.getItem() == FlansMod.RAINBOW_PAINT_CAN_ITEM.get(), stillValidFunc);
+		}
+		else PaintCanContainer = new RestrictedContainer();
+
+		if(Def.gunModifying.isActive)
+		{
 			MagUpgradeContainer = new RestrictedContainer(
 				1, 64, (stack) -> stack.getItem() == FlansMod.MAG_UPGRADE_ITEM.get(), stillValidFunc);
 		}
 		else
 		{
-			GunContainer = new RestrictedContainer();
-			PaintCanContainer = new RestrictedContainer();
 			MagUpgradeContainer = new RestrictedContainer();
 		}
 
@@ -243,6 +251,8 @@ public class AbstractWorkbench implements Container, Clearable, MenuProvider
 			return new WorkbenchMenuPartCrafting(containerID, inventory, this);
 		if(Def.gunModifying.isActive)
 			return new WorkbenchMenuModification(containerID, inventory, this);
+		if(Def.painting.isActive)
+			return new WorkbenchMenuPainting(containerID, inventory, this);
 		if(Def.energy.maxFE > 0.0f)
 			return new WorkbenchMenuPower(containerID, inventory, this);
 

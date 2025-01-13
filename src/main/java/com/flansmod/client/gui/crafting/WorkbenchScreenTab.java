@@ -149,10 +149,10 @@ public abstract class WorkbenchScreenTab<T extends WorkbenchMenu> extends FMScre
 		{
 			//if Banner == null
 			{
-				int xPos = 5;
-				if(GetWidth() > 172)
-					xPos = 97;
-				graphics.drawString(font, GetTitle(), xPos, 5, 0x505050, false);
+				//int xPos = 5;
+				//if(GetWidth() > 172)
+				//	xPos = 97;
+				graphics.drawString(font, GetTitle(), titleLabelX, 5, 0x505050, false);
 			}
 
 			// Render tabs over BG

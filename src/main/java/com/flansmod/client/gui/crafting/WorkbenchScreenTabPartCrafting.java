@@ -79,6 +79,7 @@ public class WorkbenchScreenTabPartCrafting extends WorkbenchScreenTab<Workbench
 
 		imageWidth = 356;
 		inventoryLabelX = 97;
+		titleLabelX = 97;
 	}
 	@Override
 	protected boolean IsTabPresent() { return Workbench.Def.partCrafting.isActive; }
