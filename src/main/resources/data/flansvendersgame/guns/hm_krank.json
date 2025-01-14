@@ -211,11 +211,30 @@
                 },
                 {
                     "actionType": "AttachEffect",
+                    "id": "_0",
                     "duration": 0.05,
                     "sounds": [],
                     "itemStack": "",
                     "scopeOverlay": "",
                     "anim": "shoot"
+                },
+                {
+                    "actionType": "SpawnParticle",
+                    "id": "_0",
+                    "duration": 0.05,
+                    "sounds": [],
+                    "itemStack": "",
+                    "scopeOverlay": "",
+                    "anim": ""
+                },
+                {
+                    "actionType": "SpawnParticle",
+                    "id": "_1",
+                    "duration": 0.05,
+                    "sounds": [],
+                    "itemStack": "",
+                    "scopeOverlay": "",
+                    "anim": ""
                 }
             ],
             "modifiers": [
@@ -237,7 +256,7 @@
                     "accumulators": [
                         {
                             "operation": "BaseAdd",
-                            "value": 10.0,
+                            "value": 0.0,
                             "multiplyPer": []
                         }
                     ],
@@ -249,7 +268,7 @@
                     "accumulators": [
                         {
                             "operation": "BaseAdd",
-                            "value": 3.0,
+                            "value": 0.0,
                             "multiplyPer": []
                         }
                     ],
@@ -257,6 +276,7 @@
                 },
                 {
                     "stat": "flash_model",
+                    "id": "_0",
                     "matchGroupPaths": [],
                     "accumulators": [
                         {
@@ -265,7 +285,141 @@
                             "multiplyPer": []
                         }
                     ],
-                    "setValue": "flansmod:effects/muzzle_flash_medium"
+                    "setValue": "flansmod:effects/muzzle_flash_large"
+                },
+
+                {
+                    "stat": "particle_attach_point",
+                    "id": "_0",
+                    "matchGroupPaths": [],
+                    "accumulators": [],
+                    "setValue": "shoot_origin"
+                },
+                {
+                    "stat": "particle_type",
+                    "id": "_0",
+                    "matchGroupPaths": [],
+                    "accumulators": [],
+                    "setValue": "minecraft:smoke"
+                },
+                {
+                    "stat": "particle_spread",
+                    "id": "_0",
+                    "matchGroupPaths": [],
+                    "accumulators": [
+                        {
+                            "operation": "BaseAdd",
+                            "value": 15.0,
+                            "multiplyPer": []
+                        }
+                    ],
+                    "setValue": ""
+                },
+                {
+                    "stat": "particle_spread_pattern",
+                    "id": "_0",
+                    "matchGroupPaths": [],
+                    "accumulators": [
+                        {
+                            "operation": "BaseAdd",
+                            "value": 15.0,
+                            "multiplyPer": []
+                        }
+                    ],
+                    "setValue": "Circle"
+                },
+                {
+                    "stat": "particle_speed",
+                    "id": "_0",
+                    "matchGroupPaths": [],
+                    "accumulators": [
+                        {
+                            "operation": "BaseAdd",
+                            "value": 0.5,
+                            "multiplyPer": []
+                        }
+                    ],
+                    "setValue": ""
+                },
+                {
+                    "stat": "particle_count",
+                    "id": "_0",
+                    "matchGroupPaths": [],
+                    "accumulators": [
+                        {
+                            "operation": "BaseAdd",
+                            "value": 6.0,
+                            "multiplyPer": []
+                        }
+                    ],
+                    "setValue": ""
+                },
+
+                {
+                    "stat": "particle_attach_point",
+                    "id": "_1",
+                    "matchGroupPaths": [],
+                    "accumulators": [],
+                    "setValue": "shoot_origin"
+                },
+                {
+                    "stat": "particle_type",
+                    "id": "_1",
+                    "matchGroupPaths": [],
+                    "accumulators": [],
+                    "setValue": "minecraft:flame"
+                },
+                {
+                    "stat": "particle_spread",
+                    "id": "_1",
+                    "matchGroupPaths": [],
+                    "accumulators": [
+                        {
+                            "operation": "BaseAdd",
+                            "value": 1.0,
+                            "multiplyPer": []
+                        }
+                    ],
+                    "setValue": ""
+                },
+                {
+                    "stat": "particle_spread_pattern",
+                    "id": "_1",
+                    "matchGroupPaths": [],
+                    "accumulators": [
+                        {
+                            "operation": "BaseAdd",
+                            "value": 15.0,
+                            "multiplyPer": []
+                        }
+                    ],
+                    "setValue": "FilledCircle"
+                },
+                {
+                    "stat": "particle_speed",
+                    "id": "_1",
+                    "matchGroupPaths": [],
+                    "accumulators": [
+                        {
+                            "operation": "BaseAdd",
+                            "value": 1,
+                            "multiplyPer": []
+                        }
+                    ],
+                    "setValue": ""
+                },
+                {
+                    "stat": "particle_count",
+                    "id": "_1",
+                    "matchGroupPaths": [],
+                    "accumulators": [
+                        {
+                            "operation": "BaseAdd",
+                            "value": 3.0,
+                            "multiplyPer": []
+                        }
+                    ],
+                    "setValue": ""
                 }
             ]
         },
@@ -350,9 +504,78 @@
                     "itemStack": "",
                     "scopeOverlay": "",
                     "anim": "reload_start"
+                },
+                {
+                    "actionType": "SpawnParticle",
+                    "id": "_0",
+                    "duration": 1.0,
+                    "sounds": [],
+                    "itemStack": "",
+                    "scopeOverlay": "",
+                    "anim": "reload_start"
                 }
             ],
-            "modifiers": []
+            "modifiers": [
+                {
+                    "stat": "particle_attach_point",
+                    "id": "_0",
+                    "matchGroupPaths": [],
+                    "accumulators": [],
+                    "setValue": "chamber"
+                },
+                {
+                    "stat": "particle_spread",
+                    "id": "_0",
+                    "matchGroupPaths": [],
+                    "accumulators": [
+                        {
+                            "operation": "BaseAdd",
+                            "value": 1.0,
+                            "multiplyPer": []
+                        }
+                    ],
+                    "setValue": ""
+                },
+                {
+                    "stat": "particle_speed",
+                    "id": "_0",
+                    "matchGroupPaths": [],
+                    "accumulators": [
+                        {
+                            "operation": "BaseAdd",
+                            "value": 0.05,
+                            "multiplyPer": []
+                        }
+                    ],
+                    "setValue": ""
+                },
+                {
+                    "stat": "particle_type",
+                    "id": "_0",
+                    "matchGroupPaths": [],
+                    "accumulators": [
+                        {
+                            "operation": "BaseAdd",
+                            "value": 1.0,
+                            "multiplyPer": []
+                        }
+                    ],
+                    "setValue": "minecraft:poof"
+                },
+                {
+                    "stat": "particle_count",
+                    "id": "_0",
+                    "matchGroupPaths": [],
+                    "accumulators": [
+                        {
+                            "operation": "BaseAdd",
+                            "value": 3.0,
+                            "multiplyPer": []
+                        }
+                    ],
+                    "setValue": ""
+                }
+            ]
         },
         {
             "key": "reload_primary_eject",
@@ -533,10 +756,10 @@
             "flansmod:attach_to_rifle",
             "flansmod:attach_to_any"
         ],
-        "numAttachmentSlots": 0,
+        "numAttachmentSlots": 1,
         "hideDefaultMesh": true
     },
     "modelParts": [],
     "animationSet": "flansmod:rifle_priming_handle_magazine_fed",
-    "particleCount": 1
+    "particleCount": 0
 }

@@ -2517,6 +2517,20 @@
             ]
         },
         {
+            "name": "chamber",
+            "attachTo": "slide",
+            "offset": [
+                -3.0,
+                2.0,
+                -2.0
+            ],
+            "euler": [
+                0.0,
+                270.0,
+                0.0
+            ]
+        },
+        {
             "name": "eye_line",
             "attachTo": "body",
             "offset": [

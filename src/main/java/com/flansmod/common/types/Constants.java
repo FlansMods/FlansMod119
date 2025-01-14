@@ -107,6 +107,13 @@ public final class Constants
 	public static final String FLASH_TEXTURE = "flash_texture";
 	public static final String FLASH_ANIMATION_EVENT = "flash_anim_event";
 
+	public static final String PARTICLE_ATTACH_POINT = "particle_attach_point";
+	public static final String PARTICLE_COUNT = "particle_count";
+	public static final String PARTICLE_TYPE = "particle_type";
+	public static final String PARTICLE_SPEED = "particle_speed";
+	public static final String PARTICLE_SPREAD = "particle_spread";
+	public static final String PARTICLE_SPREAD_PATTERN = "particle_spread_pattern";
+
 	public static final String STAT_ENCHANTMENT_ID = "enchantment_id";
 	public static final String STAT_ENCHANTMENT_LEVEL = "enchantment_level";
 }

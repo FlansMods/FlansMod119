@@ -17,10 +17,13 @@ import com.flansmod.client.render.effects.LaserRenderer;
 import com.flansmod.client.render.vehicles.VehicleDebugRenderer;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.actions.contexts.*;
+import com.flansmod.common.actions.nodes.SpawnParticleAction;
 import com.flansmod.common.gunshots.Raytracer;
+import com.flansmod.common.types.guns.elements.ESpreadPattern;
 import com.flansmod.physics.common.util.Maths;
 import com.flansmod.physics.common.util.MinecraftHelpers;
 import com.flansmod.physics.common.util.Transform;
+import com.flansmod.physics.common.util.TransformStack;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.Util;
 import net.minecraft.client.Camera;
@@ -32,8 +35,10 @@ import net.minecraft.client.renderer.ItemModelShaper;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.entity.EntityRenderers;
 import net.minecraft.client.resources.model.ModelResourceLocation;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.phys.Vec3;
@@ -51,7 +56,9 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLClientSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
 import net.minecraftforge.fml.util.ObfuscationReflectionHelper;
+import net.minecraftforge.registries.ForgeRegistries;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -96,9 +103,12 @@ public class FlansModClient
 
 	static
 	{
-		FlansModelRegistry.PreRegisterRenderer(new ResourceLocation(FlansMod.MODID, "effects/muzzle_flash_small"), new EffectRenderer());
-		FlansModelRegistry.PreRegisterRenderer(new ResourceLocation(FlansMod.MODID, "effects/muzzle_flash_medium"), new EffectRenderer());
-		FlansModelRegistry.PreRegisterRenderer(new ResourceLocation(FlansMod.MODID, "effects/muzzle_flash_large"), new EffectRenderer());
+		ResourceLocation smallMuzzleFlash = new ResourceLocation(FlansMod.MODID, "effects/muzzle_flash_small");
+		ResourceLocation mediumMuzzleFlash = new ResourceLocation(FlansMod.MODID, "effects/muzzle_flash_medium");
+		ResourceLocation largeMuzzleFlash = new ResourceLocation(FlansMod.MODID, "effects/muzzle_flash_large");
+		FlansModelRegistry.PreRegisterRenderer(smallMuzzleFlash, new EffectRenderer(smallMuzzleFlash));
+		FlansModelRegistry.PreRegisterRenderer(mediumMuzzleFlash, new EffectRenderer(mediumMuzzleFlash));
+		FlansModelRegistry.PreRegisterRenderer(largeMuzzleFlash, new EffectRenderer(largeMuzzleFlash));
 	}
 
 	@SubscribeEvent
@@ -347,9 +357,151 @@ public class FlansModClient
 		}
 	}
 
+	public static void SpawnLocalParticles(SpawnParticleAction action){
+		if(Minecraft.getInstance().player != null && action.Group.Context.Gun instanceof GunContextPlayer playerGunContext) {
+			GunContext gunContext = action.Group.Context.Gun;
 
-	private static float random(int count){
-		return (((float)Math.random() * 0.6f)-0.3f)*(float)count/20f;
+			ItemDisplayContext transformType;
+			if(!Minecraft.getInstance().options.getCameraType().isFirstPerson() || !gunContext.GetShooter().IsLocalPlayerOwner())
+			{
+				transformType = MinecraftHelpers.getThirdPersonTransformType(gunContext.GetShooter().IsLocalPlayerOwner(), playerGunContext.GetHand());
+			}
+			else
+			{
+				transformType = MinecraftHelpers.getFirstPersonTransformType(playerGunContext.GetHand());
+			}
+
+			Transform shootOrigin = FirstPersonManager.GetWorldSpaceAPTransform(gunContext, transformType, ActionGroupContext.CreateGroupPath(action.AttachPoint()));
+			ParticleOptions particle = (ParticleOptions) ForgeRegistries.PARTICLE_TYPES.getValue(action.ParticleType());
+
+			for (int i = 0; i < action.ParticleCount(); i++) {
+				if (action.Group.Context.Gun.GetShooter() != ShooterContext.INVALID) {
+
+					TransformStack transformStack = TransformStack.empty();
+					transformStack.add(shootOrigin);
+					RandomizeVectorDirection(
+							transformStack,
+							action.Group.Context.Gun.GetShooter().Level().random,
+							action.ParticleSpread(),
+							action.SpreadPattern());
+
+					Transform randomizedDirection = transformStack.top();
+
+
+					Vec3 position = randomizedDirection.positionVec3();
+					Vec3 look = randomizedDirection.forward();
+
+					if(particle != null) {
+                        assert Minecraft.getInstance().level != null;
+                        Minecraft.getInstance().level.addParticle(particle, position.x(), position.y(), position.z(), look.x()*action.ParticleSpeed(), look.y()*action.ParticleSpeed(), look.z()*action.ParticleSpeed());
+                    }
+				}
+			}
+		}
+	}
+
+	public static void SpawnParticles(SpawnParticleAction action){
+		int count = action.ParticleCount();
+		//Transform shootOrigin = FirstPersonManager.GetWorldSpaceAPTransform(gunshotContext.ActionGroup.Gun, MinecraftHelpers.GetFirstPersonTransformType(playerGunContext.GetHand()), "shoot_origin");
+		for (int i = 0; i < count; i++) {
+			if (action.Group.Context.Gun.GetShooter() != ShooterContext.INVALID) {
+
+				GunContext gunContext = action.Group.Context.Gun;
+				ItemDisplayContext transformType = ItemDisplayContext.FIRST_PERSON_RIGHT_HAND;
+
+				if(gunContext instanceof GunContextPlayer playerGunContext)
+				{
+					if(!Minecraft.getInstance().options.getCameraType().isFirstPerson() || !gunContext.GetShooter().IsLocalPlayerOwner())
+					{
+						transformType = MinecraftHelpers.getThirdPersonTransformType(gunContext.GetShooter().IsLocalPlayerOwner(), playerGunContext.GetHand());
+					}
+					else
+					{
+						transformType = MinecraftHelpers.getFirstPersonTransformType(playerGunContext.GetHand());
+					}
+
+				}
+				Transform shootOrigin = FirstPersonManager.GetWorldSpaceAPTransform(gunContext, transformType, ActionGroupContext.CreateGroupPath(action.AttachPoint()));
+
+
+				Vec3 direction = shootOrigin.forward();
+
+				float spread = action.ParticleSpread();
+
+				ParticleOptions particle = (ParticleOptions) ForgeRegistries.PARTICLE_TYPES.getValue(action.ParticleType());
+
+
+				//TO-DO, particle patterns
+				if(particle != null)
+					Minecraft.getInstance().level.addParticle(particle, shootOrigin.positionVec3().x() + direction.x * spread==0?0:0.1f, shootOrigin.positionVec3().y() + direction.y * spread==0?0:0.1f, shootOrigin.positionVec3().z() + direction.z * spread==0?0:0.1f, (direction.x() * 0.3) + random(spread), (direction.y() * 0.3) + random(spread), (direction.z() * 0.3) + random(spread));
+			}
+		}
+	}
+
+	//TO-DO: Move all this into some particle-specific class
+	private static float random(float strength){
+		return (((float)Math.random() * 0.6f)-0.3f)*strength/20f;
+	}
+
+	private static void RandomizeVectorDirection(@Nonnull TransformStack transformStack,
+										  @Nonnull RandomSource rand,
+										  float spread,
+										  @Nonnull ESpreadPattern spreadPattern)
+	{
+		float xComponent;
+		float yComponent;
+
+		switch (spreadPattern)
+		{
+			case Circle, FilledCircle ->
+			{
+				float theta = rand.nextFloat() * Maths.TauF;
+				float radius = (spreadPattern == ESpreadPattern.Circle ? 1.0f : rand.nextFloat()) * spread;
+				xComponent = radius * Maths.sinF(theta);
+				yComponent = radius * Maths.cosF(theta);
+			}
+			case Horizontal ->
+			{
+				xComponent = spread * (rand.nextFloat() * 2f - 1f);
+				yComponent = 0.0f;
+			}
+			case Vertical ->
+			{
+				xComponent = 0.0f;
+				yComponent = spread * (rand.nextFloat() * 2f - 1f);
+			}
+			case Triangle ->
+			{
+				// Random square, then fold the corners
+				xComponent = rand.nextFloat() * 2f - 1f;
+				yComponent = rand.nextFloat() * 2f - 1f;
+
+				if (xComponent > 0f)
+				{
+					if (yComponent > 1.0f - xComponent * 2f)
+					{
+						yComponent = -yComponent;
+						xComponent = 1f - xComponent;
+					}
+				} else
+				{
+					if (yComponent > xComponent * 2f + 1f)
+					{
+						yComponent = -yComponent;
+						xComponent = -1f - xComponent;
+					}
+				}
+			}
+			default -> {
+				xComponent = 0.0f;
+				yComponent = 0.0f;
+			}
+		}
+
+		float yaw = xComponent;
+		float pitch = yComponent;
+
+		transformStack.add(Transform.fromEuler(pitch, yaw, 0f));
 	}
 
 }
