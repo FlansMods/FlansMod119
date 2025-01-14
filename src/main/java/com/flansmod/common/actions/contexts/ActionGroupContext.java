@@ -1,6 +1,7 @@
 package com.flansmod.common.actions.contexts;
 
 import com.flansmod.common.FlansMod;
+import com.flansmod.common.actions.ActionInstance;
 import com.flansmod.common.actions.stats.*;
 import com.flansmod.common.types.guns.elements.EActionType;
 import com.flansmod.common.item.BulletItem;
@@ -704,6 +705,10 @@ public class ActionGroupContext
 
 	public int RepeatDelayTicks() { return Maths.ceil(RepeatDelaySeconds() * 20.0f); }
 	public int RoundsPerMinute() { return RepeatDelaySeconds() <= 0.00001f ? 0 : Maths.ceil(60.0f / RepeatDelaySeconds()); }
+
+	public float GetSpread(ActionDefinition def){
+		return ModifyFloat(STAT_SHOT_SPREAD+def.id).get();
+	}
 
 	@Override
 	public String toString()

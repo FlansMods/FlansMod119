@@ -26,7 +26,7 @@ public class AbilityEffectDefinition
 		List<ModifierDefinition> matches = new ArrayList<>();
 		for(ModifierDefinition modifier : modifiers)
 		{
-			if(modifier.stat.equals(stat))
+			if(modifier.GetStatWithId().equals(stat))
 				matches.add(modifier);
 		}
 		return matches.toArray(new ModifierDefinition[0]);
@@ -36,7 +36,7 @@ public class AbilityEffectDefinition
 	{
 		for(ModifierDefinition modifier : modifiers)
 		{
-			if(modifier.stat.equals(stat) && !modifier.setValue.isEmpty())
+			if(modifier.GetStatWithId().equals(stat) && !modifier.setValue.isEmpty())
 				defaultValue = modifier.setValue;
 		}
 		return defaultValue;
@@ -45,7 +45,7 @@ public class AbilityEffectDefinition
 	{
 		for(ModifierDefinition modifier : modifiers)
 		{
-			if(modifier.stat.equals(stat) && !modifier.setValue.isEmpty())
+			if(modifier.GetStatWithId().equals(stat) && !modifier.setValue.isEmpty())
 				return Boolean.parseBoolean(modifier.setValue);
 		}
 		return defaultValue;

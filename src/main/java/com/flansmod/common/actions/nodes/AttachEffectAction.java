@@ -38,11 +38,11 @@ public class AttachEffectAction extends ActionInstance
 	public String GetRelativeAPName() { return Group.Context.GetSibling(AttachPoint()); }
 
 	@Nonnull
-	public String AttachPoint() { return Group.Context.ModifyString(Constants.FLASH_ATTACH_POINT, "shoot_origin"); }
+	public String AttachPoint() { return Group.Context.ModifyString(Constants.FLASH_ATTACH_POINT+Def.id, "shoot_origin"); }
 	@Nonnull
-	public ResourceLocation EffectModelLocation() { return new ResourceLocation(Group.Context.ModifyString(Constants.FLASH_MODEL, "flansmod:effects/muzzle_flash_small")); }
+	public ResourceLocation EffectModelLocation() { return new ResourceLocation(Group.Context.ModifyString(Constants.FLASH_MODEL+Def.id, "flansmod:effects/muzzle_flash_small")); }
 	@Nonnull
-	public ResourceLocation EffectTextureLocation() { return new ResourceLocation(Group.Context.ModifyString(Constants.FLASH_TEXTURE, "flansmod:textures/skins/muzzle_flash_small.png")); }
+	public ResourceLocation EffectTextureLocation() { return new ResourceLocation(Group.Context.ModifyString(Constants.FLASH_TEXTURE+Def.id, "flansmod:textures/skins/muzzle_flash_small.png")); }
 
 
 	@Nonnull
