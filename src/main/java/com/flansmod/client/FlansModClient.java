@@ -377,11 +377,13 @@ public class FlansModClient
 			for (int i = 0; i < action.ParticleCount(); i++) {
 				if (action.Group.Context.Gun.GetShooter() != ShooterContext.INVALID) {
 
+					RandomSource rand = action.Group.Context.Gun.GetShooter().Level().random;
+
 					TransformStack transformStack = TransformStack.empty();
 					transformStack.add(shootOrigin);
 					RandomizeVectorDirection(
 							transformStack,
-							action.Group.Context.Gun.GetShooter().Level().random,
+							rand,
 							action.ParticleSpread(),
 							action.SpreadPattern());
 
@@ -391,9 +393,11 @@ public class FlansModClient
 					Vec3 position = randomizedDirection.positionVec3();
 					Vec3 look = randomizedDirection.forward();
 
+					float speed = (float) ((action.ParticleSpeed() - action.ParticleSpeedDispersion()) + (rand.nextFloat()*(action.ParticleSpeedDispersion()*2)));
+
 					if(particle != null) {
                         assert Minecraft.getInstance().level != null;
-                        Minecraft.getInstance().level.addParticle(particle, position.x(), position.y(), position.z(), look.x()*action.ParticleSpeed(), look.y()*action.ParticleSpeed(), look.z()*action.ParticleSpeed());
+                        Minecraft.getInstance().level.addParticle(particle, position.x(), position.y(), position.z(), look.x()*speed, look.y()*speed, look.z()*speed);
                     }
 				}
 			}

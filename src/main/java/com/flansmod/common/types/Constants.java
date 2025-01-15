@@ -111,6 +111,9 @@ public final class Constants
 	public static final String PARTICLE_COUNT = "particle_count";
 	public static final String PARTICLE_TYPE = "particle_type";
 	public static final String PARTICLE_SPEED = "particle_speed";
+	//The initial variation in particle speed
+	public static final String PARTICLE_DISPERSION = "particle_dispersion";
+	//The initial variation in angle
 	public static final String PARTICLE_SPREAD = "particle_spread";
 	public static final String PARTICLE_SPREAD_PATTERN = "particle_spread_pattern";
 

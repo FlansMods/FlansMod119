@@ -23,7 +23,7 @@ public class AttachEffectAction extends ActionInstance
 	@Override
 	public void OnTriggerClient(int triggerIndex)
 	{
-		TicksSinceTrigger = 0;
+		TicksSinceTrigger = (int) -Def.delay;
 	}
 	@Override
 	public void OnTriggerServer(int triggerIndex) { }

@@ -13,22 +13,56 @@ import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nonnull;
 
 public class SpawnParticleAction extends ActionInstance {
+
+    private boolean executed = false;
+    public int ticksActiveClient = 0;
+    public int ticksActiveServer = 0;
     public SpawnParticleAction(@NotNull ActionGroupInstance group, @NotNull ActionDefinition def) {
         super(group, def);
     }
 
     @Override
-    public void OnTriggerClient(int triggerIndex) {
-
-        FlansModClient.SpawnLocalParticles(this);
+    public void OnTriggerClient(int triggerIndex)
+    {
+        if(Def.delay==0){
+            Execute();
+        }
+        //FlansModClient.SpawnLocalParticles(this);
     }
 
     @Override
     public void OnTriggerServer(int triggerIndex) {
-
+        if(Def.delay==0){
+            Execute();
+        }
+        //FlansModClient.SpawnLocalParticles(this);
     }
 
-    public String GetRelativeAPName() { return Group.Context.GetSibling(AttachPoint()); }
+    @Override
+    public void OnTickClient() {
+        super.OnTickClient();
+        if(ticksActiveClient>=Def.delay){
+            Execute();
+        }
+        ticksActiveClient++;
+    }
+
+    @Override
+    public void OnTickServer() {
+        super.OnTickServer();
+        if(ticksActiveServer>=Def.delay){
+            Execute();
+        }
+        ticksActiveServer++;
+    }
+
+    public void Execute()
+    {
+        if(executed) return;
+        executed = true;
+
+        FlansModClient.SpawnLocalParticles(this);
+    }
 
     @Nonnull
     public String AttachPoint() { return Group.Context.ModifyString(Constants.PARTICLE_ATTACH_POINT+Def.id, "shoot_origin"); }
@@ -40,6 +74,8 @@ public class SpawnParticleAction extends ActionInstance {
     public float ParticleSpread() { return Group.Context.ModifyFloat(Constants.PARTICLE_SPREAD+Def.id).get();}
 
     public float ParticleSpeed() { return Group.Context.ModifyFloat(Constants.PARTICLE_SPEED+Def.id).get();}
+
+    public float ParticleSpeedDispersion() { return Group.Context.ModifyFloat(Constants.PARTICLE_DISPERSION+Def.id).get();}
 
     public ESpreadPattern SpreadPattern() 	{ return (ESpreadPattern)Group.Context.ModifyEnum(Constants.PARTICLE_SPREAD_PATTERN+Def.id, ESpreadPattern.FilledCircle, ESpreadPattern.class); }
 
