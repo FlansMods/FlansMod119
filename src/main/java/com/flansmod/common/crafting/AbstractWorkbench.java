@@ -657,19 +657,26 @@ public class AbstractWorkbench implements Container, Clearable, MenuProvider
 
 					if(foundMatch != -1)
 					{
-						// We are adding to an empty slot, just place it
-						if(stackInSlot.isEmpty())
+						ItemStack playerStack = player.getInventory().getItem(foundMatch);
+						ItemStack stackToAdd = playerStack.copyWithCount(1);
+
+						boolean slotIsEmpty = stackInSlot.isEmpty();
+						if(!slotIsEmpty)
 						{
-							GunCraftingInputContainer.setItem(ingredientIndex, player.getInventory().getItem(foundMatch).copyWithCount(1));
-							player.getInventory().removeItem(foundMatch, 1);
-						}
-						else // There was already something there, only swap if there is space on the player
-						{
+							// There was already something there, only swap if there is space on the player
 							if(player.getInventory().add(stackInSlot.copy()))
 							{
-								GunCraftingInputContainer.setItem(ingredientIndex, player.getInventory().getItem(foundMatch));
-								UpdateGunCraftingOutputSlot(player.level());
+								GunCraftingInputContainer.setItem(ingredientIndex, ItemStack.EMPTY);
+								slotIsEmpty = true;
 							}
+						}
+
+						if(slotIsEmpty)
+						{
+							// We are adding to an empty slot, just place it
+							GunCraftingInputContainer.setItem(ingredientIndex, stackToAdd);
+							player.getInventory().removeItem(foundMatch, 1);
+							UpdateGunCraftingOutputSlot(player.level());
 						}
 					}
 				}
