@@ -13,8 +13,15 @@ public class ActionDefinition
 	@JsonField
 	public EActionType actionType = EActionType.Invalid;
 
+	// Animation action specifics
+	@JsonField
+	public String id = "";
+
 	@JsonField(Docs = "In seconds", Min = 0.0f)
 	public float duration = 0.0f;
+
+	@JsonField(Docs = "In ticks", Min = 0.0f)
+	public float delay = 0.0f;
 
 	@JsonField
 	public SoundDefinition[] sounds = new SoundDefinition[0];

@@ -26,6 +26,7 @@ public class Actions
 				return null;
 			}
 			case AttachEffect 		-> { return new AttachEffectAction(group, def); }
+			case SpawnParticle 		-> { return new SpawnParticleAction(group, def); }
 			case Laser 				-> { return new LaserAction(group, def); }
 			case SwitchMode			-> { return new SwitchModeAction(group, def); }
 			case AbilityOnSelf 		-> { return new AbilityOnSelfAction(group, def); }

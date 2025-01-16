@@ -57,7 +57,7 @@ public class FlashEffectRenderer
 				{
 					if (actionInstance instanceof AttachEffectAction attachEffectAction)
 					{
-						if(attachEffectAction.TicksSinceTrigger > 0)
+						if(attachEffectAction.TicksSinceTrigger != 0)
 							continue;
 
 						RenderFlashEffectOnEntity(event.getPoseStack(),

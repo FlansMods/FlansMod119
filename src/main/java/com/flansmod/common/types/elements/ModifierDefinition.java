@@ -16,6 +16,8 @@ public class ModifierDefinition
 	@JsonField
 	public String stat = "";
 	@JsonField
+	public String id = "";
+	@JsonField
 	public String[] matchGroupPaths = new String[0];
 	@JsonField
 	public StatAccumulatorDefinition[] accumulators = new StatAccumulatorDefinition[0];
@@ -34,6 +36,11 @@ public class ModifierDefinition
 	public boolean AppliesTo(@Nonnull String check, @Nonnull String groupPath)
 	{
 		return stat.equals(check) && AppliesTo(groupPath);
+	}
+
+	public String GetStatWithId(){
+		if(id.isEmpty()) return stat;
+		return stat+id;
 	}
 
 

@@ -8,5 +8,4 @@ public enum ESpreadPattern
 	Horizontal,
 	Vertical,
 	Triangle,
-
 }
