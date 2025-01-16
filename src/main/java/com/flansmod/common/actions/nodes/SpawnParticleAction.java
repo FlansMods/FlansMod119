@@ -50,10 +50,6 @@ public class SpawnParticleAction extends ActionInstance {
     @Override
     public void OnTickServer() {
         super.OnTickServer();
-        if(ticksActiveServer>=Def.delay){
-            Execute();
-        }
-        ticksActiveServer++;
     }
 
     public void Execute()
