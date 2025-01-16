@@ -132,8 +132,8 @@ public class WorkbenchScreenTabPainting extends WorkbenchScreenTab<WorkbenchMenu
 	@Override
 	protected void UpdateTab(boolean selected)
 	{
-		GunAngularVelocity *= Maths.expF(-FlansModClient.FrameDeltaSeconds() * 0.25f);
-		GunAngle += FlansModClient.FrameDeltaSeconds() * GunAngularVelocity;
+		GunAngularVelocity *= Maths.expF(-FlansModClient.FrameDeltaSeconds() * 0.0025f);
+		GunAngle += FlansModClient.FrameDeltaSeconds() * GunAngularVelocity * 10f;
 
 		if(IsTabPresent())
 		{
@@ -174,7 +174,7 @@ public class WorkbenchScreenTabPainting extends WorkbenchScreenTab<WorkbenchMenu
 	@Override
 	protected boolean OnMouseScroll(int xMouse, int yMouse, double scroll)
 	{
-		if(scroll != 0 && xMouse >= xOrigin + imageWidth)
+		if(scroll != 0 && xMouse < xOrigin)
 		{
 			GunAngularVelocity += scroll * 2.0f;
 			return true;
@@ -237,7 +237,7 @@ public class WorkbenchScreenTabPainting extends WorkbenchScreenTab<WorkbenchMenu
 		// Render the gun before the background so it ends up behind
 		if(Workbench.GunContainer.getContainerSize() > 0)
 		{
-			Render3DGun(graphics, xOrigin + imageWidth + 64, yOrigin + 64, GunAngle, -45f, Workbench.GunContainer.getItem(0));
+			Render3DGun(graphics, xOrigin - 64, yOrigin + 64, GunAngle, -20f, Workbench.GunContainer.getItem(0));
 		}
 
 		graphics.blit(MOD_BG, xOrigin, yOrigin, 0, 0, imageWidth, imageHeight, MOD_W, MOD_H);

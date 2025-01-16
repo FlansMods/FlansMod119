@@ -61,15 +61,18 @@ public record BakedTurboGeometry(@Nonnull List<Vertex> vertices, @Nonnull List<P
 					   float scale)
 	{
 		Transform topPose = transformStack.top();
+		boolean flipNormal = ((topPose.Scale.x < 0f) ^ (topPose.Scale.y < 0f) ^ (topPose.Scale.z < 0f));
 		for(BakedTurboGeometry.Polygon polygon : polygons)
 		{
 			Vector3f normal = polygon.normal();
 			Vec3 nPosed = topPose.localToGlobalDirection(new Vec3(normal.x, normal.y, normal.z));
 
-			for(BakedTurboGeometry.VertexRef vertexRef : polygon.vertexOrder())
+			for(int i = 0; i < polygon.vertexOrder.size(); i++)
 			{
-				BakedTurboGeometry.Vertex v = vertices.get(vertexRef.vIndex());
+				int vIndex = flipNormal ? polygon.vertexOrder.size() - 1 - i : i;
+				BakedTurboGeometry.VertexRef vertexRef = polygon.vertexOrder.get(vIndex);
 
+				BakedTurboGeometry.Vertex v = vertices.get(vertexRef.vIndex);
 				Vec3 vPosed = topPose.localToGlobalPosition(new Vec3(
 						v.position().x * scale,
 						v.position().y * scale,

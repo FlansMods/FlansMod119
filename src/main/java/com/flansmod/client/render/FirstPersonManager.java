@@ -288,7 +288,7 @@ public class FirstPersonManager
 
 	private static final Transform MC_FIRST_PERSON_OFFSET_RIGHT = Transform.fromPos(new Vec3(-0.06d, 1.0d, 1.0d));
 	private static final Transform MC_FIRST_PERSON_OFFSET_LEFT = Transform.fromPos(new Vec3(1.06d, 1.0d, 1.0d));
-	private static final Transform MC_THIRD_PERSON_OFFSET = Transform.fromPosAndEuler(new Vec3(0.5d, 0.5d, 0.5d), new Vector3f(0f, 90f, 0f));
+	private static final Transform MC_THIRD_PERSON_OFFSET = Transform.fromPosAndEuler(new Vec3(0.5d, 0.5d, 0.5d), new Vector3f(0f, -90f, 0f));
 	private static final Transform MC_GROUND_OFFSET = Transform.fromPos(new Vec3(0.5d, 0.5d, 0.5d));
 
 	// This takes us from the Minecraft "Model Root" to the "body" piece of this model
@@ -313,8 +313,8 @@ public class FirstPersonManager
 					transformStack.add(adsBlendTransform);
 				}
 				case THIRD_PERSON_RIGHT_HAND, THIRD_PERSON_LEFT_HAND -> {
-					transformStack.add(MC_THIRD_PERSON_OFFSET);
 					transformStack.add(defaultPose);
+					transformStack.add(MC_THIRD_PERSON_OFFSET);
 				}
 				case GROUND -> {
 					transformStack.add(MC_GROUND_OFFSET);

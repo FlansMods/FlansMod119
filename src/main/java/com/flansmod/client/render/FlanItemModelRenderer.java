@@ -79,11 +79,11 @@ public abstract class FlanItemModelRenderer extends BlockEntityWithoutLevelRende
                 switch(transformType)
                 {
                     case GUI -> {
-                        transformStack.add(Transform.fromEuler(0f, 0f, 180f));
-                        transformStack.add(Transform.fromPos(1d, 0d, 0d));
+                        //transformStack.add(Transform.fromEuler(0f, 0f, 180f));
+                        //transformStack.add(Transform.fromPos(1d, 0d, 0d));
                         //transformStack.add(Transform.FromScale(new Vector3f(-2.0f, -2.0f, 2.0f), () -> "\"Scale to GUI size\""));
                         poseStack = transformStack.top().toNewPoseStack();
-                        poseStack.scale(-1f, 1f, 1f);
+                        //poseStack.scale(-1f, 1f, 1f);
                         Lighting.setupForFlatItems();
                     }
                     default -> {

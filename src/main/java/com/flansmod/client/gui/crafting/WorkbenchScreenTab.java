@@ -8,7 +8,10 @@ import com.flansmod.common.FlansMod;
 import com.flansmod.common.crafting.menus.WorkbenchMenu;
 import com.flansmod.physics.common.util.Maths;
 import com.flansmod.physics.common.util.MinecraftHelpers;
+import com.flansmod.physics.common.util.Transform;
+import com.flansmod.physics.common.util.TransformStack;
 import com.mojang.blaze3d.platform.Lighting;
+import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -19,6 +22,7 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import javax.annotation.Nonnull;
 
@@ -215,10 +219,12 @@ public abstract class WorkbenchScreenTab<T extends WorkbenchMenu> extends FMScre
 	{
 		graphics.pose().pushPose();
 		graphics.pose().translate(x, y, 0f);
+		graphics.pose().scale(32f, 32f, 32f);
 		graphics.pose().mulPose(new Quaternionf()
-			.rotateLocalZ(pitch * Maths.DegToRadF)
-			.rotateLocalY(yaw * Maths.DegToRadF));
-		graphics.pose().translate(-10f, 0f, 0f);
+				.rotateLocalX(pitch * Maths.DegToRadF)
+				.rotateLocalY(yaw * Maths.DegToRadF)
+			);
+		//graphics.pose().translate(-10f, 0f, 0f);
 
 		ITurboRenderer gunRenderer = FlansModelRegistry.GetItemRenderer(stack);
 		if(gunRenderer != null)
@@ -227,17 +233,21 @@ public abstract class WorkbenchScreenTab<T extends WorkbenchMenu> extends FMScre
 			{
 				Lighting.setupForEntityInInventory();
 				MultiBufferSource.BufferSource buffers = Minecraft.getInstance().renderBuffers().bufferSource();
-				graphics.pose().translate(x + 8, y + 12, 0f); // TODO: This was blit offset?
-				graphics.pose().scale(-32f, 32f, 32f);
+				//graphics.pose().translate(x + 8, y + 12, 0f); // TODO: This was blit offset?
+
 				graphics.pose().mulPose(new Quaternionf().rotateLocalX(Maths.PiF));
 				graphics.pose().mulPose(new Quaternionf().rotateLocalY(Maths.PiF));
-				graphics.pose().translate(-0.5f, -0.5f, -0.5f);
+
+				Transform transform = Transform.fromPose(graphics.pose());
+				TransformStack transformStack = TransformStack.of(transform);
+				//transformStack.add(Transform.fromScale(new Vector3f(-1f, 1f, 1f)));
+
 				gunRenderer.renderDirect(null, stack, new RenderContext(
 					buffers,
-					ItemDisplayContext.GROUND,
-					graphics.pose(),
+					ItemDisplayContext.FIXED,
+					transformStack,
 					0xf000f0,
-					0
+					0xa0000
 				));
 				buffers.endBatch();
 				Lighting.setupFor3DItems();
