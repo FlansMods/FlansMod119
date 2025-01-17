@@ -37,6 +37,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import javax.annotation.Nonnull;
@@ -205,7 +206,7 @@ public class BulletEntity extends Projectile
 		motion = ApplyGravity(motion);
 		setDeltaMovement(motion);
 		motion = OnImpact(motion);
-		motion = motion.multiply(new Vec3(0.1f,0.1f,0.1f));
+		//motion = motion.multiply(new Vec3(0.1f,0.1f,0.1f));
 
 		ProjectileDefinition def = GetContext().GetProjectileDef();
 
@@ -299,14 +300,12 @@ public class BulletEntity extends Projectile
 
 					//Getting a generic AP point on an entity model might be something we need commonly, consider making a helper function somewhere
 					TransformStack transformStack = TransformStack.empty();
-					transformStack.add(Transform.fromPosAndEuler(this.position(),new Vector3f(this.getXRot(),this.getYRot(),0)));
+					transformStack.add(Transform.fromPosAndEuler(this.position(),new Vector3f(this.getXRot(),-this.getYRot()+90f,lifeTime)));
 					bulletRenderer.ApplyAPOffsetInternal(transformStack, apName,null,null);
 					Transform point = transformStack.top();
-
-					Vec3 position = point.positionVec3();
-					Vec3 look = point.forward();
+					Vec3 position = transformStack.localToGlobalPosition(Vec3.ZERO);
+					Vec3 look = transformStack.right();
 					float speed = trail.speed;
-					speed = 0;
 					ParticleOptions particle = (ParticleOptions) ForgeRegistries.PARTICLE_TYPES.getValue(new ResourceLocation(trail.particle));
 					if(particle != null)
 					{

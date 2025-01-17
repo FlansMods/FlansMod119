@@ -5,6 +5,8 @@ import com.flansmod.common.projectiles.BulletGuidance;
 import com.flansmod.common.types.Constants;
 import com.flansmod.common.types.JsonField;
 import com.mojang.datafixers.kinds.Const;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.FlyingMob;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
@@ -13,6 +15,7 @@ import net.minecraft.world.entity.monster.Blaze;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.raid.Raider;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,6 +117,12 @@ public class ProjectileDefinition
 				case "vehicle" 		-> result.add(VehicleEntity.class);
 				case "player" 		-> result.add(Player.class);
 				case "living" 		-> result.add(LivingEntity.class);
+				default -> {
+					EntityType entity = ForgeRegistries.ENTITY_TYPES.getValue(new ResourceLocation(s));
+					if(entity != null){
+						result.add(entity.getBaseClass());
+					}
+				}
 			}
 		}
 		return result;

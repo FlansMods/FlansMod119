@@ -25,7 +25,7 @@ public class SpawnParticleAction extends ActionInstance {
     public void OnTriggerClient(int triggerIndex)
     {
         if(Def.delay==0){
-            Execute();
+            FlansModClient.SpawnLocalParticles(this);
         }
         //FlansModClient.SpawnLocalParticles(this);
     }
@@ -41,10 +41,12 @@ public class SpawnParticleAction extends ActionInstance {
     @Override
     public void OnTickClient() {
         super.OnTickClient();
-        if(ticksActiveClient>=Def.delay){
-            Execute();
+        if(Def.delay > 0) {
+            if (ticksActiveClient >= Def.delay) {
+                Execute();
+            }
+            ticksActiveClient++;
         }
-        ticksActiveClient++;
     }
 
     @Override

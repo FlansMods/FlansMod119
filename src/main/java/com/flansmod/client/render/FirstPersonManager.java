@@ -151,6 +151,7 @@ public class FirstPersonManager
 
 							transformStack.add(Transform.interpolate(previousArmRoot, currentArmRoot, dt));
 							// 3.0F, 12.0F, 4.0F
+							transformStack.add(Transform.fromEuler(180f,180f,0f));
 							transformStack.add(Transform.fromEuler(-90f, 0f, 180f));
 							transformStack.add(Transform.fromPos(-0.5d/16d, 2d/16d, -6d/16d));
 							transformStack.add(Transform.fromPos(-0.5d, -0.5d, -0.5d));
