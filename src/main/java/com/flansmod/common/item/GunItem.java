@@ -436,6 +436,15 @@ public class GunItem extends FlanItem
                 //Locking Logic
                 GunContext gunContext = GunContext.of(stack, EContextSide.of(level));
                 ItemStack bulletStack = GetBulletAtIndex(stack, Actions.DefaultPrimaryActionKey, 0, 0);
+
+                ActionGroupContext actionContext = ActionGroupContext.CreateFrom(gunContext, Actions.DefaultPrimaryActionKey);
+                MagazineDefinition magDef = actionContext.GetMagazineType(0);
+                int rounds = magDef.numRounds;
+                for(int j = 0; j < rounds; j++){
+                    bulletStack = GetBulletAtIndex(stack, Actions.DefaultPrimaryActionKey, 0, j);
+                    if(bulletStack.getItem() instanceof BulletItem) break;
+                }
+
                 BulletItem bullet = null;
                 if(bulletStack.getItem() instanceof BulletItem){
                     bullet = (BulletItem) bulletStack.getItem();
@@ -485,9 +494,16 @@ public class GunItem extends FlanItem
 
         }
     }
-
     public ProjectileDefinition GetChamberProjectile(ItemStack stack, GunContext gunContext){
-        ItemStack bulletStack = GetBulletAtIndex(stack, Actions.DefaultPrimaryActionKey, 0, 0);
+        ItemStack bulletStack = new ItemStack(Items.AIR);
+        ActionGroupContext actionContext = ActionGroupContext.CreateFrom(gunContext, Actions.DefaultPrimaryActionKey);
+        MagazineDefinition magDef = actionContext.GetMagazineType(0);
+        int rounds = magDef.numRounds;
+        for(int i = 0; i < rounds; i++){
+            bulletStack = GetBulletAtIndex(stack, Actions.DefaultPrimaryActionKey, 0, i);
+            if(bulletStack.getItem() instanceof BulletItem) break;
+        }
+
         BulletItem bullet = null;
         if(bulletStack.getItem() instanceof BulletItem){
             bullet = (BulletItem) bulletStack.getItem();

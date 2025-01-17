@@ -20,6 +20,7 @@ public class BulletGuidance {
     public static Vec3 BeamRide(BulletEntity bullet,Vec3 motionIn) //Projectile attempts to ride a beam from launch platform, in the direction that platform is facing
     {
         Entity e = bullet.GetContext().ActionGroup.Gun.GetShooter().Entity();
+        if(e==null) return motionIn;
         Vec3 target = e.getEyePosition();
 
         double distance = target.distanceTo(bullet.position());
@@ -32,6 +33,9 @@ public class BulletGuidance {
     }
 
     public static Vec3 BeamRideTop(BulletEntity bullet, Vec3 motionIn){
+
+        if(bullet.GetContext().ActionGroup.Gun.GetShooter().Entity()==null) return motionIn;
+
         Vec3 target = GetLookingAt(bullet.GetContext().ActionGroup.Gun.GetShooter().Entity(),128);
         Vec3 initTarget = target;
         double lateralDist = lateralDistance(bullet.position(),initTarget);
@@ -64,6 +68,7 @@ public class BulletGuidance {
 
 
     public static Vec3 TopAttackLocked(BulletEntity bullet, Vec3 motionIn){
+        if(bullet.GetContext().ActionGroup.Gun.GetShooter().Entity()==null) return motionIn;
         if(bullet.LockedOnTo == null){
             return motionIn;
         }
