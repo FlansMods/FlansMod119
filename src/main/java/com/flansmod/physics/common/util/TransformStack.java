@@ -79,17 +79,27 @@ public class TransformStack
 
 		Vector3f right = new Vector3f(1f, 0f, 0f);
 		Vector3f up = new Vector3f(0f, 1f, 0f);
-		Vector3f forward = new Vector3f(0f, 0f, -1f);
+		Vector3f back = new Vector3f(0f, 0f, 1f);
 		pose.transformDirection(right);
 		pose.transformDirection(up);
-		pose.transformDirection(forward);
-		Vector3f scale = new Vector3f(right.length(), up.length(), forward.length());
+		pose.transformDirection(back);
+		Vector3f scale = new Vector3f(right.length(), up.length(), back.length());
+
 
 		Matrix3f oriMatrix = new Matrix3f(
 			right.x / scale.x,      right.y / scale.y,      right.z / scale.z,
 			up.x / scale.x,         up.y / scale.y,         up.z / scale.z,
-			forward.x / scale.x,    forward.y / scale.y,    forward.z / scale.z);
+			back.x / scale.x,    back.y / scale.y,    back.z / scale.z);
+		boolean flip = oriMatrix.determinant() < 0.0f;
+		if(flip)
+		{
+			scale.x = -scale.x;
+			oriMatrix.m00 = -oriMatrix.m00;
+			oriMatrix.m10 = -oriMatrix.m10;
+			oriMatrix.m20 = -oriMatrix.m20;
+		}
 		Quaternionf orientation = oriMatrix.getNormalizedRotation(new Quaternionf());
+		orientation.normalize();
 
 		add(Transform.fromScale(scale));
 		add(Transform.fromPosAndQuat(pos.x / scale.x, pos.y / scale.y, pos.z / scale.z, orientation));

@@ -62,7 +62,7 @@ public abstract class FlanItemModelRenderer extends BlockEntityWithoutLevelRende
                              int light,
                              int overlay)
     {
-        TransformStack transformStack = TransformStack.of(Transform.fromPose(ms));
+        TransformStack transformStack = TransformStack.of(ms);
         boolean shouldRenderIcon = false;
         if(stack.getItem() instanceof FlanItem flanItem && flanItem.ShouldRenderAsIcon(transformType))
             shouldRenderIcon = true;

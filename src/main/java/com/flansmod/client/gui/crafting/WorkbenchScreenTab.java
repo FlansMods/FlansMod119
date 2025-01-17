@@ -238,8 +238,7 @@ public abstract class WorkbenchScreenTab<T extends WorkbenchMenu> extends FMScre
 				graphics.pose().mulPose(new Quaternionf().rotateLocalX(Maths.PiF));
 				graphics.pose().mulPose(new Quaternionf().rotateLocalY(Maths.PiF));
 
-				Transform transform = Transform.fromPose(graphics.pose());
-				TransformStack transformStack = TransformStack.of(transform);
+				TransformStack transformStack = TransformStack.of(graphics.pose());
 				//transformStack.add(Transform.fromScale(new Vector3f(-1f, 1f, 1f)));
 
 				gunRenderer.renderDirect(null, stack, new RenderContext(

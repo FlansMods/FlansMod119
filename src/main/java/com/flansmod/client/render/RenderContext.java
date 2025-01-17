@@ -40,7 +40,7 @@ public class RenderContext
 	{
 		Buffers = buffers;
 		TransformType = transformType;
-		Transforms = TransformStack.of(Transform.fromPose(poses));
+		Transforms = TransformStack.of(poses);
 		Light = light;
 		Overlay = overlay;
 	}
