@@ -81,9 +81,9 @@ public class CommandPhysicsDebug
     {
         FlansPhysicsMod.PAUSE_PHYSICS = !FlansPhysicsMod.PAUSE_PHYSICS;
         if(FlansPhysicsMod.PAUSE_PHYSICS)
-            source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.physics_pause"), true);
+            source.sendSuccess(() -> Component.translatable("flansphysics.command.physics_pause"), true);
         else
-            source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.physics_resume"), true);
+            source.sendSuccess(() -> Component.translatable("flansphysics.command.physics_resume"), true);
 
         return -1;
     }
@@ -91,28 +91,27 @@ public class CommandPhysicsDebug
     {
         FlansPhysicsMod.PAUSE_PHYSICS = pause;
         if(pause)
-            source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.physics_pause"), true);
+            source.sendSuccess(() -> Component.translatable("flansphysics.command.physics_pause"), true);
         else
-            source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.physics_resume"), true);
-
+            source.sendSuccess(() -> Component.translatable("flansphysics.command.physics_resume"), true);
         return -1;
     }
     private static int DebugInspectCycle(@Nonnull CommandSourceStack source, int delta)
     {
         ColliderHandle newHandle = OBBCollisionSystem.Debug_CycleInspectHandle(source.getLevel(), delta);
-        source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.cycle_inspect", newHandle.Handle()), true);
+        source.sendSuccess(() -> Component.translatable("flansphysics.command.cycle_inspect", newHandle.Handle()), true);
         return -1;
     }
     private static int DebugInspectSetIndex(@Nonnull CommandSourceStack source, int index)
     {
         ColliderHandle newHandle = OBBCollisionSystem.Debug_SetInspectHandleIndex(source.getLevel(), index);
-        source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.select_handle", newHandle.Handle(), index, OBBCollisionSystem.Debug_GetNumHandles(source.getLevel())), true);
+        source.sendSuccess(() -> Component.translatable("flansphysics.command.select_handle", newHandle.Handle(), index, OBBCollisionSystem.Debug_GetNumHandles(source.getLevel())), true);
         return -1;
     }
     private static int DebugInspectSetClosest(@Nonnull CommandSourceStack source)
     {
         ColliderHandle newHandle = OBBCollisionSystem.Debug_SetNearestInspectHandle(source.getLevel(), source.getPosition());
-        source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.select_closest", newHandle.Handle()), true);
+        source.sendSuccess(() -> Component.translatable("flansphysics.command.select_closest", newHandle.Handle()), true);
         return -1;
     }
     private static final Vec3 DEFAULT_YEET = new Vec3(0d, 1d, 0d);
@@ -124,7 +123,7 @@ public class CommandPhysicsDebug
             OBBCollisionSystem system = OBBCollisionSystem.ForLevel(source.getLevel());
             LinearAcceleration acc = LinearAcceleration.fromUtoVinTicks(LinearVelocity.Zero, LinearVelocity.blocksPerSecond(yeetVector), 1);
             system.addLinearAcceleration(handle, acc);
-            source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.yeet_single", acc.toFancyString(), handle.Handle()), true);
+            source.sendSuccess(() -> Component.translatable("flansphysics.command.yeet_single", acc.toFancyString(), handle.Handle()), true);
         }
         return -1;
     }
@@ -145,7 +144,7 @@ public class CommandPhysicsDebug
             }
         }
         final int entCountCopy = entityCount;
-        source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.yeet_multiple", acc.toFancyString(), entCountCopy), true);
+        source.sendSuccess(() -> Component.translatable("flansphysics.command.yeet_multiple", acc.toFancyString(), entCountCopy), true);
         return -1;
     }
     private static final Vec3 DEFAULT_SPIN_AXIS = new Vec3(0d, 1d, 0d);
@@ -158,7 +157,7 @@ public class CommandPhysicsDebug
             ICollisionSystem system = FlansPhysicsMod.forLevel(source.getLevel());
             AngularAcceleration acc = AngularAcceleration.fromUtoVinTicks(AngularVelocity.Zero, AngularVelocity.degreesPerSecond(spinAxis.normalize(), spinSpeed), 1);
             system.applyTorque(handle, acc.asTorqueForPointMass(1d));
-            source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.yeet_single", acc.toFancyString(), handle.Handle()), true);
+            source.sendSuccess(() -> Component.translatable("flansphysics.command.yeet_single", acc.toFancyString(), handle.Handle()), true);
         }
         return -1;
     }
@@ -178,7 +177,7 @@ public class CommandPhysicsDebug
             }
         }
         final int entCountCopy = entityCount;
-        source.sendSuccess(() -> Component.translatable("flansphysicsmod.command.yeet_multiple", acc.toFancyString(), entCountCopy), true);
+        source.sendSuccess(() -> Component.translatable("flansphysics.command.yeet_multiple", acc.toFancyString(), entCountCopy), true);
         return -1;
     }
 }

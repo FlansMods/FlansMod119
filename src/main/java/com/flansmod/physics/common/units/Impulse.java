@@ -172,7 +172,7 @@ public record Impulse(@Nonnull Vec3 momentumDelta) implements IForce
     @Override
     public String toString() { return "Impulse ["+momentumDelta+"] kgm/tick"; }
     @Override @Nonnull
-    public Component toFancyString() { return Component.translatable("flansphysicsmod.impulse", momentumDelta.x, momentumDelta.y, momentumDelta.z); }
+    public Component toFancyString() { return Component.translatable("flansphysics.impulse", momentumDelta.x, momentumDelta.y, momentumDelta.z); }
     @Override
     public boolean equals(Object other)
     {

@@ -120,7 +120,7 @@ public record AngularAcceleration(@Nonnull Vec3 Axis, double Magnitude) implemen
 	@Override
 	public String toString() { return "AngularAcceleration ["+Units.Angle.Radians_To_Degrees(Magnitude)+"] degrees/tick^2 around ["+Axis+"]"; }
 	@Override @Nonnull
-	public Component toFancyString() { return Component.translatable("flansphysicsmod.angular_acceleration", Units.Angle.Radians_To_Degrees(Magnitude), Axis.x, Axis.y, Axis.z); }
+	public Component toFancyString() { return Component.translatable("flansphysics.angular_acceleration", Units.Angle.Radians_To_Degrees(Magnitude), Axis.x, Axis.y, Axis.z); }
 	@Override
 	public boolean equals(Object other)
 	{

@@ -78,7 +78,7 @@ public record OffsetAcceleration(@Nonnull Vec3 Acceleration, @Nonnull Vec3 Origi
 	@Override
 	public String toString() { return "OffsetAcceleration ["+Acceleration+"] at ["+Origin+"]"; }
 	@Override @Nonnull
-	public Component toFancyString() { return Component.translatable("flansphysicsmod.offset_acceleration", Acceleration.x, Acceleration.y, Acceleration.z, Origin.x, Origin.y, Origin.z); }
+	public Component toFancyString() { return Component.translatable("flansphysics.offset_acceleration", Acceleration.x, Acceleration.y, Acceleration.z, Origin.x, Origin.y, Origin.z); }
 	@Override
 	public boolean equals(Object other)
 	{

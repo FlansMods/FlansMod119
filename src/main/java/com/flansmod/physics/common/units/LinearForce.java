@@ -45,7 +45,7 @@ public record LinearForce(@Nonnull Vec3 Force) implements IForce
 	@Override
 	public String toString() { return "LinearForce ["+Force+"]"; }
 	@Override @Nonnull
-	public Component toFancyString() { return Component.translatable("flansphysicsmod.linear_force", Force.x, Force.y, Force.z); }
+	public Component toFancyString() { return Component.translatable("flansphysics.linear_force", Force.x, Force.y, Force.z); }
 
 	@Override
 	public boolean equals(Object other)

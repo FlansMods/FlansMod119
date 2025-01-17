@@ -111,7 +111,7 @@ public record Torque(@Nonnull Vec3 Axis, double Magnitude) implements IForce
 	@Override
 	public String toString() { return "Torque ["+Magnitude+"] around ["+Axis+"]"; }
 	@Override @Nonnull
-	public Component toFancyString() { return Component.translatable("flansphysicsmod.torque", Magnitude, Axis.x, Axis.y, Axis.z); }
+	public Component toFancyString() { return Component.translatable("flansphysics.torque", Magnitude, Axis.x, Axis.y, Axis.z); }
 
 	@Override
 	public boolean equals(Object other)

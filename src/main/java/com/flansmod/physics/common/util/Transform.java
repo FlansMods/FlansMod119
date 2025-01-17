@@ -95,26 +95,6 @@ public class Transform
         Scale = new Vector3f(scale);
         constructorNaNCheck();
     }
-    private Transform(@Nonnull Matrix4f pose)
-    {
-        Position = new Vector3d(pose.transformPosition(new Vector3f()));
-
-        Vector3f right = new Vector3f(1f, 0f, 0f);
-        Vector3f up = new Vector3f(0f, 1f, 0f);
-        Vector3f forward = new Vector3f(0f, 0f, -1f);
-        pose.transformDirection(right);
-        pose.transformDirection(up);
-        pose.transformDirection(forward);
-        Scale = new Vector3f(right.length(), up.length(), forward.length());
-
-        Matrix3f oriMatrix = new Matrix3f(
-            right.x / Scale.x,      right.y / Scale.y,      right.z / Scale.z,
-            up.x / Scale.x,         up.y / Scale.y,         up.z / Scale.z,
-            forward.x / Scale.x,    forward.y / Scale.y,    forward.z / Scale.z);
-        Orientation = oriMatrix.getNormalizedRotation(new Quaternionf());
-
-        constructorNaNCheck();
-    }
     private Transform(float scale)
     {
         Position = IDENTITY_POS;
@@ -142,6 +122,7 @@ public class Transform
     @Nonnull public static Transform fromScale(float scale)                                                                   { return new Transform(scale);  }
     @Nonnull public static Transform fromScale(@Nonnull Vector3f scale)                                                       { return new Transform(IDENTITY_POS, IDENTITY_QUAT, scale);  }
     @Nonnull public static Transform fromPos(@Nonnull Vec3 pos)                                                               { return new Transform(pos.x, pos.y, pos.z, 1f); }
+    @Nonnull public static Transform fromPos(@Nonnull Vector3d pos)                                                           { return new Transform(pos, IDENTITY_QUAT, IDENTITY_SCALE); }
     @Nonnull public static Transform fromPos(double x, double y, double z)                                                    { return new Transform(x, y, z, 1f); }
     @Nonnull public static Transform fromPosAndQuat(double x, double y, double z, @Nonnull Quaternionf ori)                   { return new Transform(x, y, z, ori, 1f); }
     @Nonnull public static Transform fromPosAndQuat(@Nonnull Vector3d pos, @Nonnull Quaternionf ori)                          { return new Transform(pos.x, pos.y, pos.z, ori, 1f); }
@@ -155,8 +136,6 @@ public class Transform
     @Nonnull public static Transform fromLookDirection(@Nonnull Vec3 forward, @Nonnull Vec3 up)                               { return new Transform(0d, 0d, 0d, lookAlong(forward, up), 1f); }
     @Nonnull public static Transform fromPositionAndLookDirection(@Nonnull Vec3 pos, @Nonnull Vec3 forward, @Nonnull Vec3 up) { return new Transform(pos.x, pos.y, pos.z, lookAlong(forward, up), 1f); }
     @Nonnull public static Transform fromBlockPos(@Nonnull BlockPos blockPos)                                                 { return new Transform(blockPos.getX(), blockPos.getY(), blockPos.getZ(), 1f); }
-    @Nonnull public static Transform fromPose(@Nonnull Matrix4f pose)                                                         { return new Transform(pose); }
-    @Nonnull public static Transform fromPose(@Nonnull PoseStack poseStack)                                                   { return fromPose(poseStack.last().pose()); }
     @Nonnull public static Transform fromItem(@Nonnull ItemTransform itemTransform)                                           { return new Transform(itemTransform.translation.x, itemTransform.translation.y, itemTransform.translation.z, quatFromEuler(itemTransform.rotation), itemTransform.scale.x); }
     @Nonnull public static Transform fromEntity(@Nonnull Entity entity)                                                       { return fromPosAndEuler(entity.position(), entity.getXRot(), entity.getYRot(), 0f); }
     @Nonnull public static Transform copy(@Nonnull Transform other)                                                           { return new Transform(other); }

@@ -24,9 +24,31 @@ issueTrackerURL="https://github.com/FlansMods/FlansModReloaded/issues"
     Make sure you install some content packs as well, Flan's Mod has no default content.
     You can also create your own packs. Check out the Flan's Mod Discord for more info.
     '''
+[[mods]] #mandatory
+    modId="flansphysics"
+    version="${flansmodversion}"
+    displayName="Flan's Physics"
+    logoFile="flansmod.png"
+    credits="jamioflan"
+    authors="jamioflan"
+    description='''
+            Physics
+            '''
 
+[[dependencies.flansphysics]]
+    modId="forge"
+    mandatory=true
+    versionRange="${forgeversionrange}"
+    ordering="NONE"
+    side="BOTH"
+[[dependencies.flansphysics]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="${mcversionrange}"
+    ordering="NONE"
+    side="BOTH"
 [[dependencies.flansmod]]
-    modId="flansphysicsmod"
+    modId="flansphysics"
     mandatory=true
     versionRange="${flansmodversion}"
     ordering="NONE"

@@ -86,7 +86,7 @@ public record LinearAcceleration(@Nonnull Vec3 Acceleration) implements IAcceler
 	@Override
 	public String toString() { return "LinearAcceleration ["+Acceleration+"] blocks/tick^2"; }
 	@Override @Nonnull
-	public Component toFancyString() { return Component.translatable("flansphysicsmod.linear_acceleration", Acceleration.x, Acceleration.y, Acceleration.z); }
+	public Component toFancyString() { return Component.translatable("flansphysics.linear_acceleration", Acceleration.x, Acceleration.y, Acceleration.z); }
 	@Override
 	public boolean equals(Object other)
 	{

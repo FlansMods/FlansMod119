@@ -76,7 +76,7 @@ public record OffsetForce(@Nonnull Vec3 Force, @Nonnull Vec3 Offset) implements 
 	@Override
 	public String toString() { return "OffsetForce ["+Force+"] at ["+Offset+"]"; }
 	@Override @Nonnull
-	public Component toFancyString() { return Component.translatable("flansphysicsmod.offset_force", Force.x, Force.y, Force.z, Offset.x, Offset.y, Offset.z); }
+	public Component toFancyString() { return Component.translatable("flansphysics.offset_force", Force.x, Force.y, Force.z, Offset.x, Offset.y, Offset.z); }
 
 	@Override
 	public boolean equals(Object other)

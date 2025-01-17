@@ -5,9 +5,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
-import org.joml.Quaternionf;
-import org.joml.Vector3d;
-import org.joml.Vector3f;
+import org.joml.*;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -74,6 +72,29 @@ public class TransformStack
 	{
 		Layers.push(new Layer(new Stack<>(), null));
 	}
+	private TransformStack(@Nonnull Matrix4f pose)
+	{
+		this();
+		Vector3d pos = new Vector3d(pose.transformPosition(new Vector3f()));
+
+		Vector3f right = new Vector3f(1f, 0f, 0f);
+		Vector3f up = new Vector3f(0f, 1f, 0f);
+		Vector3f forward = new Vector3f(0f, 0f, -1f);
+		pose.transformDirection(right);
+		pose.transformDirection(up);
+		pose.transformDirection(forward);
+		Vector3f scale = new Vector3f(right.length(), up.length(), forward.length());
+
+		Matrix3f oriMatrix = new Matrix3f(
+			right.x / scale.x,      right.y / scale.y,      right.z / scale.z,
+			up.x / scale.x,         up.y / scale.y,         up.z / scale.z,
+			forward.x / scale.x,    forward.y / scale.y,    forward.z / scale.z);
+		Quaternionf orientation = oriMatrix.getNormalizedRotation(new Quaternionf());
+
+		add(Transform.fromScale(scale));
+		add(Transform.fromPosAndQuat(pos.x / scale.x, pos.y / scale.y, pos.z / scale.z, orientation));
+	}
+
 	@Nonnull
 	public static TransformStack empty() { return new TransformStack(); }
 	@Nonnull
@@ -82,6 +103,10 @@ public class TransformStack
 	public static TransformStack of(@Nonnull Transform transform) { return new TransformStack().and(transform); }
 	@Nonnull
 	public static TransformStack of(@Nonnull Transform ... transforms) { return new TransformStack().and(transforms); }
+	@Nonnull
+	public static TransformStack of(@Nonnull Matrix4f pose)                                                         { return new TransformStack(pose); }
+	@Nonnull
+	public static TransformStack of(@Nonnull PoseStack poseStack)                                                   { return of(poseStack.last().pose()); }
 
 	@Nonnull
 	public TransformStack and(@Nonnull Transform transform)

@@ -40,7 +40,7 @@ public record CompoundForce(@Nonnull LinearForce linear, @Nonnull Torque angular
     @Override
     public String toString() { return "CompoundForce ["+linear+"] at ["+angular+"]"; }
     @Override @Nonnull
-    public Component toFancyString() { return Component.translatable("flansphysicsmod.compound_force",
+    public Component toFancyString() { return Component.translatable("flansphysics.compound_force",
             linear.Force().x, linear.Force().y, linear.Force().z, angular.Magnitude(), angular.Axis().x, angular.Axis().y, angular.Axis().z); }
     @Override
     public boolean equals(Object other)

@@ -46,7 +46,7 @@ public record CompoundAcceleration(@Nonnull LinearAcceleration linear, @Nonnull 
     @Override
     public String toString() { return "CompoundAcceleration ["+linear+"] at ["+angular+"]"; }
     @Override @Nonnull
-    public Component toFancyString() { return Component.translatable("flansphysicsmod.compound_acceleration",
+    public Component toFancyString() { return Component.translatable("flansphysics.compound_acceleration",
             linear.Acceleration().x, linear.Acceleration().y, linear.Acceleration().z, angular.Magnitude(), angular.Axis().x, angular.Axis().y, angular.Axis().z); }
     @Override
     public boolean equals(Object other)

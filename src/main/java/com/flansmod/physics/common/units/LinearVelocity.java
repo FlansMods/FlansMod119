@@ -73,7 +73,7 @@ public record LinearVelocity(@Nonnull Vec3 Velocity) implements IVelocity
 	@Override
 	public String toString() { return "LinearVelocity ["+Velocity+"]"; }
 	@Override @Nonnull
-	public Component toFancyString() { return Component.translatable("flansphysicsmod.linear_velocity", Velocity.x, Velocity.y, Velocity.z); }
+	public Component toFancyString() { return Component.translatable("flansphysics.linear_velocity", Velocity.x, Velocity.y, Velocity.z); }
 
 	public boolean isApprox(@Nonnull LinearVelocity other) { return Maths.approx(other.Velocity, Velocity); }
 	public boolean isApprox(@Nonnull LinearVelocity other, double epsilon) { return Maths.approx(other.Velocity, Velocity, epsilon); }

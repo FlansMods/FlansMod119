@@ -201,7 +201,7 @@ public record AngularVelocity(@Nonnull Vec3 Axis, double Magnitude) implements I
 	@Override
 	public String toString() { return "AngularVelocity ["+Units.Angle.Radians_To_Degrees(Magnitude)+"] degrees/tick around ["+Axis+"]"; }
 	@Override @Nonnull
-	public Component toFancyString() { return Component.translatable("flansphysicsmod.angular_velocity", Units.Angle.Radians_To_Degrees(Magnitude), Axis.x, Axis.y, Axis.z); }
+	public Component toFancyString() { return Component.translatable("flansphysics.angular_velocity", Units.Angle.Radians_To_Degrees(Magnitude), Axis.x, Axis.y, Axis.z); }
 	@Override
 	public boolean equals(Object other)
 	{

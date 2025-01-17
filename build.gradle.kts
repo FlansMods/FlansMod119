@@ -255,8 +255,10 @@ fun modTask(taskName: String, srcTask: Task, classfier: String): Jar {
         from(zipTree(srcTask.outputs.files.singleFile))
         {
             include("**/assets/flansmod/")
+            include("**/assets/flansphysics/")
             include("**/assets/forge/")
             include("**/assets/minecraft")
+            include("**/com/flansmod/physics/")
             include("**/com/flansmod/common/")
             include("**/com/flansmod/client/")
             include("**/com/flansmod/util/")
