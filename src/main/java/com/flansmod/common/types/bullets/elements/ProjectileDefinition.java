@@ -69,15 +69,18 @@ public class ProjectileDefinition
 
 	@JsonField(ModifiedBy = Constants.STAT_PROJECTILE_DRAG_IN_AIR, Docs = "Percent speed loss per tick (1/20s)")
 	public float dragInAir = 0.01f;
-	@JsonField(ModifiedBy = Constants.STAT_PROJECTILE_PARTICLES_IN_AIR)
-	public String airParticles = "";
 	@JsonField(ModifiedBy = Constants.STAT_PROJECTILE_DRAG_IN_WATER, Docs = "Percent speed loss per tick (1/20s)")
 	public float dragInWater = 0.2f;
+
+	@JsonField(ModifiedBy = Constants.STAT_PROJECTILE_PARTICLES_IN_AIR)
+	public String airParticles = "";
 	@JsonField(ModifiedBy = Constants.STAT_PROJECTILE_PARTICLES_IN_WATER)
 	public String waterParticles = "";
 	@JsonField(ModifiedBy = Constants.STAT_PROJECTILE_TIME_BETWEEN_PARTICLES)
 	public float timeBetweenTrailParticles = 0.25f;
 
+	@JsonField()
+	public TrailDefinition[] particleTrails = new TrailDefinition[0];
 
 	public boolean HasSplash() { return splashRadius > 0f; }
 

@@ -1,5 +1,8 @@
 package com.flansmod.common.projectiles;
 
+import com.flansmod.client.render.FlanItemModelRenderer;
+import com.flansmod.client.render.models.FlansModelRegistry;
+import com.flansmod.client.render.models.ITurboRenderer;
 import com.flansmod.common.FlansMod;
 import com.flansmod.common.actions.ActionGroupInstance;
 import com.flansmod.common.actions.ActionStack;
@@ -12,11 +15,16 @@ import com.flansmod.common.network.FlansEntityDataSerializers;
 import com.flansmod.common.types.bullets.BulletDefinition;
 import com.flansmod.common.types.bullets.elements.EProjectileResponseType;
 import com.flansmod.common.types.bullets.elements.ProjectileDefinition;
+import com.flansmod.common.types.bullets.elements.TrailDefinition;
 import com.flansmod.physics.common.util.Maths;
+import com.flansmod.physics.common.util.Transform;
+import com.flansmod.physics.common.util.TransformStack;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.protocol.game.ClientboundUpdateEnabledFeaturesPacket;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -28,6 +36,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.registries.ForgeRegistries;
+import org.joml.Vector3f;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -43,6 +53,8 @@ public class BulletEntity extends Projectile
 	private static final EntityDataAccessor<Integer> DATA_ACTION_GROUP_PATH_HASH = SynchedEntityData.defineId(BulletEntity.class, EntityDataSerializers.INT);
 	private static final EntityDataAccessor<Integer> DATA_SHOT_INDEX = SynchedEntityData.defineId(BulletEntity.class, EntityDataSerializers.INT);
 	private static final EntityDataAccessor<Integer> DATA_LOCK_ID = SynchedEntityData.defineId(BulletEntity.class, EntityDataSerializers.INT);
+	private static final EntityDataAccessor<Integer> DATA_LIFETIME = SynchedEntityData.defineId(BulletEntity.class, EntityDataSerializers.INT);
+
 
 	@Nullable
 	public Entity LockedOnTo = null;
@@ -52,6 +64,8 @@ public class BulletEntity extends Projectile
 	public boolean Stuck = false;
 	public boolean Detonated = false;
 	public final ActionStack Actions;
+
+	public int lifeTime = 0;
 
 	public void SetOwnerID(@Nonnull UUID ownerID) { entityData.set(DATA_OWNER_UUID, Optional.of(ownerID)); }
 	public void SetShooterID(@Nonnull UUID shooterID) { entityData.set(DATA_SHOOTER_UUID, Optional.of(shooterID)); }
@@ -100,7 +114,6 @@ public class BulletEntity extends Projectile
 
 	public BulletEntity(EntityType<? extends BulletEntity> entityType, Level level)
 	{
-
 		super(entityType, level);
 		Actions = new ActionStack(level.isClientSide);
 	}
@@ -115,7 +128,7 @@ public class BulletEntity extends Projectile
 		entityData.define(DATA_SHOT_INDEX, 0);
 		entityData.define(DATA_LOCK_ID, -1);
 		entityData.define(DATA_ACTION_GROUP_PATH_HASH, 0);
-
+		entityData.define(DATA_LIFETIME, 0);
 	}
 
 	public void SetLockOnTarget(Entity e){
@@ -144,6 +157,7 @@ public class BulletEntity extends Projectile
 				FuseRemaining -= group.GetProgressTicks();
 			}
 		}
+		lifeTime = 0;
 	}
 
 	public void SetVelocity(Vec3 velocity)
@@ -191,11 +205,18 @@ public class BulletEntity extends Projectile
 		motion = ApplyGravity(motion);
 		setDeltaMovement(motion);
 		motion = OnImpact(motion);
+		motion = motion.multiply(new Vec3(0.1f,0.1f,0.1f));
 
 		ProjectileDefinition def = GetContext().GetProjectileDef();
 
 		if(GetLockID() != -1){
 			LockedOnTo = level().getEntity(GetLockID());
+		}
+
+		if(def == null){
+			if(!level().isClientSide)
+				kill();
+			return;
 		}
 
 		switch(def.GetGuidanceMode())
@@ -236,8 +257,15 @@ public class BulletEntity extends Projectile
 		UpdateFuse();
 		Vec3 origin = position();
 		Vec3 look = motion.normalize();
-		if(level().isClientSide() && def.GetGuidanceMode() != BulletGuidance.GuidanceType.NONE) //TODO: Proper particle spawning (action maybe)
-			Minecraft.getInstance().level.addParticle(ParticleTypes.POOF, origin.x() + look.x * 0.1f, origin.y() + look.y * 0.1f, origin.z() + look.z * 0.1f, (look.x() * 0.3) , (look.y() * 0.3), (look.z() * 0.3));
+
+		if(level().isClientSide()){
+			SpawnTrail();
+		}
+
+		lifeTime++;
+
+		//if(level().isClientSide() && def.GetGuidanceMode() != BulletGuidance.GuidanceType.NONE) //TODO: Proper particle spawning (action maybe)
+			//Minecraft.getInstance().level.addParticle(ParticleTypes.POOF, origin.x() + look.x * 0.1f, origin.y() + look.y * 0.1f, origin.z() + look.z * 0.1f, (look.x() * 0.3) , (look.y() * 0.3), (look.z() * 0.3));
 	}
 
 	protected Vec3 Accelerate(Vec3 motion){
@@ -249,6 +277,44 @@ public class BulletEntity extends Projectile
 			}
 		}
 		return motion;
+	}
+
+	public void SpawnTrail(){
+
+		BulletDefinition def = GetContext().Bullet;
+		ResourceLocation loc = def.Location;
+		FlanItemModelRenderer bulletRenderer = (FlanItemModelRenderer) FlansModelRegistry.GetItemRenderer(loc);
+		for(TrailDefinition trail : GetContext().GetProjectileDef().particleTrails)
+		{
+			if(isInWater() && !trail.spawnUnderwater){
+				continue;
+			}
+			if(!isInWater() && trail.onlySpawnUnderwater){
+				continue;
+			}
+			if(lifeTime >= trail.fromTick && lifeTime < trail.toTick)
+			{
+				for(String apName : trail.spawnPoints)
+				{
+
+					//Getting a generic AP point on an entity model might be something we need commonly, consider making a helper function somewhere
+					TransformStack transformStack = TransformStack.empty();
+					transformStack.add(Transform.fromPosAndEuler(this.position(),new Vector3f(this.getXRot(),this.getYRot(),0)));
+					bulletRenderer.ApplyAPOffsetInternal(transformStack, apName,null,null);
+					Transform point = transformStack.top();
+
+					Vec3 position = point.positionVec3();
+					Vec3 look = point.forward();
+					float speed = trail.speed;
+					speed = 0;
+					ParticleOptions particle = (ParticleOptions) ForgeRegistries.PARTICLE_TYPES.getValue(new ResourceLocation(trail.particle));
+					if(particle != null)
+					{
+						Minecraft.getInstance().level.addParticle(particle, position.x(), position.y(), position.z(), look.x()*speed, look.y()*speed, look.z()*speed);
+					}
+				}
+			}
+		}
 	}
 
 	protected Vec3 ApplyDrag(Vec3 motion)
@@ -367,6 +433,7 @@ public class BulletEntity extends Projectile
 		CompoundTag contextTags = new CompoundTag();
 		GetContext().Save(contextTags);
 		tags.put("context", contextTags);
+		tags.putInt("lifeTime",lifeTime);
 	}
 
 	public void readAdditionalSaveData(CompoundTag tags)
@@ -381,6 +448,7 @@ public class BulletEntity extends Projectile
 		GunshotContext context = GunshotContext.Load(tags.getCompound("context"), level().isClientSide);
 		InitContext(context);
 		LockedOnTo = level().getEntity(tags.getInt("lockTarget"));
+		lifeTime = tags.getInt("lifeTime");
 	}
 
 
