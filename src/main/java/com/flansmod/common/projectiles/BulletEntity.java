@@ -286,8 +286,8 @@ public class BulletEntity extends Projectile
 		if(GetContext().Acceleration() > 0) {
 			double currSpeed = motion.length();
 			if(currSpeed < GetContext().MaxSpeed()/20d) {
-				float acc = GetContext().Acceleration();
-				motion = motion.normalize().scale(currSpeed+GetContext().Acceleration());
+				float acc = GetContext().Acceleration()/20f;
+				motion = motion.normalize().scale(currSpeed+acc);
 			}
 		}
 		return motion;
