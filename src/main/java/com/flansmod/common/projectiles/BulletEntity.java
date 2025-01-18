@@ -76,6 +76,8 @@ public class BulletEntity extends Projectile
 	public void SetShotIndex(int index) { entityData.set(DATA_SHOT_INDEX, index); }
 	public void SetLockID(int index) { entityData.set(DATA_LOCK_ID, index); }
 
+
+
 	@Nonnull
 	public UUID GetOwnerID() { return entityData.get(DATA_OWNER_UUID).orElse(ShooterContext.InvalidID); }
 	@Nonnull
@@ -159,6 +161,17 @@ public class BulletEntity extends Projectile
 			}
 		}
 		lifeTime = 0;
+	}
+
+	@Override
+	public boolean shouldRenderAtSqrDistance(double p_19883_) {
+		double d0 = this.getBoundingBox().getSize();
+		if (Double.isNaN(d0)) {
+			d0 = 1.0D;
+		}
+
+		d0 *= 64.0D * getViewScale()*6f;
+		return p_19883_ < d0 * d0;
 	}
 
 	public void SetVelocity(Vec3 velocity)
