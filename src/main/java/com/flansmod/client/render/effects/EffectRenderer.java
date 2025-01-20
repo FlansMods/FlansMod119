@@ -11,9 +11,9 @@ import javax.annotation.Nullable;
 
 public class EffectRenderer extends FlanItemModelRenderer
 {
-	public EffectRenderer()
+	public EffectRenderer(ResourceLocation loc)
 	{
-		super(null, true);
+		super(null, true, loc);
 	}
 
 	@Override

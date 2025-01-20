@@ -38,6 +38,7 @@ public abstract class FlanItemModelRenderer extends BlockEntityWithoutLevelRende
     @Nullable
     public final FlanItem Item;
     protected final TurboRigWrapper rigWrapper;
+    private ResourceLocation locationOverride;
 
     public FlanItemModelRenderer(@Nullable FlanItem flanItem, boolean shouldRenderWhenHeld)
     {
@@ -45,6 +46,19 @@ public abstract class FlanItemModelRenderer extends BlockEntityWithoutLevelRende
         Item = flanItem;
         ShouldRenderWhenHeld = shouldRenderWhenHeld;
         rigWrapper = new TurboRigWrapper(Item != null ? Item::getDefinitionLocation : invalidModelLocGetter);
+    }
+
+    public FlanItemModelRenderer(@Nullable FlanItem flanItem, boolean shouldRenderWhenHeld, ResourceLocation loc)
+    {
+        super(null, null);
+        Item = flanItem;
+        ShouldRenderWhenHeld = shouldRenderWhenHeld;
+        locationOverride = loc;
+        rigWrapper = new TurboRigWrapper(this::getLocationOverride);
+    }
+
+    public ResourceLocation getLocationOverride(){
+        return locationOverride;
     }
 
     protected void ifRigFound(@Nonnull Consumer<BakedTurboRig> func) { rigWrapper.ifRigFound(func); }
