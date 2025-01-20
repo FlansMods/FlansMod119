@@ -2,6 +2,8 @@ import org.spongepowered.asm.gradle.plugins.MixinExtension
 import com.matthewprenger.cursegradle.CurseExtension
 import com.matthewprenger.cursegradle.CurseProject
 import com.matthewprenger.cursegradle.CurseRelation
+import com.modrinth.minotaur.ModrinthExtension
+import com.modrinth.minotaur.TaskModrinthUpload
 import net.minecraftforge.gradle.userdev.UserDevExtension
 import org.apache.commons.lang3.StringUtils
 import org.eclipse.jgit.api.Git
@@ -12,9 +14,6 @@ import org.eclipse.jgit.revwalk.RevObject
 import org.eclipse.jgit.revwalk.RevTag
 import org.eclipse.jgit.revwalk.RevWalk
 import java.util.*
-import java.util.Arrays.asList
-import java.util.zip.ZipOutputStream
-import javax.xml.stream.events.Namespace
 
 buildscript {
     repositories {
@@ -47,6 +46,7 @@ plugins {
     id("net.minecraftforge.gradle") version "[6.0,6.2)"
     id("java")
     id("com.matthewprenger.cursegradle") version "1.1.0"
+    id("com.modrinth.minotaur") version "2.+"
 }
 apply(plugin = "org.spongepowered.mixin")
 
@@ -91,6 +91,7 @@ val minorVersion = config["flansmod.version.minor"] as String
 val modVersionNoBuild = "$majorVersion.$minorVersion"
 val modVersion = "$modVersionNoBuild.${getBuildNumber()}"
 val modCurseForgeID = config["flansmod.curseforge"] as String
+val modModrinthSlug = config["flansmod.modrinth-slug"] as String
 
 val packModVersionMin = config["packs.flansmod.version.min"] as String
 val packModVersionMax = config["packs.flansmod.version.max"] as String
@@ -102,6 +103,7 @@ val basicsVersionMinor = config["basics.version.minor"] as String
 val basicsVersionNoBuild = "$basicsVersionMajor.$basicsVersionMinor";
 val basicsVersion = "$basicsVersionNoBuild.${getBuildNumber()}"
 val basicsCurseForgeID = config["basics.curseforge"] as String
+val basicsModrinthSlug = config["basics.modrinth-slug"] as String
 
 // Vender's Game versioning
 val vendersVersionMajor = config["venders.version.major"] as String
@@ -109,6 +111,7 @@ val vendersVersionMinor = config["venders.version.minor"] as String
 val vendersVersionNoBuild = "$vendersVersionMajor.$vendersVersionMinor";
 val vendersVersion = "$vendersVersionNoBuild.${getBuildNumber()}"
 val vendersCurseForgeID = config["venders.curseforge"] as String
+val vendersModrinthSlug = config["venders.modrinth-slug"] as String
 
 // Curse
 val curseForgeReleaseType = config["curseforge.releasetype"] as String
@@ -137,6 +140,7 @@ repositories {
         setUrl("https://maven.blamejared.com/")
     }
 }
+
 
 dependencies {
     //"deobfCompile"("mezz.jei:jei_$mcVersion:$jeiVersion")
@@ -430,6 +434,7 @@ fun gatherFilesForModTask(classifier:String, expandTask: Task, expandedDir: File
                 include("**/META-INF/flansmod.toml")
 
                 exclude("**/com/flansmod/packs")
+                exclude("**/com/flansmod/teams")
                 exclude("**/data/flansmod/tags/")
                 exclude("**/data/flansmod/partial_data/")
                 exclude("**/data/flansmod/loot_modifiers/")
@@ -686,41 +691,104 @@ fun createCurseForgeUploadTask(curseForgeID: String, main: Jar, src: Jar): Curse
     else return null
 }
 
-
-
 //if (curseforgeProject != null) {
-   // notificationTask.dependsOn("curseforge")
+// notificationTask.dependsOn("curseforge")
 //}
 
-val modUploadTask            = createCurseForgeUploadTask(modCurseForgeID, modDevTask, modSourceTask)
-val basicPartsUploadTask     = createCurseForgeUploadTask(basicsCurseForgeID, basicsTasks.second, basicsTasks.first)
-val vendersUploadTask        = createCurseForgeUploadTask(vendersCurseForgeID, vendersTasks.second, vendersTasks.first)
+val modCurseforgeTask            = createCurseForgeUploadTask(modCurseForgeID, modDevTask, modSourceTask)
+val basicPartsCurseforgeTask     = createCurseForgeUploadTask(basicsCurseForgeID, basicsTasks.second, basicsTasks.first)
+val vendersCurseforgeTask        = createCurseForgeUploadTask(vendersCurseForgeID, vendersTasks.second, vendersTasks.first)
+
+
+
+
+// ------------- MODRINTH ----------------
+fun initModrinthExtension(): com.modrinth.minotaur.ModrinthExtension? {
+    return if (System.getenv("MODRINTH_TOKEN") != null) {
+        val extension = modrinth
+        extension.token.set(System.getenv("MODRINTH_TOKEN"))
+        extension
+    } else {
+        println("Skipping Modrinth task as there is no token in the environment")
+        null
+    }
+}
+fun createModrinthUploadTask(taskName: String, modrinthSlug: String, main: Jar, src: Jar): TaskModrinthUpload? {
+    val modrinthExtension = initModrinthExtension()
+    if(modrinthExtension != null)
+    {
+        val modrinthTask = tasks.create<TaskModrinthUpload>(taskName) {
+            doFirst {
+                modrinthExtension.projectId.set(modrinthSlug)
+                modrinthExtension.versionNumber.set(modVersion)
+                modrinthExtension.versionType.set("release")
+                modrinthExtension.uploadFile.set(main)
+                modrinthExtension.gameVersions.addAll(mcVersion)
+                modrinthExtension.loaders.add("forge")
+            }
+        }
+
+        return modrinthTask
+    }
+    else return null
+}
+val modModrinthTask            = createModrinthUploadTask("mod", modModrinthSlug, modDevTask, modSourceTask)
+val basicPartsModrinthTask     = createModrinthUploadTask("basics", basicsModrinthSlug, basicsTasks.second, basicsTasks.first)
+val vendersModrinthTask        = createModrinthUploadTask("venders", vendersModrinthSlug, vendersTasks.second, vendersTasks.first)
+
+
+
+
 
 afterEvaluate {
-    if(modUploadTask?.uploadTask != null)
-        tasks.create("PublishFlansMod") {
-            dependsOn(modUploadTask.uploadTask)
+    if(modCurseforgeTask?.uploadTask != null)
+        tasks.create("PublishFlansMod[Curse]") {
+            dependsOn(modCurseforgeTask.uploadTask)
             group = "flansmod publish"
         }
-    if(basicPartsUploadTask?.uploadTask != null)
-        tasks.create("PublishBasicParts") {
-            dependsOn(basicPartsUploadTask.uploadTask)
+    if(basicPartsCurseforgeTask?.uploadTask != null)
+        tasks.create("PublishBasicParts[Curse]") {
+            dependsOn(basicPartsCurseforgeTask.uploadTask)
             group = "flansmod publish"
         }
-    if(vendersUploadTask?.uploadTask != null)
-        tasks.create("PublishVendersGame") {
-            dependsOn(vendersUploadTask.uploadTask)
+    if(vendersCurseforgeTask?.uploadTask != null)
+        tasks.create("PublishVendersGame[Curse]") {
+            dependsOn(vendersCurseforgeTask.uploadTask)
             group = "flansmod publish"
         }
 
-    if(tasks.findByPath("PublishBasicParts") != null) {
+    if(modModrinthTask != null)
+        tasks.create("PublishFlansMod[Modrinth]") {
+            dependsOn(modModrinthTask)
+            group = "flansmod publish"
+        }
+    if(basicPartsModrinthTask != null)
+        tasks.create("PublishBasicParts[Modrinth]") {
+            dependsOn(basicPartsModrinthTask)
+            group = "flansmod publish"
+        }
+    if(vendersModrinthTask != null)
+        tasks.create("PublishVendersGame[Modrinth]") {
+            dependsOn(vendersModrinthTask)
+            group = "flansmod publish"
+        }
+
+    if(tasks.findByPath("PublishBasicParts[Curse]") != null) {
         tasks.create("PublishAllPacks") {
-            dependsOn(tasks.getByName("PublishBasicParts"))
-            dependsOn(tasks.getByName("PublishVendersGame"))
+            dependsOn(tasks.getByName("PublishBasicParts[Curse]"))
+            dependsOn(tasks.getByName("PublishVendersGame[Curse]"))
+            if(tasks.findByPath("PublishBasicParts[Modrinth]") != null)
+            {
+                dependsOn(tasks.getByName("PublishBasicParts[Modrinth]"))
+                dependsOn(tasks.getByName("PublishVendersGame[Modrinth]"))
+            }
             group = "flansmod publish"
         }
         tasks.create("PublishFlansModAndAllPacks") {
-            dependsOn(tasks.getByName("PublishFlansMod"))
+            dependsOn(tasks.getByName("PublishFlansMod[Curse]"))
+            if(tasks.findByPath("PublishFlansMod[Modrinth]") != null) {
+                dependsOn(tasks.getByName("PublishFlansMod[Modrinth]"))
+            }
             dependsOn(tasks.getByName("PublishAllPacks"))
             group = "flansmod publish"
         }
