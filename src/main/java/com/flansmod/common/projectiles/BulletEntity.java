@@ -37,6 +37,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.registries.ForgeRegistries;
+import org.joml.Quaternionf;
 import org.joml.Vector3f;
 
 import javax.annotation.Nonnull;
@@ -74,6 +75,8 @@ public class BulletEntity extends Projectile
 	public void SetBulletDef(@Nonnull BulletDefinition bulletDef) { entityData.set(DATA_BULLET_DEF, bulletDef); }
 	public void SetShotIndex(int index) { entityData.set(DATA_SHOT_INDEX, index); }
 	public void SetLockID(int index) { entityData.set(DATA_LOCK_ID, index); }
+
+
 
 	@Nonnull
 	public UUID GetOwnerID() { return entityData.get(DATA_OWNER_UUID).orElse(ShooterContext.InvalidID); }
@@ -160,6 +163,17 @@ public class BulletEntity extends Projectile
 		lifeTime = 0;
 	}
 
+	@Override
+	public boolean shouldRenderAtSqrDistance(double p_19883_) {
+		double d0 = this.getBoundingBox().getSize();
+		if (Double.isNaN(d0)) {
+			d0 = 1.0D;
+		}
+
+		d0 *= 64.0D * getViewScale()*6f;
+		return p_19883_ < d0 * d0;
+	}
+
 	public void SetVelocity(Vec3 velocity)
 	{
 		setDeltaMovement(velocity);
@@ -205,7 +219,7 @@ public class BulletEntity extends Projectile
 		motion = ApplyGravity(motion);
 		setDeltaMovement(motion);
 		motion = OnImpact(motion);
-		motion = motion.multiply(new Vec3(0.1f,0.1f,0.1f));
+		//motion = motion.multiply(new Vec3(0.1f,0.1f,0.1f));
 
 		ProjectileDefinition def = GetContext().GetProjectileDef();
 
@@ -272,8 +286,8 @@ public class BulletEntity extends Projectile
 		if(GetContext().Acceleration() > 0) {
 			double currSpeed = motion.length();
 			if(currSpeed < GetContext().MaxSpeed()/20d) {
-				float acc = GetContext().Acceleration();
-				motion = motion.normalize().scale(currSpeed+GetContext().Acceleration());
+				float acc = GetContext().Acceleration()/20f;
+				motion = motion.normalize().scale(currSpeed+acc);
 			}
 		}
 		return motion;
@@ -299,14 +313,12 @@ public class BulletEntity extends Projectile
 
 					//Getting a generic AP point on an entity model might be something we need commonly, consider making a helper function somewhere
 					TransformStack transformStack = TransformStack.empty();
-					transformStack.add(Transform.fromPosAndEuler(this.position(),new Vector3f(this.getXRot(),this.getYRot(),0)));
+					transformStack.add(Transform.fromPosAndEuler(this.position(),new Vector3f(this.getXRot(),-this.getYRot()+90f,lifeTime)));
 					bulletRenderer.ApplyAPOffsetInternal(transformStack, apName,null,null);
 					Transform point = transformStack.top();
-
-					Vec3 position = point.positionVec3();
-					Vec3 look = point.forward();
+					Vec3 position = transformStack.localToGlobalPosition(Vec3.ZERO);
+					Vec3 look = transformStack.right();
 					float speed = trail.speed;
-					speed = 0;
 					ParticleOptions particle = (ParticleOptions) ForgeRegistries.PARTICLE_TYPES.getValue(new ResourceLocation(trail.particle));
 					if(particle != null)
 					{
