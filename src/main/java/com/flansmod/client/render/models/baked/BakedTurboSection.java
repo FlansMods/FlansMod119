@@ -25,9 +25,15 @@ import java.util.List;
 public record BakedTurboSection(@Nonnull List<BakedTurboGeometry> geometries,
 								@Nonnull ItemOverrides overrides,
 								@Nonnull ItemTransforms transforms,
-								@Nonnull ETurboRenderMaterial material) implements BakedModel
+								@Nonnull ETurboRenderMaterial material,
+								@Nonnull String renderConditional) implements BakedModel
 {
-	public static final BakedTurboSection invalid = new BakedTurboSection(ImmutableList.of(), ItemOverrides.EMPTY, ItemTransforms.NO_TRANSFORMS, ETurboRenderMaterial.Cutout);
+	public static final BakedTurboSection invalid = new BakedTurboSection(
+		ImmutableList.of(),
+		ItemOverrides.EMPTY,
+		ItemTransforms.NO_TRANSFORMS,
+		ETurboRenderMaterial.Cutout,
+		"");
 
 	@Override
 	public boolean useAmbientOcclusion() { return false; }
@@ -41,7 +47,6 @@ public record BakedTurboSection(@Nonnull List<BakedTurboGeometry> geometries,
 	public TextureAtlasSprite getParticleIcon() { return UnitTextureAtlasSprite.INSTANCE; }
 	@Override @Nonnull
 	public ItemOverrides getOverrides() { return overrides; }
-
 
 	@Override @Nonnull
 	public List<BakedQuad> getQuads(@Nullable BlockState blockState, @Nullable Direction direction, RandomSource randomSource)

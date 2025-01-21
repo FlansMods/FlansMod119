@@ -229,8 +229,8 @@ public class TurboRig implements IUnbakedGeometry<TurboRig>, UnbakedModel
 					JsonObject jAPObject = jAPElement.getAsJsonObject();
 					String name = jAPObject.get("name").getAsString();
 					String attachTo = jAPObject.get("attachTo").getAsString();
-					Vector3f offset = getVector3f(jAPObject.get("offset"));
-					Vector3f euler = getVector3f(jAPObject.get("euler"));
+					Vector3f offset = getOrDefaultVector3f(jAPObject, "offset", new Vector3f());
+					Vector3f euler = getOrDefaultVector3f(jAPObject, "euler", new Vector3f());
 					attachPoints.put(name, new AttachPoint(attachTo, offset, euler));
 				}
 			}

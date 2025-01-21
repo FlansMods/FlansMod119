@@ -57,6 +57,11 @@ public class DefinitionParser
 			try { return jNode.getAsByte(); }
 			catch(Exception e) { FlansMod.LOGGER.error("Failed to parse JsonNode " + jNode + " into " + ref + " as byte due to exception: " + e); throw e; }
 		});
+		Parsers.put(Character.TYPE, (ref, jNode, annot) ->
+		{
+			try { return (char)jNode.getAsByte(); }
+			catch(Exception e) { FlansMod.LOGGER.error("Failed to parse JsonNode " + jNode + " into " + ref + " as char due to exception: " + e); throw e; }
+		});
 		Parsers.put(Boolean.TYPE, (ref, jNode, annot) ->
 		{
 			try { return jNode.getAsBoolean(); }
@@ -93,7 +98,8 @@ public class DefinitionParser
 		Parsers.put(ResourceLocation.class, (ref, jNode, annot) -> {
 			try
 			{
-				return new ResourceLocation(jNode.getAsString());
+				String resLoc = jNode.getAsString();
+				return new ResourceLocation(resLoc);
 			}
 			catch(Exception e) { FlansMod.LOGGER.error("Failed to parse JsonNode " + jNode + " into " + ref + " as ResourceLocation due to exception: " + e); throw e; }
 		});
@@ -378,7 +384,11 @@ public class DefinitionParser
 
 				return ref;
 			}
-			catch(Exception e) { FlansMod.LOGGER.error("Failed to parse JsonNode " + jNode + " into " + ref + " as " + classRef + " due to exception: " + e); throw e; }
+			catch(Exception e)
+			{
+				FlansMod.LOGGER.error("Failed to parse JsonNode " + jNode + " into " + ref + " as " + classRef + " due to exception: " + e);
+				throw e;
+			}
 		}
 	}
 
@@ -404,10 +414,10 @@ public class DefinitionParser
 		{
 			FlansMod.LOGGER.error("Failed to load " + definition.Location);
 			FlansMod.LOGGER.error(e.getMessage());
-			for(StackTraceElement stackTrace : e.getStackTrace())
-			{
-				FlansMod.LOGGER.error(stackTrace.toString());
-			}
+			//for(StackTraceElement stackTrace : e.getStackTrace())
+			//{
+			//	FlansMod.LOGGER.error(stackTrace.toString());
+			//}
 			return false;
 		}
 	}

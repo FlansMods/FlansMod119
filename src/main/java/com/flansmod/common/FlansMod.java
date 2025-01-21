@@ -49,6 +49,8 @@ import com.flansmod.common.types.teams.TeamDefinitions;
 import com.flansmod.common.types.vehicles.ControlSchemeDefinitions;
 import com.flansmod.common.types.vehicles.VehicleDefinitions;
 import com.flansmod.common.worldgen.loot.LootPopulator;
+import com.flansmod.packs.clockwork.common.ChipEntity;
+import com.flansmod.packs.clockwork.common.SadieEntity;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
 import net.minecraft.advancements.CriteriaTriggers;
@@ -85,6 +87,7 @@ import net.minecraftforge.common.crafting.CraftingHelper;
 import net.minecraftforge.common.extensions.IForgeMenuType;
 import net.minecraftforge.common.loot.IGlobalLootModifier;
 import net.minecraftforge.event.AddReloadListenerEvent;
+import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.level.LevelEvent;
@@ -131,7 +134,7 @@ public class FlansMod
         "bullet",
         () -> EntityType.Builder.of(
             BulletEntity::new,
-                        MobCategory.CREATURE)
+            MobCategory.MISC)
             .sized(0.5f, 0.5f).setTrackingRange(256).clientTrackingRange(256)
             .build("bullet")); //Trying to extend render range for bullets but it's not working
     public static final RegistryObject<EntityType<WheelEntity>> ENT_TYPE_WHEEL = ENTITY_TYPES.register(

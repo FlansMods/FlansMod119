@@ -44,6 +44,7 @@ public class TurboSection
 	//public final Map<String, Either<Material, String>> textureMap;
 	public final Map<String, ResourceLocation> textures;
 	public final ETurboRenderMaterial material;
+	public final String renderConditional;
 
 	@Nullable
 	public TurboSection parent;
@@ -51,15 +52,16 @@ public class TurboSection
 	protected ResourceLocation parentLocation;
 
 	public TurboSection(@Nullable ResourceLocation parentLocation,
-						List<TurboElement> elements,
+						@Nonnull List<TurboElement> elements,
 						//Map<String, Either<Material, String>> textureMap,
-						Map<String, ResourceLocation> textures,
+						@Nonnull Map<String, ResourceLocation> textures,
 						boolean hasAmbientOcclusion,
 						@Nullable BlockModel.GuiLight guiLight,
-						ItemTransforms transforms,
-						List<ItemOverride> overrides,
-						Vector3f offset,
-						ETurboRenderMaterial material)
+						@Nullable ItemTransforms transforms,
+						@Nonnull List<ItemOverride> overrides,
+						@Nonnull Vector3f offset,
+						@Nonnull ETurboRenderMaterial material,
+						@Nonnull String renderConditional)
 	{
 		this.elements = elements;
 		this.hasAmbientOcclusion = hasAmbientOcclusion;
@@ -71,6 +73,7 @@ public class TurboSection
 		this.overrides = overrides;
 		this.offset = offset;
 		this.material = material;
+		this.renderConditional = renderConditional;
 	}
 
 	@Nonnull
@@ -78,7 +81,7 @@ public class TurboSection
 								  @Nonnull ModelBaker baker,
 								  @Nonnull Function<Material, TextureAtlasSprite> spriteGetter,
 								  @Nonnull ModelState modelState,
-								  @Nullable ItemOverrides overrides,
+								  @Nonnull ItemOverrides overrides,
 								  @Nonnull ResourceLocation modelLocation,
 								  @Nonnull Vector2i textureSize)
 	{
@@ -88,7 +91,7 @@ public class TurboSection
 			BakedTurboGeometry bakedGeom = element.bake(textureSize);
 			bakedGeometry.add(bakedGeom);
 		}
-		return new BakedTurboSection(bakedGeometry.build(), overrides, transforms, material);
+		return new BakedTurboSection(bakedGeometry.build(), overrides, transforms, material, renderConditional);
 	}
 
 	@OnlyIn(Dist.CLIENT)
@@ -131,6 +134,12 @@ public class TurboSection
 				material = ETurboRenderMaterial.valueOf(jObject.get("material").getAsString());
 			}
 
+			String renderConditional = "";
+			if(jObject.has("renderCondition"))
+			{
+				renderConditional = jObject.get("renderCondition").getAsString();
+			}
+
 			ResourceLocation parentLocation = parentName.isEmpty() ? null : new ResourceLocation(parentName);
 			return new TurboSection(
 				parentLocation,
@@ -141,7 +150,8 @@ public class TurboSection
 				itemTransforms,
 				list1,
 				offset,
-				material);
+				material,
+				renderConditional);
 		}
 
 		protected List<ItemOverride> getOverrides(JsonDeserializationContext p_111495_, JsonObject p_111496_) {

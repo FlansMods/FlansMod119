@@ -30,6 +30,9 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.Level;
@@ -55,7 +58,6 @@ public class BulletEntity extends Projectile
 	private static final EntityDataAccessor<Integer> DATA_SHOT_INDEX = SynchedEntityData.defineId(BulletEntity.class, EntityDataSerializers.INT);
 	private static final EntityDataAccessor<Integer> DATA_LOCK_ID = SynchedEntityData.defineId(BulletEntity.class, EntityDataSerializers.INT);
 	private static final EntityDataAccessor<Integer> DATA_LIFETIME = SynchedEntityData.defineId(BulletEntity.class, EntityDataSerializers.INT);
-
 
 	@Nullable
 	public Entity LockedOnTo = null;
