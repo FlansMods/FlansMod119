@@ -338,10 +338,20 @@ public class ActionStack
 		ActionGroupContext newGroupContext = triggeringActionGroup.Gun
 			.GetActionGroupContextSibling(triggeringActionGroup, reload.GetReloadActionKey(reloadStage));
 		ActionGroupInstance groupInstance = GetOrCreateGroupInstance(newGroupContext);
-		TryStartGroupInstance(newGroupContext, true);
+		EActionResult result = TryStartGroupInstance(newGroupContext, true);
 		if (reloadStage == EReloadStage.LoadOne)// && !IsClient)
 		{
 			newGroupContext.LoadOne(0, newGroupContext.Gun.GetAttachedInventory());
+		}
+		//EActionResult result = TryStartGroupInstance(newGroupContext, true);
+		// Send a message to the server about these actions if required
+		if(IsClient) {
+			if (result == EActionResult.CanProcess && (groupInstance.PropogateToServer() || groupInstance.NeedsNetSync())) {
+				ActionUpdateMessage updateMsg = new ActionUpdateMessage(newGroupContext, EPressType.Press, groupInstance.GetStartedTick());
+				updateMsg.AddTriggers(groupInstance, groupInstance.GetRequiredNetSyncMin(), groupInstance.GetRequiredNetSyncMax());
+				FlansModPacketHandler.SendToServer(new ActionUpdateMessage.ToServer(updateMsg));
+				groupInstance.OnPerformedNetSync(groupInstance.GetRequiredNetSyncMin(), groupInstance.GetRequiredNetSyncMax());
+			}
 		}
 	}
 
