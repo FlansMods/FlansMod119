@@ -56,4 +56,7 @@ public class MagazineDefinition extends JsonDefinition
 				return true;
 		return false;
 	}
+
+	@JsonField
+	public String spawnBulletCasing = "";
 }

@@ -217,6 +217,7 @@ public class ActionGroupInstance
 		}
 	}
 
+
 	// -----------------------------------------------------------------------------------------------------------------
 	//  SERVER
 	// -----------------------------------------------------------------------------------------------------------------
@@ -289,6 +290,18 @@ public class ActionGroupInstance
 	}
 	private void OnTriggerServer(int triggerIndex)
 	{
+		for(ActionInstance action : Actions)
+		{
+			if(action.Def.delay==0)
+				action.OnTriggerServer(triggerIndex);
+			else
+			{
+				delayedServerActions.put(action, (int) action.Def.delay);
+			}
+		}
+	}
+
+	public void ProxyTriggerServer(int triggerIndex){
 		for(ActionInstance action : Actions)
 		{
 			if(action.Def.delay==0)

@@ -7,6 +7,7 @@ import com.flansmod.common.actions.contexts.ActionGroupContext;
 import com.flansmod.common.actions.contexts.GunContext;
 import com.flansmod.common.actions.contexts.TargetsContext;
 import com.flansmod.common.actions.contexts.TriggerContext;
+import com.flansmod.common.actions.nodes.EjectCasingAction;
 import com.flansmod.common.gunshots.EPressType;
 import com.flansmod.common.network.FlansModPacketHandler;
 import com.flansmod.common.network.bidirectional.ActionUpdateMessage;
@@ -554,8 +555,13 @@ public class ActionStack
 				{
 					for (ActionInstance action : groupInstance.GetActions())
 					{
-						action.OnTriggerServer(triggerIndex);
+						//action.OnTriggerServer(triggerIndex);
+						if(action instanceof EjectCasingAction) {
+							ActionInstance.NetData netData = msg.Data.GetNetData(triggerIndex, actionIndex);
+							action.UpdateFromNetData(netData, triggerIndex);
+						}
 					}
+					groupInstance.ProxyTriggerServer(triggerIndex);
 					groupInstance.TriggerCount++;
 				}
 
