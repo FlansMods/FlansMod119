@@ -2,6 +2,7 @@ package com.flansmod.common.actions.nodes;
 
 import com.flansmod.client.render.FirstPersonManager;
 import com.flansmod.common.FlansMod;
+import com.flansmod.common.FlansModConfig;
 import com.flansmod.common.actions.ActionGroupInstance;
 import com.flansmod.common.actions.ActionInstance;
 import com.flansmod.common.actions.contexts.*;

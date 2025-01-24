@@ -2,6 +2,7 @@ package com.flansmod.common.projectiles;
 
 import com.flansmod.client.render.FirstPersonManager;
 import com.flansmod.common.FlansMod;
+import com.flansmod.common.FlansModConfig;
 import com.flansmod.common.actions.ActionGroupInstance;
 import com.flansmod.common.actions.ActionInstance;
 import com.flansmod.common.actions.contexts.*;
@@ -267,24 +268,32 @@ public class CasingEntity extends Projectile {
         HitResult hitResult = ProjectileUtil.getHitResultOnMoveVector(this, this::CanHitEntity);
         if(hitResult.getType() == HitResult.Type.BLOCK){
             //kill entity, spawn bullet casing if specified
-            if(itemToSpawn != null && !itemToSpawn.isEmpty())
-            {
-                Item i = BuiltInRegistries.ITEM.get(new ResourceLocation(itemToSpawn));
-                if(i != null && i != Items.AIR) {
-                    ItemStack casing = new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation(itemToSpawn)), 1);
-                    ItemEntity created =
-                            new ItemEntity(level(), getX(), getY(), getZ(), casing);
-
-                    created.setDefaultPickUpDelay();
-                    created.setDefaultPickUpDelay();
-                    //created.setDeltaMovement(VecHelper.offsetRandomly(new Vec3(0,0.5f,0), level().random, .05f));
-                    level().addFreshEntity(created);
-                }
-            }
-
-            if(!level().isClientSide)
-                kill();
+            Die();
         }
+        if(onGround())
+        {
+            Die();
+        }
+    }
+
+    public void Die(){
+        if(itemToSpawn != null && !itemToSpawn.isEmpty())
+        {
+            Item i = BuiltInRegistries.ITEM.get(new ResourceLocation(itemToSpawn));
+            if(i != null && i != Items.AIR && FlansModConfig.AllowBulletCasingDrops.get()) {
+                ItemStack casing = new ItemStack(BuiltInRegistries.ITEM.get(new ResourceLocation(itemToSpawn)), 1);
+                ItemEntity created =
+                        new ItemEntity(level(), getX(), getY(), getZ(), casing);
+
+                created.setDefaultPickUpDelay();
+                created.setDefaultPickUpDelay();
+                //created.setDeltaMovement(VecHelper.offsetRandomly(new Vec3(0,0.5f,0), level().random, .05f));
+                level().addFreshEntity(created);
+            }
+        }
+
+        if(!level().isClientSide)
+            kill();
     }
 
     private boolean CanHitEntity(Entity entity) {

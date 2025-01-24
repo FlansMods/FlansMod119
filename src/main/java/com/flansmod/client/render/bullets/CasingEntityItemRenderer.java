@@ -50,7 +50,7 @@ public class CasingEntityItemRenderer {
 
         for(CasingEntity e : Minecraft.getInstance().level.getEntitiesOfClass(CasingEntity.class, AABB.ofSize(Minecraft.getInstance().player.position(),5f,5f,5f))){
             if(e.GetContext().GetShooter().IsLocalPlayerOwner()){
-                if(e.Action != null){
+                if(e.Action != null && e.lifeTime < 8){
                     RenderCasingFirstPerson(e, event.getPoseStack(),null,e.GetContext(), event.getPartialTick());
                 }
             }
@@ -62,7 +62,7 @@ public class CasingEntityItemRenderer {
                                         @Nonnull GunContext gunContext, @Nonnull float partialTick){
         CasingRenderer renderer = (CasingRenderer) FlansModelRegistry.GetItemRenderer(new ResourceLocation(gunContext.Def.casingModel));
         if(renderer != null){
-            ItemDisplayContext transformType = ItemDisplayContext.FIXED;
+            ItemDisplayContext transformType = ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
             if (gunContext instanceof GunContextPlayer playerGunContext)
             {
                 if (!Minecraft.getInstance().options.getCameraType().isFirstPerson() || !gunContext.GetShooter().IsLocalPlayerOwner())
@@ -77,7 +77,7 @@ public class CasingEntityItemRenderer {
             int light = camera != null ? camera.getBlockAtCamera().getLightEmission() : 0;
 
             poseStack.pushPose();
-            poseStack.scale(0.576f,0.576f,0.576f);
+            //poseStack.scale(0.576f,0.576f,0.576f);
 
             RenderContext renderContext = new RenderContext(
                     Minecraft.getInstance().renderBuffers().bufferSource(),
@@ -96,7 +96,8 @@ public class CasingEntityItemRenderer {
                 FirstPersonManager.ApplyEyeToRoot(renderContext.Transforms, gunContext, transformType);
                 FirstPersonManager.ApplyRootToModel(renderContext.Transforms, gunContext, transformType);
                 FirstPersonManager.ApplyModelToAP(renderContext.Transforms, gunContext, casing.Action.EjectDirection(), true);
-                renderContext.Transforms.add(Transform.fromScale(2.0f));
+                renderContext.Transforms.add(renderer.getPosePublic(null, null, casing.Action.EjectDirection()));
+                renderContext.Transforms.add(Transform.fromScale(2.0f*0.576f));
                 //renderContext.Transforms.add(Transform.fromEuler(casing.getXRot(),casing.getYRot(),0));
             }
             else
@@ -105,7 +106,7 @@ public class CasingEntityItemRenderer {
                         FirstPersonManager.GetWorldSpaceAPTransform(gunContext, transformType, casing.Action.AttachPoint()));
             }
 
-            renderContext.Transforms.add(Transform.fromPos(0d, 0d, -1d/16d));
+            //renderContext.Transforms.add(Transform.fromPos(0d, 0d, -1d/16d));
 
 
 
