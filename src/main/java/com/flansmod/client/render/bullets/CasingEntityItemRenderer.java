@@ -10,6 +10,7 @@ import com.flansmod.common.actions.contexts.GunContext;
 import com.flansmod.common.actions.contexts.GunContextPlayer;
 import com.flansmod.common.actions.contexts.ShooterContext;
 import com.flansmod.common.actions.nodes.EjectCasingAction;
+import com.flansmod.common.item.GunItem;
 import com.flansmod.common.projectiles.CasingEntity;
 import com.flansmod.physics.client.DebugRenderer;
 import com.flansmod.physics.common.util.MinecraftHelpers;
@@ -60,7 +61,17 @@ public class CasingEntityItemRenderer {
     public void RenderCasingFirstPerson(@Nonnull CasingEntity casing, @Nonnull PoseStack poseStack,
                                         @Nullable Camera camera,
                                         @Nonnull GunContext gunContext, @Nonnull float partialTick){
-        CasingRenderer renderer = (CasingRenderer) FlansModelRegistry.GetItemRenderer(new ResourceLocation(gunContext.Def.casingModel));
+
+        ResourceLocation loc = new ResourceLocation(casing.GetContext().Def.casingModel);
+
+        if (casing.GetContext().GetItemStack().getItem() instanceof GunItem gunItem)
+        {
+            if(!gunItem.GetMagazineType(casing.GetContext().GetItemStack(), casing.GetContext().GetActionGroupContextByHash(casing.GetActionGroupPathHash()).GroupPath, 0).casingModelOverride.isEmpty()){
+                loc = new ResourceLocation(gunItem.GetMagazineType(casing.GetContext().GetItemStack(), casing.GetContext().GetActionGroupContextByHash(casing.GetActionGroupPathHash()).GroupPath, 0).casingModelOverride);
+            }
+        }
+
+        CasingRenderer renderer = (CasingRenderer) FlansModelRegistry.GetItemRenderer(loc);
         if(renderer != null){
             ItemDisplayContext transformType = ItemDisplayContext.THIRD_PERSON_RIGHT_HAND;
             if (gunContext instanceof GunContextPlayer playerGunContext)

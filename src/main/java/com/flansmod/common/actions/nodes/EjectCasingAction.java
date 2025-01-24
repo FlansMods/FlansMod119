@@ -214,6 +214,8 @@ public class EjectCasingAction extends ActionInstance {
     @Override
     public void OnTriggerServer(int triggerIndex) {
         casingEntity = null;
+        MagazineDefinition magDef = Group.Context.GetMagazineType(0);
+        if(!magDef.ejectCasings) return;
         if(casingEntity == null)
         {
             if(Group.Context.Gun instanceof GunContextPlayer playerGunContext) {
@@ -276,25 +278,6 @@ public class EjectCasingAction extends ActionInstance {
     @Override
     public void OnTickServer() {
         super.OnTickServer();
-        if(position != Vec3.ZERO && casingEntity == null)
-        {
-            if(Group.Context.Gun instanceof GunContextPlayer playerGunContext) {
-
-                CasingEntity casing = new CasingEntity(FlansMod.ENT_TYPE_CASING.get(), Group.Context.Gun.GetLevel());
-
-                GunContext context = Group.Context.Gun;
-                casing.InitContext(Group.Context);
-
-                casing.setPos(position);
-                casing.SetVelocity(velocity);
-                casing.RecalculateFacing(dir);
-                casing.setOldPosAndRot();
-                casing.Action = this;
-
-                Group.Context.Gun.GetLevel().addFreshEntity(casing);
-                casingEntity = casing;
-            }
-        }
     }
 
     @Nonnull

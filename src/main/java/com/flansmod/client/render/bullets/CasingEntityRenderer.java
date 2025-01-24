@@ -12,6 +12,7 @@ import com.flansmod.common.actions.contexts.GunContextPlayer;
 import com.flansmod.common.actions.contexts.ShooterContext;
 import com.flansmod.common.actions.nodes.AttachEffectAction;
 import com.flansmod.common.actions.nodes.EjectCasingAction;
+import com.flansmod.common.item.GunItem;
 import com.flansmod.common.projectiles.CasingEntity;
 import com.flansmod.common.types.guns.GunDefinition;
 import com.flansmod.physics.common.util.MinecraftHelpers;
@@ -59,6 +60,14 @@ public class CasingEntityRenderer extends EntityRenderer<CasingEntity> {
     {
         GunDefinition def = casing.GetContext().Def;
         ResourceLocation loc = new ResourceLocation(casing.GetContext().Def.casingModel);
+
+        if (casing.GetContext().GetItemStack().getItem() instanceof GunItem gunItem)
+        {
+            if(!gunItem.GetMagazineType(casing.GetContext().GetItemStack(), casing.GetContext().GetActionGroupContextByHash(casing.GetActionGroupPathHash()).GroupPath, 0).casingModelOverride.isEmpty()){
+                loc = new ResourceLocation(gunItem.GetMagazineType(casing.GetContext().GetItemStack(), casing.GetContext().GetActionGroupContextByHash(casing.GetActionGroupPathHash()).GroupPath, 0).casingModelOverride);
+            }
+        }
+
         CasingRenderer casingRenderer = (CasingRenderer) FlansModelRegistry.GetItemRenderer(loc);
 
         boolean noRender = false;
