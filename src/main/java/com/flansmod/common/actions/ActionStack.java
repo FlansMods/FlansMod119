@@ -341,10 +341,11 @@ public class ActionStack
 		EActionResult result = TryStartGroupInstance(newGroupContext, true);
 		if (reloadStage == EReloadStage.LoadOne)// && !IsClient)
 		{
-			newGroupContext.LoadOne(0, newGroupContext.Gun.GetAttachedInventory());
+			newGroupContext.LoadOne(0, newGroupContext.Gun.GetAttachedInventory(),IsClient);
 		}
 		//EActionResult result = TryStartGroupInstance(newGroupContext, true);
 		// Send a message to the server about these actions if required
+		
 		if(IsClient) {
 			if (result == EActionResult.CanProcess && (groupInstance.PropogateToServer() || groupInstance.NeedsNetSync())) {
 				ActionUpdateMessage updateMsg = new ActionUpdateMessage(newGroupContext, EPressType.Press, groupInstance.GetStartedTick());

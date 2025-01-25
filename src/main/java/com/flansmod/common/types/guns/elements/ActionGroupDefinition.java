@@ -43,8 +43,8 @@ public class ActionGroupDefinition
 		float duration = repeatDelay;
 		for(ActionDefinition actionDef : actions)
 		{
-			if(actionDef.duration+actionDef.delay > duration)
-				duration = actionDef.duration+actionDef.delay;
+			if(actionDef.duration+(actionDef.delay/20.0F) > duration)
+				duration = actionDef.duration+(actionDef.delay/20.0F);
 		}
 
 		// Round up ticks so we know the duration covers everything
