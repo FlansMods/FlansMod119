@@ -201,8 +201,14 @@ public class CasingEntity extends Projectile {
         {
             //SetBulletDef(FlansMod.BULLETS.Get(new ResourceLocation(tags.getString("bullet"))));
         }
-        ActionGroupContext context = ActionGroupContext.Load(tags.getCompound("context"), level().isClientSide);
-        InitContext(context);
+        if(tags.contains("context")) {
+            ActionGroupContext context = ActionGroupContext.Load(tags.getCompound("context"), level().isClientSide);
+            if (context != null)
+                InitContext(context);
+        }
+        else{
+            kill();
+        }
         lifeTime = tags.getInt("lifeTime");
 
         CompoundTag tag = new CompoundTag();
